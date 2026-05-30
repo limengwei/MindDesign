@@ -19,7 +19,7 @@ function autoLayoutToCSS(layout: ElementTree['autoLayout']): string {
     if (typeof layout.padding === 'number') {
       parts.push(`padding:${layout.padding}px`)
     } else {
-      parts.push(`padding:${layout.padding.join('px ')}px`)
+      parts.push(`padding:${layout.padding.map(v => `${v}px`).join(' ')}`)
     }
   }
   if (layout.align) {
@@ -57,7 +57,7 @@ function commonStyleCSS(node: ElementTree): string {
     if (typeof node.cornerRadius === 'number') {
       parts.push(`border-radius:${node.cornerRadius}px`)
     } else {
-      parts.push(`border-radius:${node.cornerRadius.join('px ')}px`)
+      parts.push(`border-radius:${node.cornerRadius.map(v => `${v}px`).join(' ')}`)
     }
   }
   if (node.stroke) parts.push(`border:${node.strokeWidth || 1}px solid ${node.stroke}`)

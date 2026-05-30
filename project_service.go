@@ -22,7 +22,10 @@ type ProjectService struct {
 }
 
 func NewProjectService() *ProjectService {
-	dir, _ := os.UserConfigDir()
+	dir, err := os.UserConfigDir()
+	if err != nil || dir == "" {
+		dir, _ = os.UserHomeDir()
+	}
 	appDir := filepath.Join(dir, "MindDesign")
 	os.MkdirAll(appDir, 0755)
 	return &ProjectService{appDir: appDir}
