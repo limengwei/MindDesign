@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { App, Leafer, Group, Rect, Text, Frame } from 'leafer-ui'
 import '@leafer-in/viewport'
 import { buildTree } from './renderer'
+import { DotGrid } from './dotGrid'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
 import type { ElementTree } from '../types/element'
 
@@ -15,6 +16,7 @@ const canvasStore = useCanvasStore()
 const containerRef = ref<HTMLDivElement | null>(null)
 let app: App | null = null
 let treeLayer: Leafer | null = null
+let dotGrid: DotGrid | null = null
 let resizeObserver: ResizeObserver | null = null
 const cardGroups = new Map<string, Group>()
 
@@ -23,7 +25,7 @@ onMounted(() => {
 
   app = new App({
     view: containerRef.value,
-    fill: '#0f0f23',
+    ground: { type: 'draw' },
     tree: { type: 'design' },
     zoom: {
       min: 0.1,
@@ -37,6 +39,12 @@ onMounted(() => {
   })
 
   treeLayer = app.tree as Leafer
+  dotGrid = new DotGrid(app, {
+    dotColor: 'rgba(255,255,255,0.1)',
+    dotSize: 1.2,
+    gridGap: 24,
+    bgColor: '#0f0f23',
+  })
 
   resizeObserver = new ResizeObserver(() => {
     if (!containerRef.value || !app) return
@@ -47,6 +55,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  dotGrid?.destroy()
+  dotGrid = null
   resizeObserver?.disconnect()
   resizeObserver = null
   app?.destroy()
