@@ -9,6 +9,8 @@ export type ElementType =
   | 'Box'
   | 'Path'
   | 'Line'
+  | 'Star'
+  | 'Polygon'
 
 export interface AutoLayout {
   direction: 'row' | 'column'
@@ -16,6 +18,14 @@ export interface AutoLayout {
   padding?: number | [number, number, number, number]
   align?: 'start' | 'center' | 'end' | 'stretch'
   wrap?: boolean
+}
+
+export interface Shadow {
+  x?: number
+  y?: number
+  blur?: number
+  color: string
+  spread?: number
 }
 
 export interface ElementTree {
@@ -32,6 +42,17 @@ export interface ElementTree {
   opacity?: number
   visible?: boolean
   rotation?: number
+  scaleX?: number
+  scaleY?: number
+  skewX?: number
+  skewY?: number
+  zIndex?: number
+  overflow?: 'show' | 'hide'
+  shadow?: Shadow | Shadow[]
+  innerShadow?: Shadow | Shadow[]
+  blur?: number
+  blendMode?: string
+  cursor?: string
 
   autoLayout?: AutoLayout
 
@@ -52,6 +73,9 @@ export interface ElementTree {
   path?: string
 
   points?: number[]
+
+  corners?: number
+  innerRadius?: number
 
   children?: ElementTree[]
 }

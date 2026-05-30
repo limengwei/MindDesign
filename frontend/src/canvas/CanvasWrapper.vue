@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { Leafer, Group, Rect, Text, Frame } from 'leafer-ui'
+import { App, Leafer, Group, Rect, Text, Frame } from 'leafer-ui'
+import '@leafer-in/viewport'
 import { buildTree } from './renderer'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
 import type { ElementTree } from '../types/element'
@@ -12,39 +13,54 @@ const props = defineProps({
 
 const canvasStore = useCanvasStore()
 const containerRef = ref<HTMLDivElement | null>(null)
-let leafer: Leafer | null = null
-/** cardId → Leafer Group */
+let app: App | null = null
+let treeLayer: Leafer | null = null
+let resizeObserver: ResizeObserver | null = null
 const cardGroups = new Map<string, Group>()
 
 onMounted(() => {
   if (!containerRef.value) return
-  // 无限画布：比视口大很多
-  const w = containerRef.value.clientWidth * 3
-  const h = containerRef.value.clientHeight * 3
-  leafer = new Leafer({
+
+  app = new App({
     view: containerRef.value,
-    width: w,
-    height: h,
     fill: '#f5f5f5',
-    type: 'design',
-    move: { scroll: true },
+    tree: { type: 'design' },
+    zoom: {
+      min: 0.1,
+      max: 5,
+    },
+    move: {
+      holdSpaceKey: true,
+      holdMiddleKey: true,
+      scroll: true,
+    },
   })
+
+  treeLayer = app.tree as Leafer
+
+  resizeObserver = new ResizeObserver(() => {
+    if (!containerRef.value || !app) return
+    const { clientWidth, clientHeight } = containerRef.value
+    app.resize({ width: clientWidth, height: clientHeight })
+  })
+  resizeObserver.observe(containerRef.value)
 })
 
 onUnmounted(() => {
-  leafer?.destroy()
-  leafer = null
+  resizeObserver?.disconnect()
+  resizeObserver = null
+  app?.destroy()
+  app = null
+  treeLayer = null
   cardGroups.clear()
 })
 
-/** 构建单张卡片并定位 */
 async function renderCard(card: CanvasCard, selected: boolean) {
-  if (!leafer) return
+  if (!treeLayer) return
   const group = new Group({
     id: card.id,
     x: card.x,
     y: card.y,
-    // 选中高亮
     strokeWidth: selected ? 3 : 1,
     stroke: selected ? '#4F46E5' : '#e0e0e0',
     cornerRadius: 8,
@@ -53,7 +69,6 @@ async function renderCard(card: CanvasCard, selected: boolean) {
   const root = await buildTree(card.tree)
   group.add(root as any)
 
-  // 卡片标签
   const label = new Text({
     text: card.label,
     fontSize: 12,
@@ -62,13 +77,12 @@ async function renderCard(card: CanvasCard, selected: boolean) {
   })
   group.add(label as any)
 
-  const dims = { width: props.pageWidth, height: props.pageHeight }
   group.hitSelf = true
   group.on('click', () => {
     canvasStore.selectCard(card.id)
   })
 
-  leafer.add(group as any)
+  treeLayer.add(group as any)
   cardGroups.set(card.id, group)
 }
 
@@ -78,10 +92,8 @@ function removeCard(id: string) {
   cardGroups.delete(id)
 }
 
-/** 全量重绘所有卡片 */
 async function renderAll() {
-  if (!leafer) return
-  // 清除所有卡片组
+  if (!treeLayer) return
   for (const g of cardGroups.values()) g.remove()
   cardGroups.clear()
 
@@ -90,14 +102,12 @@ async function renderAll() {
   }
 }
 
-// 监听 cards 变化
 watch(
   () => canvasStore.cards.map(c => c.id),
   () => renderAll(),
   { deep: false }
 )
 
-// 选中高亮更新
 watch(
   () => canvasStore.selectedCardId,
   () => {
@@ -109,24 +119,22 @@ watch(
   }
 )
 
-// 视口缩放（滚轮）
-function onWheel(e: WheelEvent) {
-  if (!leafer) return
-  e.preventDefault()
-  const delta = e.deltaY > 0 ? -0.1 : 0.1
-  const currentZoom = leafer.scaleX ?? 1
-  const newZoom = Math.max(0.2, Math.min(2, currentZoom + delta))
-  leafer.scaleX = newZoom
-  leafer.scaleY = newZoom
+function handleZoomIn() {
+  if (!treeLayer) return
+  treeLayer.zoom('in')
 }
 
-onMounted(() => {
-  containerRef.value?.addEventListener('wheel', onWheel, { passive: false })
-})
+function handleZoomOut() {
+  if (!treeLayer) return
+  treeLayer.zoom('out')
+}
 
-onUnmounted(() => {
-  containerRef.value?.removeEventListener('wheel', onWheel)
-})
+function handleZoomFit() {
+  if (!treeLayer || cardGroups.size === 0) return
+  treeLayer.zoom('fit')
+}
+
+defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 </script>
 
 <template>

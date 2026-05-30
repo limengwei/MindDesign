@@ -2,7 +2,7 @@ import { watch } from 'vue'
 import { useCanvasStore } from './canvasStore'
 import { useChatStore } from './chatStore'
 import type { ProjectFile } from '../types/project'
-import * as ProjectService from '../../bindings/changeme/projectservice'
+import { autoSave, getAutoSave, clearAutoSave as doClear } from '../services/projectBridge'
 
 export function setupAutoSave() {
   const canvas = useCanvasStore()
@@ -32,7 +32,7 @@ export function setupAutoSave() {
     }
 
     try {
-      await ProjectService.AutoSave(JSON.stringify(data))
+      await autoSave(JSON.stringify(data))
     } catch (e) {
       console.error('AutoSave failed:', e)
     }
@@ -49,7 +49,7 @@ export function setupAutoSave() {
 
 export async function checkAutoSave(): Promise<ProjectFile | null> {
   try {
-    const data = await ProjectService.GetAutoSave()
+    const data = await getAutoSave()
     if (!data) return null
     return JSON.parse(data) as ProjectFile
   } catch {
@@ -59,7 +59,7 @@ export async function checkAutoSave(): Promise<ProjectFile | null> {
 
 export async function clearAutoSave() {
   try {
-    await ProjectService.ClearAutoSave()
+    await doClear()
   } catch (e) {
     console.error('ClearAutoSave failed:', e)
   }

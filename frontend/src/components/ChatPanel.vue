@@ -9,27 +9,29 @@ const canvasStore = useCanvasStore()
 
 const inputText = ref('')
 
-// 监听 pendingSend 自动发送 ProjectDialog 的描述作为首条消息
+function buildCallOptions() {
+  return {
+    pageType: canvasStore.pageType,
+    colorScheme: canvasStore.colorScheme,
+    history: chatStore.messages.map(m => ({ role: m.role, content: m.content })),
+    currentTree: canvasStore.currentTree,
+    onStreamingTree: (tree: Parameters<typeof canvasStore.addCard>[0]) => {
+      const cards = canvasStore.cards
+      if (cards.length > 0) {
+        cards[cards.length - 1].tree = tree
+      } else {
+        canvasStore.addCard(tree)
+      }
+    },
+  }
+}
+
 watch(() => chatStore.pendingSend, async (text) => {
   if (!text) return
   chatStore.pendingSend = null
   chatStore.setStreaming(true)
   try {
-    const history = chatStore.messages.map(m => ({ role: m.role, content: m.content }))
-    const result = await sendMessageToLLM(text, {
-      pageType: canvasStore.pageType,
-      colorScheme: canvasStore.colorScheme,
-      history,
-      onStreamingTree: (tree) => {
-        // 找到或更新最后一张流式卡片
-        const cards = canvasStore.cards
-        if (cards.length > 0) {
-          cards[cards.length - 1].tree = tree
-        } else {
-          canvasStore.addCard(tree)
-        }
-      },
-    })
+    const result = await sendMessageToLLM(text, buildCallOptions())
     chatStore.addAssistantMessage(result.content, result.tree || undefined)
     if (result.tree) canvasStore.addCard(result.tree)
   } catch (err) {
@@ -49,26 +51,7 @@ async function handleSend() {
   chatStore.setStreaming(true)
 
   try {
-    const history = chatStore.messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-    }))
-
-    const result = await sendMessageToLLM(text, {
-      pageType: canvasStore.pageType,
-      colorScheme: canvasStore.colorScheme,
-      history,
-      onStreamingTree: (tree) => {
-        // Streaming 过程中更新最后一张卡片
-        const cards = canvasStore.cards
-        if (cards.length > 0) {
-          cards[cards.length - 1].tree = tree
-        } else {
-          canvasStore.addCard(tree)
-        }
-      },
-    })
-
+    const result = await sendMessageToLLM(text, buildCallOptions())
     chatStore.addAssistantMessage(result.content, result.tree || undefined)
     if (result.tree) {
       canvasStore.addCard(result.tree)

@@ -5,7 +5,7 @@ import { useChatStore } from '../stores/chatStore'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
 import ExportDialog from './ExportDialog.vue'
 import SettingsPanel from './SettingsPanel.vue'
-import * as ProjectService from '../../bindings/changeme/projectservice'
+import { autoSave } from '../services/projectBridge'
 import type { ProjectFile } from '../types/project'
 
 const canvasStore = useCanvasStore()
@@ -28,7 +28,7 @@ async function handleSave() {
     chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
   }
   try {
-    await ProjectService.AutoSave(JSON.stringify(data))
+    await autoSave(JSON.stringify(data))
     alert('已保存到 MindDesign 项目数据目录')
   } catch (e) {
     console.error('Save failed:', e)

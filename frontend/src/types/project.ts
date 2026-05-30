@@ -1,6 +1,3 @@
-import type { ElementTree } from './element'
-
-import type { ElementTree } from './element'
 import type { CanvasCard } from '../stores/canvasStore'
 
 export interface ProjectFile {

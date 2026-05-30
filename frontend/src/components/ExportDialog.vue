@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { Leafer } from 'leafer-ui'
+import '@leafer-in/export'
 import { generateHTML } from '../export/toHTML'
+import { buildTree } from '../canvas/renderer'
 import type { ElementTree } from '../types/element'
 
 const props = defineProps<{
@@ -13,6 +16,7 @@ const emit = defineEmits(['close'])
 const htmlCode = ref('')
 const activeTab = ref<'preview' | 'code'>('preview')
 const copying = ref(false)
+const exporting = ref(false)
 
 onMounted(async () => {
   if (props.tree) {
@@ -35,7 +39,7 @@ async function handleCopy() {
   setTimeout(() => { copying.value = false }, 1500)
 }
 
-function handleDownload() {
+function handleDownloadHTML() {
   const blob = new Blob([htmlCode.value], { type: 'text/html;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -44,19 +48,54 @@ function handleDownload() {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+async function handleDownloadPNG() {
+  if (!props.tree) return
+  exporting.value = true
+  try {
+    const container = document.createElement('div')
+    container.style.width = '1px'
+    container.style.height = '1px'
+    container.style.position = 'fixed'
+    container.style.left = '-9999px'
+    document.body.appendChild(container)
+
+    const leafer = new Leafer({ view: container })
+    const root = await buildTree(props.tree)
+    leafer.add(root)
+
+    await new Promise(r => setTimeout(r, 200))
+
+    const result = await (root as any).export('png', { pixelRatio: 2 })
+    leafer.destroy()
+    document.body.removeChild(container)
+
+    if (result?.data) {
+      const a = document.createElement('a')
+      a.href = result.data
+      a.download = `${props.projectName || 'design'}.png`
+      a.click()
+    }
+  } catch (e) {
+    console.error('PNG export failed:', e)
+    alert('导出 PNG 失败，请尝试导出 HTML')
+  } finally {
+    exporting.value = false
+  }
+}
 </script>
 
 <template>
   <div class="dialog-overlay" @click.self="$emit('close')">
     <div class="dialog">
       <div class="dialog-header">
-        <h2>导出 HTML</h2>
+        <h2>导出设计稿</h2>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
 
       <div class="tabs">
-        <button :class="['tab', { active: activeTab === 'preview' }]" @click="activeTab = 'preview'">预览</button>
-        <button :class="['tab', { active: activeTab === 'code' }]" @click="activeTab = 'code'">代码</button>
+        <button :class="['tab', { active: activeTab === 'preview' }]" @click="activeTab = 'preview'">HTML 预览</button>
+        <button :class="['tab', { active: activeTab === 'code' }]" @click="activeTab = 'code'">HTML 代码</button>
       </div>
 
       <div class="dialog-body">
@@ -78,7 +117,10 @@ function handleDownload() {
         <button class="btn btn-secondary" @click="handleCopy">
           {{ copying ? '已复制!' : '复制代码' }}
         </button>
-        <button class="btn btn-primary" @click="handleDownload">下载 HTML</button>
+        <button class="btn btn-secondary" @click="handleDownloadPNG" :disabled="exporting || !tree">
+          {{ exporting ? '导出中...' : '下载 PNG' }}
+        </button>
+        <button class="btn btn-primary" @click="handleDownloadHTML">下载 HTML</button>
       </div>
     </div>
   </div>
@@ -212,12 +254,17 @@ function handleDownload() {
   transition: all 0.2s;
 }
 
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-secondary {
   background: #f0f0f0;
   color: #666;
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: #e0e0e0;
 }
 

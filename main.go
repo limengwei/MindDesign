@@ -16,7 +16,6 @@ func main() {
 		Name:        "MindDesign",
 		Description: "AI 对话式 UI 设计工具",
 		Services: []application.Service{
-			application.NewService(&GreetService{}),
 			application.NewService(NewProjectService()),
 		},
 		Assets: application.AssetOptions{

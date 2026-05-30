@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { ElementTree } from '../types/element'
 import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
@@ -70,6 +70,18 @@ export const useCanvasStore = defineStore('canvas', () => {
     viewport.value = { zoom: z, scrollX: sx, scrollY: sy }
   }
 
+  const currentTree = computed<ElementTree | null>(() => {
+    if (!selectedCardId.value) return null
+    const card = cards.value.find(c => c.id === selectedCardId.value)
+    return card?.tree ?? null
+  })
+
+  function updateSelectedCardTree(tree: ElementTree) {
+    if (!selectedCardId.value) return
+    const card = cards.value.find(c => c.id === selectedCardId.value)
+    if (card) card.tree = tree
+  }
+
   function reset() {
     cards.value = []
     selectedCardId.value = null
@@ -82,6 +94,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   return {
     cards,
     selectedCardId,
+    currentTree,
     pageType,
     colorScheme,
     projectName,
@@ -92,6 +105,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     setColorScheme,
     setProjectName,
     setViewport,
+    updateSelectedCardTree,
     reset,
   }
 })

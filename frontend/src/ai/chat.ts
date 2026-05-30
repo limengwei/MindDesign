@@ -7,6 +7,11 @@ import { callOpenAICompatible, type ChatMessage, type ToolDefinition } from './l
 import { useLLMConfigStore } from '../stores/llmConfigStore'
 import { matchMock } from './mockData'
 
+export interface LLMResult {
+  content: string
+  tree: ElementTree | null
+}
+
 const TOOLS: ToolDefinition[] = [
   {
     type: 'function',
@@ -70,6 +75,7 @@ export interface SendMessageOptions {
   pageType: PageType
   colorScheme: ColorScheme
   history: Array<{ role: string; content: string }>
+  currentTree?: ElementTree | null
   onStreaming?: (text: string) => void
   onStreamingTree?: (tree: ElementTree) => void
 }
@@ -79,19 +85,29 @@ const MAX_TOOL_ROUNDS = 3
 async function callRealLLM(
   userText: string,
   options: SendMessageOptions,
-): Promise<{ content: string; tree: ElementTree | null }> {
+): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
   const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
+  ]
+
+  if (options.currentTree) {
+    messages.push({
+      role: 'system',
+      content: `当前画布上的设计稿 JSON 如下，用户可能会要求你在此基础上修改：\n${JSON.stringify(options.currentTree)}`,
+    })
+  }
+
+  messages.push(
     ...options.history.map((m) => ({
       role: m.role as ChatMessage['role'],
       content: m.content,
     })),
     { role: 'user', content: userText },
-  ]
+  )
 
   let fullContent = ''
 
@@ -134,50 +150,28 @@ async function callRealLLM(
   return { content: tree ? '已为你生成了设计稿。' : fullContent, tree }
 }
 
-function callMockLLM(userText: string): { content: string; tree: ElementTree } {
-  const tree = matchMock(userText)
-  let content = '已为你生成了设计稿。'
-  if (userText.includes('登录')) content = '已为你设计了一个简约登录页面。'
-  if (userText.includes('音乐')) content = '已为你设计了一个深色风格的音乐App首页。'
-  return { content, tree }
-}
-
 export async function sendMessageToLLM(
   userText: string,
   options: SendMessageOptions,
-): Promise<{ content: string; tree: ElementTree }> {
+): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
 
   if (configStore.isConfigured) {
     try {
       const result = await callRealLLM(userText, options)
       if (result.tree) {
-        return { content: result.content, tree: result.tree }
+        return result
       }
-      // LLM 返回了但没提取到 tree：返回 AI 的文本给用户看
       const msg = result.content || 'AI 已回复，但未能生成设计稿，请重试。'
-      throw new Error(msg)
+      return { content: msg, tree: matchMock(userText) }
     } catch (err) {
       const msg = (err as Error).message || String(err)
-      // 只有明确的 mock fallback 才走 mock
-      if (msg.includes('未能生成设计稿')) {
-        return { content: msg, tree: mockFallback(userText) }
-      }
-      // 真正的 API 错误：返回错误消息给用户，不走 mock
-      return {
-        content: `❌ API 错误: ${msg}`,
-        tree: null as unknown as ElementTree
-      }
+      return { content: `❌ API 错误: ${msg}`, tree: null }
     }
   }
 
-  // 未配置 API Key：提示用户
   return {
     content: '⚠️ 未配置 AI 服务。请点击右上角齿轮图标设置 API Key。支持 DeepSeek / 智谱 GLM / OpenAI。',
-    tree: null as unknown as ElementTree
+    tree: null,
   }
-}
-
-function mockFallback(userText: string): ElementTree {
-  return matchMock(userText)
 }

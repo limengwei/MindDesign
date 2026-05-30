@@ -1,5 +1,4 @@
 import {
-  Leafer,
   Rect,
   Text,
   Frame,
@@ -9,11 +8,13 @@ import {
   Box,
   Path,
   Line,
+  Star,
+  Polygon,
 } from 'leafer-ui'
 import type { ElementTree, AutoLayout } from '../types/element'
 import { createLeaferIcon } from '../icons/icon-loader'
 
-type AnyLeaf = Rect | Text | Frame | Image | Group | Ellipse | Box | Path | Line
+type AnyLeaf = Rect | Text | Frame | Image | Group | Ellipse | Box | Path | Line | Star | Polygon
 
 function mapFlexAlign(align?: string): string | undefined {
   switch (align) {
@@ -51,6 +52,16 @@ function commonProps(node: ElementTree) {
     opacity: node.opacity,
     visible: node.visible,
     rotation: node.rotation,
+    scaleX: node.scaleX,
+    scaleY: node.scaleY,
+    skewX: node.skewX,
+    skewY: node.skewY,
+    zIndex: node.zIndex,
+    shadow: node.shadow,
+    innerShadow: node.innerShadow,
+    blur: node.blur,
+    blendMode: node.blendMode as any,
+    cursor: node.cursor,
   }
 }
 
@@ -71,7 +82,7 @@ export function buildElement(node: ElementTree): AnyLeaf | Promise<AnyLeaf> {
         fill: node.fill,
         cornerRadius: node.cornerRadius,
         ...(flex ? mapAutoLayout(flex) : { display: 'block' }),
-        overflow: 'show',
+        overflow: node.overflow ?? 'show',
         children: [],
       })
     }
@@ -99,6 +110,7 @@ export function buildElement(node: ElementTree): AnyLeaf | Promise<AnyLeaf> {
           node.fontFamily ??
           "-apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif",
         textAlign: node.textAlign,
+        lineHeight: node.lineHeight,
         letterSpacing: node.letterSpacing,
       })
 
@@ -171,6 +183,27 @@ export function buildElement(node: ElementTree): AnyLeaf | Promise<AnyLeaf> {
         strokeWidth: node.strokeWidth ?? 1,
       })
 
+    case 'Star':
+      return new Star({
+        ...commonProps(node),
+        ...sizeProps(node),
+        fill: node.fill,
+        stroke: node.stroke,
+        strokeWidth: node.strokeWidth,
+        corners: node.corners ?? 5,
+        innerRadius: node.innerRadius,
+      })
+
+    case 'Polygon':
+      return new Polygon({
+        ...commonProps(node),
+        ...sizeProps(node),
+        fill: node.fill,
+        stroke: node.stroke,
+        strokeWidth: node.strokeWidth,
+        sides: node.corners ?? 6,
+      })
+
     default:
       console.warn('Unknown element type:', (node as ElementTree).type)
       return new Rect({ ...commonProps(node), width: 10, height: 10, fill: '#ff0000' })
@@ -188,68 +221,4 @@ export async function buildTree(node: ElementTree): Promise<AnyLeaf> {
   }
 
   return element
-}
-
-function collectIds(node: ElementTree): Set<string> {
-  const ids = new Set<string>()
-  if (node.id) ids.add(node.id)
-  if (node.children) {
-    for (const child of node.children) {
-      for (const id of collectIds(child)) ids.add(id)
-    }
-  }
-  return ids
-}
-
-export async function applyTree(
-  leafer: Leafer,
-  newTree: ElementTree,
-  _oldTree: ElementTree | null
-): Promise<void> {
-  // 先构建新树（包含异步图标加载），再一次性替换，避免中间空白帧
-  const root = await buildTree(newTree)
-  leafer.clear()
-  leafer.add(root)
-}
-
-export async function diffUpdate(
-  leafer: Leafer,
-  newTree: ElementTree,
-  oldTree: ElementTree | null
-): Promise<void> {
-  if (!oldTree) {
-    return applyTree(leafer, newTree, null)
-  }
-
-  const oldIds = collectIds(oldTree)
-  const newIds = collectIds(newTree)
-
-  // 删除旧元素
-  for (const id of oldIds) {
-    if (!newIds.has(id)) {
-      const el = (leafer as any).findById?.(id)
-      if (el) el.remove()
-    }
-  }
-
-  // 增量更新：一次性替换（已内置 pre-build 避免闪烁）
-  await applyTree(leafer, newTree, oldTree)
-}
-
-let _streamingTimer: ReturnType<typeof setTimeout> | null = null
-
-/**
- * 流式增量渲染：AI 输出过程中尝试从文本提取元素树并渲染
- * 防抖 300ms，避免每个 token 都触发重绘
- */
-export function renderStreaming(
-  leafer: Leafer,
-  chunk: Partial<ElementTree>
-): void {
-  if (!chunk.type) return
-
-  if (_streamingTimer) clearTimeout(_streamingTimer)
-  _streamingTimer = setTimeout(() => {
-    applyTree(leafer, chunk as ElementTree, null)
-  }, 300)
 }

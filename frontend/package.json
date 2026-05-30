@@ -12,6 +12,9 @@
     "icons:prod": "NODE_ENV=production npx tsx ../scripts/generate-icon-index.ts"
   },
   "dependencies": {
+    "@leafer-in/editor": "^2.1.2",
+    "@leafer-in/export": "^2.1.2",
+    "@leafer-in/viewport": "^2.1.2",
     "@wailsio/runtime": "latest",
     "leafer-ui": "^2.1.2",
     "pinia": "^3.0.4",
