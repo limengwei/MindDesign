@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { ElementTree } from '../types/element'
+import type { PageType } from '../prompts/page-types'
+import type { ColorScheme } from '../prompts/colors'
 
-export type PageType = 'app' | 'web' | 'desktop'
-export type ColorScheme = 'auto' | 'light' | 'dark' | 'brand'
+export type { PageType, ColorScheme }
 
 export const PAGE_DIMENSIONS: Record<PageType, { width: number; height: number }> = {
   app: { width: 375, height: 812 },

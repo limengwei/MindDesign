@@ -25,7 +25,8 @@ const emit = defineEmits<{
           <label>服务商</label>
           <select v-model="configStore.provider" @change="configStore.setProvider(configStore.provider)">
             <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
+            <option value="deepseek">DeepSeek (国内可用)</option>
+            <option value="glm">智谱 GLM (国内可用)</option>
             <option value="custom">自定义 (OpenAI 兼容)</option>
           </select>
         </div>

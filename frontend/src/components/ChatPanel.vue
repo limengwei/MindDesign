@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useChatStore } from '../stores/chatStore'
 import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM } from '../ai/chat'
@@ -8,6 +8,29 @@ const chatStore = useChatStore()
 const canvasStore = useCanvasStore()
 
 const inputText = ref('')
+
+// 监听 pendingSend 自动发送 ProjectDialog 的描述作为首条消息
+watch(() => chatStore.pendingSend, async (text) => {
+  if (!text) return
+  chatStore.pendingSend = null
+  chatStore.setStreaming(true)
+  try {
+    const history = chatStore.messages.map(m => ({ role: m.role, content: m.content }))
+    const result = await sendMessageToLLM(text, {
+      pageType: canvasStore.pageType,
+      colorScheme: canvasStore.colorScheme,
+      history,
+      onStreamingTree: (tree) => { canvasStore.setTree(tree) },
+    })
+    chatStore.addAssistantMessage(result.content, result.tree)
+    if (result.tree) canvasStore.setTree(result.tree)
+  } catch (err) {
+    chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
+    console.error('LLM error:', err)
+  } finally {
+    chatStore.setStreaming(false)
+  }
+})
 
 async function handleSend() {
   const text = inputText.value.trim()
@@ -27,6 +50,9 @@ async function handleSend() {
       pageType: canvasStore.pageType,
       colorScheme: canvasStore.colorScheme,
       history,
+      onStreamingTree: (tree) => {
+        canvasStore.setTree(tree)
+      },
     })
 
     chatStore.addAssistantMessage(result.content, result.tree)

@@ -111,6 +111,8 @@ function handleCreate() {
   padding: 32px;
   width: 480px;
   max-width: 90vw;
+  max-height: 85vh;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
@@ -155,6 +157,7 @@ function handleCreate() {
 
 .option-grid {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 

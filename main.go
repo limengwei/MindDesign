@@ -4,17 +4,12 @@ import (
 	"embed"
 	_ "embed"
 	"log"
-	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 //go:embed all:frontend/dist
 var assets embed.FS
-
-func init() {
-	application.RegisterEvent[string]("time")
-}
 
 func main() {
 	app := application.New(application.Options{
@@ -46,14 +41,6 @@ func main() {
 		MinWidth:         900,
 		MinHeight:        600,
 	})
-
-	go func() {
-		for {
-			now := time.Now().Format(time.RFC1123)
-			app.Event.Emit("time", now)
-			time.Sleep(time.Second)
-		}
-	}()
 
 	err := app.Run()
 	if err != nil {

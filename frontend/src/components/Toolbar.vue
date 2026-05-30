@@ -5,6 +5,8 @@ import { useChatStore } from '../stores/chatStore'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
 import ExportDialog from './ExportDialog.vue'
 import SettingsPanel from './SettingsPanel.vue'
+import * as ProjectService from '../../bindings/changeme/projectservice'
+import type { ProjectFile } from '../types/project'
 
 const canvasStore = useCanvasStore()
 const chatStore = useChatStore()
@@ -15,6 +17,23 @@ const showSettingsPanel = ref(false)
 
 function handleExport() {
   showExportDialog.value = true
+}
+
+async function handleSave() {
+  if (!canvasStore.currentTree && chatStore.messages.length === 0) return
+  const data: ProjectFile = {
+    formatVersion: 1,
+    meta: { name: canvasStore.projectName, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), appVersion: '1.0.0' },
+    canvas: { tree: canvasStore.currentTree, viewport: { zoom: 1, scrollX: 0, scrollY: 0 } },
+    chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
+  }
+  try {
+    await ProjectService.AutoSave(JSON.stringify(data))
+    alert('已保存到 MindDesign 项目数据目录')
+  } catch (e) {
+    console.error('Save failed:', e)
+    alert('保存失败，请检查应用权限')
+  }
 }
 
 function handleNewProject() {
@@ -41,7 +60,7 @@ defineExpose({ handleExport, handleNewProject })
       <button class="toolbar-btn" title="新建 (Ctrl+N)" @click="handleNewProject">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h3v-3h2v3h3v2h-3v3h-2v-3H8v-2z"/></svg>
       </button>
-      <button class="toolbar-btn" title="保存 (Ctrl+S)">
+      <button class="toolbar-btn" title="保存 (Ctrl+S)" @click="handleSave">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
       </button>
       <button class="toolbar-btn" title="导出 HTML" @click="handleExport">

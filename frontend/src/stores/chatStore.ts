@@ -12,6 +12,7 @@ export interface Message {
 export const useChatStore = defineStore('chat', () => {
   const messages = ref<Message[]>([])
   const isStreaming = ref(false)
+  const pendingSend = ref<string | null>(null)
 
   function addUserMessage(content: string) {
     messages.value.push({
@@ -50,6 +51,7 @@ export const useChatStore = defineStore('chat', () => {
   return {
     messages,
     isStreaming,
+    pendingSend,
     addUserMessage,
     addAssistantMessage,
     updateLastAssistantMessage,

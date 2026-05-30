@@ -2,16 +2,17 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export interface LLMConfig {
-  provider: 'openai' | 'anthropic' | 'custom'
+  provider: 'openai' | 'deepseek' | 'glm' | 'custom'
   apiKey: string
   baseUrl: string
   model: string
 }
 
 const PROVIDER_PRESETS: Record<string, { baseUrl: string; model: string }> = {
-  openai: { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o' },
-  anthropic: { baseUrl: 'https://api.anthropic.com/v1', model: 'claude-sonnet-4-20250514' },
-  custom: { baseUrl: '', model: '' },
+  openai:    { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o' },
+  deepseek:  { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
+  glm:       { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-plus' },
+  custom:    { baseUrl: '', model: '' },
 }
 
 export const useLLMConfigStore = defineStore('llmConfig', () => {

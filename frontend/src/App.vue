@@ -20,10 +20,40 @@ function handleProjectCreate(config: { name: string; pageType: string; colorSche
   canvasStore.setPageType(config.pageType as any)
   canvasStore.setColorScheme(config.colorScheme as any)
   showProjectDialog.value = false
+
+  // 如果用户填了描述，将其作为首条对话发送
+  if (config.description.trim()) {
+    chatStore.addUserMessage(config.description)
+    // ChatPanel 监听此字段自动发送
+    chatStore.pendingSend = config.description
+  }
 }
 
 onMounted(async () => {
   setupAutoSave()
+
+  // 键盘快捷键
+  window.addEventListener('keydown', (e) => {
+    const mod = e.ctrlKey || e.metaKey
+    if (mod && e.key === 's' && !e.shiftKey) {
+      e.preventDefault()
+      // Ctrl+S: 通过 Toolbar 的 ref 调用 handleSave
+      document.querySelector<HTMLButtonElement>('.toolbar-btn[title="保存 (Ctrl+S)"]')?.click()
+    }
+    if (mod && e.key === 'o') {
+      e.preventDefault()
+      // Ctrl+O: 新建项目（重置）
+      if (chatStore.messages.length > 0) {
+        if (!confirm('当前项目未保存，是否确认新建？')) return
+      }
+      canvasStore.reset()
+      chatStore.reset()
+    }
+    if (mod && e.key === 'n') {
+      e.preventDefault()
+      showProjectDialog.value = true
+    }
+  })
 
   const autoSaveData = await checkAutoSave()
   if (autoSaveData) {

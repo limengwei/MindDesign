@@ -146,7 +146,9 @@
       "1xmobiledatabadge",
       "1x",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -323,7 +325,9 @@
       "3gmobiledatabadge",
       "3g",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -381,7 +385,9 @@
       "4gmobiledatabadge",
       "4g",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -448,7 +454,9 @@
       "5gmobiledatabadge",
       "5g",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -685,7 +693,8 @@
       "menu",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -787,7 +796,10 @@
       "action_key",
       "actionkey",
       "action",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -1047,7 +1059,10 @@
       "new",
       "plus",
       "新增",
-      "添加"
+      "添加",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -1184,7 +1199,10 @@
       "new",
       "plus",
       "新增",
-      "添加"
+      "添加",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -1200,7 +1218,11 @@
       "new",
       "plus",
       "新增",
-      "添加"
+      "添加",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -1217,7 +1239,11 @@
       "new",
       "plus",
       "新增",
-      "添加"
+      "添加",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -1426,7 +1452,8 @@
       "adf_scanner",
       "adfscanner",
       "adf",
-      "scanner"
+      "scanner",
+      "扫描"
     ]
   },
   {
@@ -1760,7 +1787,10 @@
       "alarm_pause",
       "alarmpause",
       "alarm",
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -2439,7 +2469,9 @@
       "android",
       "wifi",
       "3",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2453,7 +2485,9 @@
       "wifi",
       "3",
       "bar",
-      "alert"
+      "alert",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2468,12 +2502,15 @@
       "3",
       "bar",
       "lock",
+      "网络",
+      "无线",
       "secure",
       "password",
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -2487,7 +2524,9 @@
       "wifi",
       "3",
       "bar",
-      "off"
+      "off",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2501,7 +2540,9 @@
       "wifi",
       "3",
       "bar",
-      "plus"
+      "plus",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2515,7 +2556,9 @@
       "wifi",
       "3",
       "bar",
-      "question"
+      "question",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2528,7 +2571,9 @@
       "android",
       "wifi",
       "4",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2542,7 +2587,9 @@
       "wifi",
       "4",
       "bar",
-      "alert"
+      "alert",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2557,12 +2604,15 @@
       "4",
       "bar",
       "lock",
+      "网络",
+      "无线",
       "secure",
       "password",
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -2576,7 +2626,9 @@
       "wifi",
       "4",
       "bar",
-      "off"
+      "off",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2590,7 +2642,9 @@
       "wifi",
       "4",
       "bar",
-      "plus"
+      "plus",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2604,7 +2658,9 @@
       "wifi",
       "4",
       "bar",
-      "question"
+      "question",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -2840,7 +2896,10 @@
       "area_chart",
       "areachart",
       "area",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -2863,7 +2922,10 @@
       "arrowandedge",
       "arrow",
       "and",
-      "edge"
+      "edge",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2874,7 +2936,10 @@
       "arrow_back",
       "arrowback",
       "arrow",
-      "back"
+      "back",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2886,7 +2951,10 @@
       "arrowback2",
       "arrow",
       "back",
-      "2"
+      "2",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2898,7 +2966,10 @@
       "arrowbackios",
       "arrow",
       "back",
-      "ios"
+      "ios",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2911,7 +2982,10 @@
       "arrow",
       "back",
       "ios",
-      "new"
+      "new",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2923,7 +2997,10 @@
       "arrowcircledown",
       "arrow",
       "circle",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2935,7 +3012,10 @@
       "arrowcircleleft",
       "arrow",
       "circle",
-      "left"
+      "left",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2947,7 +3027,10 @@
       "arrowcircleright",
       "arrow",
       "circle",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2959,7 +3042,10 @@
       "arrowcircleup",
       "arrow",
       "circle",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2971,7 +3057,10 @@
       "arrowcooldown",
       "arrow",
       "cool",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2982,7 +3071,10 @@
       "arrow_downward",
       "arrowdownward",
       "arrow",
-      "downward"
+      "downward",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -2994,7 +3086,10 @@
       "arrowdownwardalt",
       "arrow",
       "downward",
-      "alt"
+      "alt",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3006,7 +3101,10 @@
       "arrowdropdown",
       "arrow",
       "drop",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3019,7 +3117,10 @@
       "arrow",
       "drop",
       "down",
-      "circle"
+      "circle",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3031,7 +3132,10 @@
       "arrowdropup",
       "arrow",
       "drop",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3042,7 +3146,10 @@
       "arrow_forward",
       "arrowforward",
       "arrow",
-      "forward"
+      "forward",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3054,7 +3161,10 @@
       "arrowforwardios",
       "arrow",
       "forward",
-      "ios"
+      "ios",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3065,7 +3175,10 @@
       "arrow_insert",
       "arrowinsert",
       "arrow",
-      "insert"
+      "insert",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3076,7 +3189,10 @@
       "arrow_left",
       "arrowleft",
       "arrow",
-      "left"
+      "left",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3088,7 +3204,10 @@
       "arrowleftalt",
       "arrow",
       "left",
-      "alt"
+      "alt",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3101,14 +3220,19 @@
       "arrow",
       "menu",
       "close",
+      "direction",
+      "箭头",
+      "方向",
       "hamburger",
       "list",
       "菜单",
+      "导航",
       "x",
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -3121,9 +3245,13 @@
       "arrow",
       "menu",
       "open",
+      "direction",
+      "箭头",
+      "方向",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -3135,7 +3263,10 @@
       "arroworedge",
       "arrow",
       "or",
-      "edge"
+      "edge",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3146,7 +3277,10 @@
       "arrow_outward",
       "arrowoutward",
       "arrow",
-      "outward"
+      "outward",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3157,7 +3291,10 @@
       "arrow_range",
       "arrowrange",
       "arrow",
-      "range"
+      "range",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3168,7 +3305,10 @@
       "arrow_right",
       "arrowright",
       "arrow",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3180,7 +3320,10 @@
       "arrowrightalt",
       "arrow",
       "right",
-      "alt"
+      "alt",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3192,7 +3335,10 @@
       "arrowselectortool",
       "arrow",
       "selector",
-      "tool"
+      "tool",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3204,7 +3350,10 @@
       "arrowshapeup",
       "arrow",
       "shape",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3217,7 +3366,10 @@
       "arrow",
       "shape",
       "up",
-      "stack"
+      "stack",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3231,7 +3383,10 @@
       "shape",
       "up",
       "stack",
-      "2"
+      "2",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3242,7 +3397,10 @@
       "arrow_split",
       "arrowsplit",
       "arrow",
-      "split"
+      "split",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3254,7 +3412,10 @@
       "arrowtopleft",
       "arrow",
       "top",
-      "left"
+      "left",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3266,7 +3427,10 @@
       "arrowtopright",
       "arrow",
       "top",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3279,6 +3443,9 @@
       "arrow",
       "upload",
       "progress",
+      "direction",
+      "箭头",
+      "方向",
       "上传"
     ]
   },
@@ -3292,6 +3459,9 @@
       "arrow",
       "upload",
       "ready",
+      "direction",
+      "箭头",
+      "方向",
       "上传"
     ]
   },
@@ -3303,7 +3473,10 @@
       "arrow_upward",
       "arrowupward",
       "arrow",
-      "upward"
+      "upward",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3315,7 +3488,10 @@
       "arrowupwardalt",
       "arrow",
       "upward",
-      "alt"
+      "alt",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3327,7 +3503,10 @@
       "arrowwarmup",
       "arrow",
       "warm",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -3686,7 +3865,10 @@
       "attach_file",
       "attachfile",
       "attach",
-      "file"
+      "file",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -3699,6 +3881,9 @@
       "attach",
       "file",
       "add",
+      "document",
+      "文件",
+      "文档",
       "create",
       "new",
       "plus",
@@ -3715,7 +3900,10 @@
       "attachfileoff",
       "attach",
       "file",
-      "off"
+      "off",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -3783,7 +3971,10 @@
       "audio_file",
       "audiofile",
       "audio",
-      "file"
+      "file",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -3795,7 +3986,12 @@
       "audiovideoreceiver",
       "audio",
       "video",
-      "receiver"
+      "receiver",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -3835,7 +4031,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -3847,7 +4044,10 @@
       "autoreadpause",
       "auto",
       "read",
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -3859,7 +4059,10 @@
       "autoreadplay",
       "auto",
       "read",
-      "play"
+      "play",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -4004,7 +4207,10 @@
       "avg_time",
       "avgtime",
       "avg",
-      "time"
+      "time",
+      "clock",
+      "时间",
+      "时钟"
     ]
   },
   {
@@ -4037,7 +4243,11 @@
       "award_star",
       "awardstar",
       "award",
-      "star"
+      "star",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -4215,7 +4425,9 @@
     "display": "Badge",
     "file": "badge.svg",
     "keywords": [
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -4227,7 +4439,11 @@
       "badgecriticalbattery",
       "badge",
       "critical",
-      "battery"
+      "battery",
+      "徽章",
+      "标记",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4281,7 +4497,10 @@
       "bar_chart",
       "barchart",
       "bar",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -4294,7 +4513,10 @@
       "bar",
       "chart",
       "4",
-      "bars"
+      "bars",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -4306,7 +4528,10 @@
       "barchartoff",
       "bar",
       "chart",
-      "off"
+      "off",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -4336,7 +4561,8 @@
       "barcode_scanner",
       "barcodescanner",
       "barcode",
-      "scanner"
+      "scanner",
+      "扫描"
     ]
   },
   {
@@ -4439,7 +4665,9 @@
       "battery0bar",
       "battery",
       "0",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4451,7 +4679,9 @@
       "battery1bar",
       "battery",
       "1",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4463,7 +4693,9 @@
       "battery2bar",
       "battery",
       "2",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4475,7 +4707,9 @@
       "battery3bar",
       "battery",
       "3",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4487,7 +4721,9 @@
       "battery4bar",
       "battery",
       "4",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4499,7 +4735,9 @@
       "battery5bar",
       "battery",
       "5",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4511,7 +4749,9 @@
       "battery6bar",
       "battery",
       "6",
-      "bar"
+      "bar",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4522,7 +4762,9 @@
       "battery_alert",
       "batteryalert",
       "battery",
-      "alert"
+      "alert",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4534,7 +4776,9 @@
       "batteryandroid0",
       "battery",
       "android",
-      "0"
+      "0",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4546,7 +4790,9 @@
       "batteryandroid1",
       "battery",
       "android",
-      "1"
+      "1",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4558,7 +4804,9 @@
       "batteryandroid2",
       "battery",
       "android",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4570,7 +4818,9 @@
       "batteryandroid3",
       "battery",
       "android",
-      "3"
+      "3",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4582,7 +4832,9 @@
       "batteryandroid4",
       "battery",
       "android",
-      "4"
+      "4",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4594,7 +4846,9 @@
       "batteryandroid5",
       "battery",
       "android",
-      "5"
+      "5",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4606,7 +4860,9 @@
       "batteryandroid6",
       "battery",
       "android",
-      "6"
+      "6",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4618,7 +4874,9 @@
       "batteryandroidalert",
       "battery",
       "android",
-      "alert"
+      "alert",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4630,7 +4888,9 @@
       "batteryandroidbolt",
       "battery",
       "android",
-      "bolt"
+      "bolt",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4643,7 +4903,9 @@
       "battery",
       "android",
       "frame",
-      "1"
+      "1",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4656,7 +4918,9 @@
       "battery",
       "android",
       "frame",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4669,7 +4933,9 @@
       "battery",
       "android",
       "frame",
-      "3"
+      "3",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4682,7 +4948,9 @@
       "battery",
       "android",
       "frame",
-      "4"
+      "4",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4695,7 +4963,9 @@
       "battery",
       "android",
       "frame",
-      "5"
+      "5",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4708,7 +4978,9 @@
       "battery",
       "android",
       "frame",
-      "6"
+      "6",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4721,7 +4993,9 @@
       "battery",
       "android",
       "frame",
-      "alert"
+      "alert",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4734,7 +5008,9 @@
       "battery",
       "android",
       "frame",
-      "bolt"
+      "bolt",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4747,7 +5023,9 @@
       "battery",
       "android",
       "frame",
-      "full"
+      "full",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4760,7 +5038,9 @@
       "battery",
       "android",
       "frame",
-      "plus"
+      "plus",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4773,7 +5053,9 @@
       "battery",
       "android",
       "frame",
-      "question"
+      "question",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4787,6 +5069,8 @@
       "android",
       "frame",
       "share",
+      "电池",
+      "电量",
       "分享"
     ]
   },
@@ -4800,7 +5084,12 @@
       "battery",
       "android",
       "frame",
-      "shield"
+      "shield",
+      "电池",
+      "电量",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -4812,7 +5101,9 @@
       "batteryandroidfull",
       "battery",
       "android",
-      "full"
+      "full",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4824,7 +5115,9 @@
       "batteryandroidplus",
       "battery",
       "android",
-      "plus"
+      "plus",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4836,7 +5129,9 @@
       "batteryandroidquestion",
       "battery",
       "android",
-      "question"
+      "question",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4849,6 +5144,8 @@
       "battery",
       "android",
       "share",
+      "电池",
+      "电量",
       "分享"
     ]
   },
@@ -4861,7 +5158,12 @@
       "batteryandroidshield",
       "battery",
       "android",
-      "shield"
+      "shield",
+      "电池",
+      "电量",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -4872,7 +5174,9 @@
       "battery_change",
       "batterychange",
       "battery",
-      "change"
+      "change",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4884,7 +5188,9 @@
       "batterycharging20",
       "battery",
       "charging",
-      "20"
+      "20",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4897,7 +5203,9 @@
       "battery",
       "charging",
       "20",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4909,7 +5217,9 @@
       "batterycharging30",
       "battery",
       "charging",
-      "30"
+      "30",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4922,7 +5232,9 @@
       "battery",
       "charging",
       "30",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4934,7 +5246,9 @@
       "batterycharging50",
       "battery",
       "charging",
-      "50"
+      "50",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4947,7 +5261,9 @@
       "battery",
       "charging",
       "50",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4959,7 +5275,9 @@
       "batterycharging60",
       "battery",
       "charging",
-      "60"
+      "60",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4972,7 +5290,9 @@
       "battery",
       "charging",
       "60",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4984,7 +5304,9 @@
       "batterycharging80",
       "battery",
       "charging",
-      "80"
+      "80",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -4997,7 +5319,9 @@
       "battery",
       "charging",
       "80",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5009,7 +5333,9 @@
       "batterycharging90",
       "battery",
       "charging",
-      "90"
+      "90",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5021,7 +5347,9 @@
       "batterychargingfull",
       "battery",
       "charging",
-      "full"
+      "full",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5034,7 +5362,9 @@
       "battery",
       "charging",
       "full",
-      "2"
+      "2",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5045,7 +5375,9 @@
       "battery_error",
       "batteryerror",
       "battery",
-      "error"
+      "error",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5056,7 +5388,9 @@
       "battery_full",
       "batteryfull",
       "battery",
-      "full"
+      "full",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5068,7 +5402,9 @@
       "batteryfullalt",
       "battery",
       "full",
-      "alt"
+      "alt",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5080,7 +5416,9 @@
       "batteryhoriz000",
       "battery",
       "horiz",
-      "000"
+      "000",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5092,7 +5430,9 @@
       "batteryhoriz050",
       "battery",
       "horiz",
-      "050"
+      "050",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5104,7 +5444,9 @@
       "batteryhoriz075",
       "battery",
       "horiz",
-      "075"
+      "075",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5115,7 +5457,9 @@
       "battery_low",
       "batterylow",
       "battery",
-      "low"
+      "low",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5126,7 +5470,9 @@
       "battery_plus",
       "batteryplus",
       "battery",
-      "plus"
+      "plus",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5137,7 +5483,9 @@
       "battery_profile",
       "batteryprofile",
       "battery",
-      "profile"
+      "profile",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5149,6 +5497,8 @@
       "batteryshare",
       "battery",
       "share",
+      "电池",
+      "电量",
       "分享"
     ]
   },
@@ -5161,7 +5511,9 @@
       "batterystatusgood",
       "battery",
       "status",
-      "good"
+      "good",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5172,7 +5524,9 @@
       "battery_unknown",
       "batteryunknown",
       "battery",
-      "unknown"
+      "unknown",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5184,7 +5538,9 @@
       "batteryverylow",
       "battery",
       "very",
-      "low"
+      "low",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -5474,7 +5830,8 @@
     "display": "Bluetooth",
     "file": "bluetooth.svg",
     "keywords": [
-      "bluetooth"
+      "bluetooth",
+      "蓝牙"
     ]
   },
   {
@@ -5485,7 +5842,8 @@
       "bluetooth_connected",
       "bluetoothconnected",
       "bluetooth",
-      "connected"
+      "connected",
+      "蓝牙"
     ]
   },
   {
@@ -5496,7 +5854,8 @@
       "bluetooth_disabled",
       "bluetoothdisabled",
       "bluetooth",
-      "disabled"
+      "disabled",
+      "蓝牙"
     ]
   },
   {
@@ -5507,7 +5866,8 @@
       "bluetooth_drive",
       "bluetoothdrive",
       "bluetooth",
-      "drive"
+      "drive",
+      "蓝牙"
     ]
   },
   {
@@ -5518,7 +5878,8 @@
       "bluetooth_searching",
       "bluetoothsearching",
       "bluetooth",
-      "searching"
+      "searching",
+      "蓝牙"
     ]
   },
   {
@@ -5737,7 +6098,10 @@
     "display": "Bookmark",
     "file": "bookmark.svg",
     "keywords": [
-      "bookmark"
+      "bookmark",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5749,6 +6113,9 @@
       "bookmarkadd",
       "bookmark",
       "add",
+      "save",
+      "收藏",
+      "书签",
       "create",
       "new",
       "plus",
@@ -5764,7 +6131,10 @@
       "bookmark_added",
       "bookmarkadded",
       "bookmark",
-      "added"
+      "added",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5775,7 +6145,10 @@
       "bookmark_bag",
       "bookmarkbag",
       "bookmark",
-      "bag"
+      "bag",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5787,13 +6160,17 @@
       "bookmarkcheck",
       "bookmark",
       "check",
+      "save",
+      "收藏",
+      "书签",
       "done",
       "confirm",
       "ok",
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -5804,7 +6181,10 @@
       "bookmark_flag",
       "bookmarkflag",
       "bookmark",
-      "flag"
+      "flag",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5815,7 +6195,10 @@
       "bookmark_heart",
       "bookmarkheart",
       "bookmark",
-      "heart"
+      "heart",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5826,7 +6209,10 @@
       "bookmark_manager",
       "bookmarkmanager",
       "bookmark",
-      "manager"
+      "manager",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5837,7 +6223,10 @@
       "bookmark_remove",
       "bookmarkremove",
       "bookmark",
-      "remove"
+      "remove",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5848,7 +6237,10 @@
       "bookmark_stacks",
       "bookmarkstacks",
       "bookmark",
-      "stacks"
+      "stacks",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -5859,7 +6251,14 @@
       "bookmark_star",
       "bookmarkstar",
       "bookmark",
-      "star"
+      "star",
+      "save",
+      "收藏",
+      "书签",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -5880,7 +6279,12 @@
       "books",
       "movies",
       "and",
-      "music"
+      "music",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -6071,7 +6475,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -6425,7 +6830,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -6504,7 +6910,10 @@
       "bubble_chart",
       "bubblechart",
       "bubble",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -6530,7 +6939,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -6602,7 +7012,9 @@
       "busmappin",
       "bus",
       "map",
-      "pin"
+      "pin",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -6794,7 +7206,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -6832,7 +7245,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -7076,7 +7490,11 @@
     "display": "Camera",
     "file": "camera.svg",
     "keywords": [
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -7087,7 +7505,11 @@
       "camera_indoor",
       "cameraindoor",
       "camera",
-      "indoor"
+      "indoor",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -7098,7 +7520,11 @@
       "camera_outdoor",
       "cameraoutdoor",
       "camera",
-      "outdoor"
+      "outdoor",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -7109,7 +7535,11 @@
       "camera_roll",
       "cameraroll",
       "camera",
-      "roll"
+      "roll",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -7120,7 +7550,16 @@
       "camera_video",
       "cameravideo",
       "camera",
-      "video"
+      "video",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -7194,7 +7633,10 @@
       "candlestick_chart",
       "candlestickchart",
       "candlestick",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -7469,7 +7911,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -7585,7 +8028,11 @@
       "cards_star",
       "cardsstar",
       "cards",
-      "star"
+      "star",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -7702,7 +8149,10 @@
       "cast_pause",
       "castpause",
       "cast",
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -7792,7 +8242,9 @@
       "cell_wifi",
       "cellwifi",
       "cell",
-      "wifi"
+      "wifi",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -7917,7 +8369,10 @@
       "chart_data",
       "chartdata",
       "chart",
-      "data"
+      "data",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -7925,7 +8380,12 @@
     "display": "Chat",
     "file": "chat.svg",
     "keywords": [
-      "chat"
+      "chat",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -7938,6 +8398,11 @@
       "chat",
       "add",
       "on",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话",
       "create",
       "new",
       "plus",
@@ -7954,7 +8419,12 @@
       "chatappsscript",
       "chat",
       "apps",
-      "script"
+      "script",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -7965,7 +8435,12 @@
       "chat_bubble",
       "chatbubble",
       "chat",
-      "bubble"
+      "bubble",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -7977,7 +8452,12 @@
       "chatbubbleoff",
       "chat",
       "bubble",
-      "off"
+      "off",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -7988,7 +8468,12 @@
       "chat_dashed",
       "chatdashed",
       "chat",
-      "dashed"
+      "dashed",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -7999,7 +8484,12 @@
       "chat_error",
       "chaterror",
       "chat",
-      "error"
+      "error",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -8011,6 +8501,11 @@
       "chatinfo",
       "chat",
       "info",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话",
       "information",
       "help",
       "about",
@@ -8028,7 +8523,12 @@
       "chatpastego",
       "chat",
       "paste",
-      "go"
+      "go",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -8041,7 +8541,12 @@
       "chat",
       "paste",
       "go",
-      "2"
+      "2",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -8056,7 +8561,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8074,7 +8580,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8092,7 +8599,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8112,7 +8620,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8130,7 +8639,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8149,7 +8659,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8168,7 +8679,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8187,7 +8699,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8205,7 +8718,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -8595,7 +9109,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -8720,7 +9235,10 @@
       "clockarrowdown",
       "clock",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -8732,7 +9250,10 @@
       "clockarrowup",
       "clock",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -8817,7 +9338,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -8833,7 +9355,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -8849,7 +9372,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -8897,7 +9421,10 @@
     "display": "Cloud",
     "file": "cloud.svg",
     "keywords": [
-      "cloud"
+      "cloud",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -8908,7 +9435,10 @@
       "cloud_alert",
       "cloudalert",
       "cloud",
-      "alert"
+      "alert",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -8919,7 +9449,10 @@
       "cloud_circle",
       "cloudcircle",
       "cloud",
-      "circle"
+      "circle",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -8930,7 +9463,10 @@
       "cloud_done",
       "clouddone",
       "cloud",
-      "done"
+      "done",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -8942,6 +9478,9 @@
       "clouddownload",
       "cloud",
       "download",
+      "云端",
+      "云",
+      "在线",
       "save",
       "下载"
     ]
@@ -8955,12 +9494,16 @@
       "cloudlock",
       "cloud",
       "lock",
+      "云端",
+      "云",
+      "在线",
       "secure",
       "password",
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -8971,7 +9514,10 @@
       "cloud_off",
       "cloudoff",
       "cloud",
-      "off"
+      "off",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -8982,7 +9528,10 @@
       "cloud_sync",
       "cloudsync",
       "cloud",
-      "sync"
+      "sync",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -8994,6 +9543,9 @@
       "cloudupload",
       "cloud",
       "upload",
+      "云端",
+      "云",
+      "在线",
       "上传"
     ]
   },
@@ -9021,7 +9573,12 @@
     "display": "Code",
     "file": "code.svg",
     "keywords": [
-      "code"
+      "code",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -9032,7 +9589,12 @@
       "code_blocks",
       "codeblocks",
       "code",
-      "blocks"
+      "blocks",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -9043,7 +9605,12 @@
       "code_off",
       "codeoff",
       "code",
-      "off"
+      "off",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -9054,7 +9621,12 @@
       "code_xml",
       "codexml",
       "code",
-      "xml"
+      "xml",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -9125,7 +9697,10 @@
       "collections_bookmark",
       "collectionsbookmark",
       "collections",
-      "bookmark"
+      "bookmark",
+      "save",
+      "收藏",
+      "书签"
     ]
   },
   {
@@ -9313,7 +9888,10 @@
       "computerarrowup",
       "computer",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -9412,7 +9990,10 @@
     "display": "Construction",
     "file": "construction.svg",
     "keywords": [
-      "construction"
+      "construction",
+      "build",
+      "建筑",
+      "工程"
     ]
   },
   {
@@ -9456,7 +10037,11 @@
       "contact_phone",
       "contactphone",
       "contact",
-      "phone"
+      "phone",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -9631,7 +10216,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -9700,7 +10286,11 @@
       "control_camera",
       "controlcamera",
       "control",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -9992,7 +10582,10 @@
       "createnewfolder",
       "create",
       "new",
-      "folder"
+      "folder",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -10455,7 +11048,10 @@
       "dark_mode",
       "darkmode",
       "dark",
-      "mode"
+      "mode",
+      "暗色",
+      "夜晚",
+      "夜间"
     ]
   },
   {
@@ -10463,7 +11059,10 @@
     "display": "Dashboard",
     "file": "dashboard.svg",
     "keywords": [
-      "dashboard"
+      "dashboard",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -10474,7 +11073,10 @@
       "dashboard_2",
       "dashboard2",
       "dashboard",
-      "2"
+      "2",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -10487,6 +11089,9 @@
       "dashboard",
       "2",
       "edit",
+      "仪表盘",
+      "面板",
+      "仪表板",
       "pencil",
       "write",
       "modify",
@@ -10503,7 +11108,10 @@
       "dashboard2gear",
       "dashboard",
       "2",
-      "gear"
+      "gear",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -10514,7 +11122,10 @@
       "dashboard_customize",
       "dashboardcustomize",
       "dashboard",
-      "customize"
+      "customize",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -10554,7 +11165,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -10659,7 +11271,10 @@
     "display": "Database",
     "file": "database.svg",
     "keywords": [
-      "database"
+      "database",
+      "数据",
+      "数据库",
+      "存储"
     ]
   },
   {
@@ -10670,7 +11285,10 @@
       "database_off",
       "databaseoff",
       "database",
-      "off"
+      "off",
+      "数据",
+      "数据库",
+      "存储"
     ]
   },
   {
@@ -10682,6 +11300,9 @@
       "databasesearch",
       "database",
       "search",
+      "数据",
+      "数据库",
+      "存储",
       "find",
       "lookup",
       "magnifier",
@@ -10698,6 +11319,9 @@
       "databaseupload",
       "database",
       "upload",
+      "数据",
+      "数据库",
+      "存储",
       "上传"
     ]
   },
@@ -10795,7 +11419,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -10811,7 +11436,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -10827,7 +11453,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -10843,7 +11470,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -10938,7 +11566,12 @@
       "deployed_code",
       "deployedcode",
       "deployed",
-      "code"
+      "code",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -10950,7 +11583,12 @@
       "deployedcodeaccount",
       "deployed",
       "code",
-      "account"
+      "account",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -10962,7 +11600,12 @@
       "deployedcodealert",
       "deployed",
       "code",
-      "alert"
+      "alert",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -10974,7 +11617,12 @@
       "deployedcodehistory",
       "deployed",
       "code",
-      "history"
+      "history",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -10986,7 +11634,12 @@
       "deployedcodeupdate",
       "deployed",
       "code",
-      "update"
+      "update",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -11060,7 +11713,10 @@
       "desktop_cloud",
       "desktopcloud",
       "desktop",
-      "cloud"
+      "cloud",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -11072,7 +11728,10 @@
       "desktopcloudstack",
       "desktop",
       "cloud",
-      "stack"
+      "stack",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -11204,7 +11863,9 @@
       "detector_battery",
       "detectorbattery",
       "detector",
-      "battery"
+      "battery",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -12028,7 +12689,8 @@
       "document_scanner",
       "documentscanner",
       "document",
-      "scanner"
+      "scanner",
+      "扫描"
     ]
   },
   {
@@ -12253,7 +12915,10 @@
       "double_arrow",
       "doublearrow",
       "double",
-      "arrow"
+      "arrow",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -12454,7 +13119,10 @@
       "drivefilemove",
       "drive",
       "file",
-      "move"
+      "move",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -12467,6 +13135,9 @@
       "drive",
       "folder",
       "upload",
+      "directory",
+      "文件夹",
+      "目录",
       "上传"
     ]
   },
@@ -12618,7 +13289,9 @@
       "emobiledatabadge",
       "e",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -12692,7 +13365,9 @@
       "earbuds_battery",
       "earbudsbattery",
       "earbuds",
-      "battery"
+      "battery",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -12784,7 +13459,10 @@
       "write",
       "modify",
       "编辑",
-      "修改"
+      "修改",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -12801,7 +13479,10 @@
       "write",
       "modify",
       "编辑",
-      "修改"
+      "修改",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -12886,7 +13567,11 @@
       "write",
       "modify",
       "编辑",
-      "修改"
+      "修改",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -12903,7 +13588,11 @@
       "write",
       "modify",
       "编辑",
-      "修改"
+      "修改",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -12940,7 +13629,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -13327,7 +14017,10 @@
       "empty_dashboard",
       "emptydashboard",
       "empty",
-      "dashboard"
+      "dashboard",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -13440,7 +14133,10 @@
       "energy",
       "program",
       "time",
-      "used"
+      "used",
+      "clock",
+      "时间",
+      "时钟"
     ]
   },
   {
@@ -13649,7 +14345,9 @@
       "evmobiledatabadge",
       "ev",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -14250,7 +14948,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -14326,7 +15025,10 @@
       "family_link",
       "familylink",
       "family",
-      "link"
+      "link",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -14348,7 +15050,11 @@
       "family_star",
       "familystar",
       "family",
-      "star"
+      "star",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -14433,7 +15139,8 @@
       "love",
       "star",
       "收藏",
-      "喜欢"
+      "喜欢",
+      "心形"
     ]
   },
   {
@@ -14469,7 +15176,10 @@
       "featuredplaylist",
       "featured",
       "play",
-      "list"
+      "list",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -14493,7 +15203,12 @@
       "featured_video",
       "featuredvideo",
       "featured",
-      "video"
+      "video",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -14620,7 +15335,10 @@
       "file_copy",
       "filecopy",
       "file",
-      "copy"
+      "copy",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14632,7 +15350,10 @@
       "filecopyoff",
       "file",
       "copy",
-      "off"
+      "off",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14645,6 +15366,9 @@
       "file",
       "download",
       "off",
+      "document",
+      "文件",
+      "文档",
       "save",
       "下载"
     ]
@@ -14657,7 +15381,10 @@
       "file_export",
       "fileexport",
       "file",
-      "export"
+      "export",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14668,7 +15395,10 @@
       "file_json",
       "filejson",
       "file",
-      "json"
+      "json",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14679,7 +15409,12 @@
       "file_map",
       "filemap",
       "file",
-      "map"
+      "map",
+      "document",
+      "文件",
+      "文档",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -14691,7 +15426,12 @@
       "filemapstack",
       "file",
       "map",
-      "stack"
+      "stack",
+      "document",
+      "文件",
+      "文档",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -14702,7 +15442,10 @@
       "file_open",
       "fileopen",
       "file",
-      "open"
+      "open",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14713,7 +15456,10 @@
       "file_png",
       "filepng",
       "file",
-      "png"
+      "png",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14724,7 +15470,10 @@
       "file_present",
       "filepresent",
       "file",
-      "present"
+      "present",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14735,7 +15484,10 @@
       "file_save",
       "filesave",
       "file",
-      "save"
+      "save",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14747,7 +15499,10 @@
       "filesaveoff",
       "file",
       "save",
-      "off"
+      "off",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -14760,6 +15515,9 @@
       "file",
       "upload",
       "off",
+      "document",
+      "文件",
+      "文档",
       "上传"
     ]
   },
@@ -14922,7 +15680,10 @@
       "filterarrowright",
       "filter",
       "arrow",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -15127,7 +15888,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -15306,7 +16068,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -15503,7 +16266,11 @@
       "flipcameraandroid",
       "flip",
       "camera",
-      "android"
+      "android",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -15515,7 +16282,11 @@
       "flipcameraios",
       "flip",
       "camera",
-      "ios"
+      "ios",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -15709,7 +16480,10 @@
     "display": "Folder",
     "file": "folder.svg",
     "keywords": [
-      "folder"
+      "folder",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15721,13 +16495,17 @@
       "foldercheck",
       "folder",
       "check",
+      "directory",
+      "文件夹",
+      "目录",
       "done",
       "confirm",
       "ok",
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -15740,13 +16518,17 @@
       "folder",
       "check",
       "2",
+      "directory",
+      "文件夹",
+      "目录",
       "done",
       "confirm",
       "ok",
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -15757,7 +16539,15 @@
       "folder_code",
       "foldercode",
       "folder",
-      "code"
+      "code",
+      "directory",
+      "文件夹",
+      "目录",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -15768,7 +16558,10 @@
       "folder_copy",
       "foldercopy",
       "folder",
-      "copy"
+      "copy",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15779,7 +16572,10 @@
       "folder_data",
       "folderdata",
       "folder",
-      "data"
+      "data",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15791,11 +16587,15 @@
       "folderdelete",
       "folder",
       "delete",
+      "directory",
+      "文件夹",
+      "目录",
       "remove",
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -15806,7 +16606,10 @@
       "folder_eye",
       "foldereye",
       "folder",
-      "eye"
+      "eye",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15818,6 +16621,9 @@
       "folderinfo",
       "folder",
       "info",
+      "directory",
+      "文件夹",
+      "目录",
       "information",
       "help",
       "about",
@@ -15834,7 +16640,10 @@
       "folder_limited",
       "folderlimited",
       "folder",
-      "limited"
+      "limited",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15845,7 +16654,10 @@
       "folder_managed",
       "foldermanaged",
       "folder",
-      "managed"
+      "managed",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15856,7 +16668,10 @@
       "folder_match",
       "foldermatch",
       "folder",
-      "match"
+      "match",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15867,7 +16682,10 @@
       "folder_off",
       "folderoff",
       "folder",
-      "off"
+      "off",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15878,7 +16696,10 @@
       "folder_open",
       "folderopen",
       "folder",
-      "open"
+      "open",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15889,7 +16710,10 @@
       "folder_shared",
       "foldershared",
       "folder",
-      "shared"
+      "shared",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15900,7 +16724,10 @@
       "folder_special",
       "folderspecial",
       "folder",
-      "special"
+      "special",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15911,7 +16738,10 @@
       "folder_supervised",
       "foldersupervised",
       "folder",
-      "supervised"
+      "supervised",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -15922,7 +16752,10 @@
       "folder_zip",
       "folderzip",
       "folder",
-      "zip"
+      "zip",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -16021,7 +16854,10 @@
       "fork_chart",
       "forkchart",
       "fork",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -16238,7 +17074,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16255,7 +17092,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16272,7 +17110,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16288,7 +17127,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16305,7 +17145,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16322,7 +17163,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16338,7 +17180,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -16354,7 +17197,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -17044,7 +17888,10 @@
       "full",
       "stacked",
       "bar",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -17121,7 +17968,9 @@
       "gmobiledatabadge",
       "g",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -17461,7 +18310,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -17732,7 +18582,10 @@
       "globelocationpin",
       "globe",
       "location",
-      "pin"
+      "pin",
+      "place",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -17831,7 +18684,9 @@
       "google_wifi",
       "googlewifi",
       "google",
-      "wifi"
+      "wifi",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -18190,7 +19045,10 @@
       "groupedbarchart",
       "grouped",
       "bar",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -18259,7 +19117,9 @@
       "hmobiledatabadge",
       "h",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -18284,7 +19144,9 @@
       "h",
       "plus",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -18405,7 +19267,12 @@
       "hangout_video",
       "hangoutvideo",
       "hangout",
-      "video"
+      "video",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -18417,7 +19284,12 @@
       "hangoutvideooff",
       "hangout",
       "video",
-      "off"
+      "off",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -18624,7 +19496,9 @@
       "headphones_battery",
       "headphonesbattery",
       "headphones",
-      "battery"
+      "battery",
+      "电池",
+      "电量"
     ]
   },
   {
@@ -18832,7 +19706,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -18989,7 +19864,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -19589,7 +20465,10 @@
       "hourglassarrowdown",
       "hourglass",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -19601,7 +20480,10 @@
       "hourglassarrowup",
       "hourglass",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -19630,7 +20512,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -19663,7 +20546,10 @@
       "hourglass_pause",
       "hourglasspause",
       "hourglass",
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -19705,7 +20591,10 @@
       "housewithshield",
       "house",
       "with",
-      "shield"
+      "shield",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -19977,7 +20866,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -19993,7 +20883,11 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20009,7 +20903,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -20024,7 +20919,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -20040,6 +20936,7 @@
       "picture",
       "图片",
       "照片",
+      "图像",
       "find",
       "lookup",
       "magnifier",
@@ -20222,7 +21119,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -20402,7 +21300,10 @@
       "insert_chart",
       "insertchart",
       "insert",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -20736,7 +21637,10 @@
     "display": "Key",
     "file": "key.svg",
     "keywords": [
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -20747,7 +21651,10 @@
       "key_off",
       "keyoff",
       "key",
-      "off"
+      "off",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -20758,7 +21665,10 @@
       "key_vertical",
       "keyvertical",
       "key",
-      "vertical"
+      "vertical",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -20769,7 +21679,10 @@
       "key_visualizer",
       "keyvisualizer",
       "key",
-      "visualizer"
+      "visualizer",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -20800,7 +21713,10 @@
       "keyboardarrowdown",
       "keyboard",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20812,7 +21728,10 @@
       "keyboardarrowleft",
       "keyboard",
       "arrow",
-      "left"
+      "left",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20824,7 +21743,10 @@
       "keyboardarrowright",
       "keyboard",
       "arrow",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20836,7 +21758,10 @@
       "keyboardarrowup",
       "keyboard",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20870,7 +21795,9 @@
       "keyboardcapslockbadge",
       "keyboard",
       "capslock",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -20882,7 +21809,10 @@
       "keyboardcommandkey",
       "keyboard",
       "command",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -20894,7 +21824,10 @@
       "keyboardcontrolkey",
       "keyboard",
       "control",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -20907,7 +21840,10 @@
       "keyboard",
       "double",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20920,7 +21856,10 @@
       "keyboard",
       "double",
       "arrow",
-      "left"
+      "left",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20933,7 +21872,10 @@
       "keyboard",
       "double",
       "arrow",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -20946,7 +21888,10 @@
       "keyboard",
       "double",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -21008,7 +21953,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -21026,7 +21972,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -21060,7 +22007,10 @@
       "keyboardoptionkey",
       "keyboard",
       "option",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -21117,7 +22067,11 @@
       "kid_star",
       "kidstar",
       "kid",
-      "star"
+      "star",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -21646,7 +22600,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -21731,7 +22686,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -21753,7 +22709,12 @@
       "library_music",
       "librarymusic",
       "library",
-      "music"
+      "music",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -21781,7 +22742,10 @@
     "display": "Light",
     "file": "light.svg",
     "keywords": [
-      "light"
+      "light",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -21792,7 +22756,10 @@
       "light_group",
       "lightgroup",
       "light",
-      "group"
+      "group",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -21804,7 +22771,10 @@
       "lightgroup2",
       "light",
       "group",
-      "2"
+      "2",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -21815,7 +22785,10 @@
       "light_mode",
       "lightmode",
       "light",
-      "mode"
+      "mode",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -21827,7 +22800,10 @@
       "lightmodeauto",
       "light",
       "mode",
-      "auto"
+      "auto",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -21838,7 +22814,10 @@
       "light_off",
       "lightoff",
       "light",
-      "off"
+      "off",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -21932,7 +22911,10 @@
       "lineendarrow",
       "line",
       "end",
-      "arrow"
+      "arrow",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -21945,7 +22927,10 @@
       "line",
       "end",
       "arrow",
-      "notch"
+      "notch",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -22004,7 +22989,10 @@
       "linestartarrow",
       "line",
       "start",
-      "arrow"
+      "arrow",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -22017,7 +23005,10 @@
       "line",
       "start",
       "arrow",
-      "notch"
+      "notch",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -22094,7 +23085,10 @@
     "display": "Link",
     "file": "link.svg",
     "keywords": [
-      "link"
+      "link",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -22105,7 +23099,10 @@
       "link_2",
       "link2",
       "link",
-      "2"
+      "2",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -22116,7 +23113,10 @@
       "link_off",
       "linkoff",
       "link",
-      "off"
+      "off",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -22127,7 +23127,11 @@
       "linked_camera",
       "linkedcamera",
       "linked",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -22209,7 +23213,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -22220,7 +23225,10 @@
       "list_arrow",
       "listarrow",
       "list",
-      "arrow"
+      "arrow",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -22394,7 +23402,12 @@
       "local_hospital",
       "localhospital",
       "local",
-      "hospital"
+      "hospital",
+      "medical",
+      "health",
+      "医院",
+      "医疗",
+      "健康"
     ]
   },
   {
@@ -22528,7 +23541,11 @@
       "location_away",
       "locationaway",
       "location",
-      "away"
+      "away",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22539,7 +23556,11 @@
       "location_chip",
       "locationchip",
       "location",
-      "chip"
+      "chip",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22550,7 +23571,11 @@
       "location_city",
       "locationcity",
       "location",
-      "city"
+      "city",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22561,7 +23586,11 @@
       "location_disabled",
       "locationdisabled",
       "location",
-      "disabled"
+      "disabled",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22573,6 +23602,10 @@
       "locationhome",
       "location",
       "home",
+      "place",
+      "pin",
+      "位置",
+      "定位",
       "house",
       "首页",
       "主页"
@@ -22586,7 +23619,11 @@
       "location_off",
       "locationoff",
       "location",
-      "off"
+      "off",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22597,7 +23634,11 @@
       "location_on",
       "locationon",
       "location",
-      "on"
+      "on",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22608,7 +23649,11 @@
       "location_searching",
       "locationsearching",
       "location",
-      "searching"
+      "searching",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -22622,7 +23667,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -22639,7 +23685,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -22656,7 +23703,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -22674,7 +23722,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -22692,7 +23741,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -22710,6 +23760,7 @@
       "safety",
       "锁",
       "密码",
+      "安全",
       "user",
       "profile",
       "account",
@@ -22732,7 +23783,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -22902,7 +23954,9 @@
       "ltemobiledatabadge",
       "lte",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -22927,7 +23981,9 @@
       "lte",
       "plus",
       "mobiledata",
-      "badge"
+      "badge",
+      "徽章",
+      "标记"
     ]
   },
   {
@@ -23056,7 +24112,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -23078,7 +24135,10 @@
       "mail_shield",
       "mailshield",
       "mail",
-      "shield"
+      "shield",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -23189,7 +24249,9 @@
     "display": "Map",
     "file": "map.svg",
     "keywords": [
-      "map"
+      "map",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -23201,7 +24263,9 @@
       "mappinheart",
       "map",
       "pin",
-      "heart"
+      "heart",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -23213,7 +24277,9 @@
       "mappinreview",
       "map",
       "pin",
-      "review"
+      "review",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -23225,6 +24291,8 @@
       "mapsearch",
       "map",
       "search",
+      "地图",
+      "导航",
       "find",
       "lookup",
       "magnifier",
@@ -23272,7 +24340,12 @@
       "markchatread",
       "mark",
       "chat",
-      "read"
+      "read",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -23284,7 +24357,12 @@
       "markchatunread",
       "mark",
       "chat",
-      "unread"
+      "unread",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -23333,7 +24411,12 @@
       "mark",
       "unread",
       "chat",
-      "alt"
+      "alt",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -23513,7 +24596,8 @@
       "mediabluetoothoff",
       "media",
       "bluetooth",
-      "off"
+      "off",
+      "蓝牙"
     ]
   },
   {
@@ -23525,7 +24609,8 @@
       "mediabluetoothon",
       "media",
       "bluetooth",
-      "on"
+      "on",
+      "蓝牙"
     ]
   },
   {
@@ -23536,7 +24621,10 @@
       "media_link",
       "medialink",
       "media",
-      "link"
+      "link",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -23578,7 +24666,13 @@
       "medical_information",
       "medicalinformation",
       "medical",
-      "information"
+      "information",
+      "hospital",
+      "doctor",
+      "医疗",
+      "医学",
+      "健康",
+      "医院"
     ]
   },
   {
@@ -23589,7 +24683,13 @@
       "medical_mask",
       "medicalmask",
       "medical",
-      "mask"
+      "mask",
+      "hospital",
+      "doctor",
+      "医疗",
+      "医学",
+      "健康",
+      "医院"
     ]
   },
   {
@@ -23600,7 +24700,13 @@
       "medical_services",
       "medicalservices",
       "medical",
-      "services"
+      "services",
+      "hospital",
+      "doctor",
+      "医疗",
+      "医学",
+      "健康",
+      "医院"
     ]
   },
   {
@@ -23671,7 +24777,8 @@
       "menu",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -23685,7 +24792,8 @@
       "book",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -23700,7 +24808,8 @@
       "2",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -23714,7 +24823,8 @@
       "open",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -23768,7 +24878,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -23948,7 +25059,12 @@
       "missedvideocall",
       "missed",
       "video",
-      "call"
+      "call",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -24047,7 +25163,10 @@
       "mobilearrowdown",
       "mobile",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -24059,7 +25178,10 @@
       "mobilearrowright",
       "mobile",
       "arrow",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -24072,7 +25194,10 @@
       "mobile",
       "arrow",
       "up",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -24094,7 +25219,11 @@
       "mobile_camera",
       "mobilecamera",
       "mobile",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -24106,7 +25235,11 @@
       "mobilecamerafront",
       "mobile",
       "camera",
-      "front"
+      "front",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -24118,7 +25251,11 @@
       "mobilecamerarear",
       "mobile",
       "camera",
-      "rear"
+      "rear",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -24162,7 +25299,12 @@
       "mobile_chat",
       "mobilechat",
       "mobile",
-      "chat"
+      "chat",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -24180,7 +25322,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -24191,7 +25334,12 @@
       "mobile_code",
       "mobilecode",
       "mobile",
-      "code"
+      "code",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -24318,7 +25466,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -24336,7 +25485,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -24361,7 +25511,8 @@
       "menu",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -24412,7 +25563,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -25029,7 +26181,10 @@
       "more_time",
       "moretime",
       "more",
-      "time"
+      "time",
+      "clock",
+      "时间",
+      "时钟"
     ]
   },
   {
@@ -25128,7 +26283,10 @@
       "motion_play",
       "motionplay",
       "motion",
-      "play"
+      "play",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -25231,7 +26389,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -25249,7 +26408,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -25301,7 +26461,11 @@
       "move_location",
       "movelocation",
       "move",
-      "location"
+      "location",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -25383,7 +26547,11 @@
       "moved_location",
       "movedlocation",
       "moved",
-      "location"
+      "location",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -25520,7 +26688,10 @@
       "multiline_chart",
       "multilinechart",
       "multiline",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -25573,7 +26744,12 @@
       "music_cast",
       "musiccast",
       "music",
-      "cast"
+      "cast",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -25584,7 +26760,12 @@
       "music_history",
       "musichistory",
       "music",
-      "history"
+      "history",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -25595,7 +26776,12 @@
       "music_note",
       "musicnote",
       "music",
-      "note"
+      "note",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -25607,7 +26793,12 @@
       "musicnote2",
       "music",
       "note",
-      "2"
+      "2",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -25620,6 +26811,11 @@
       "music",
       "note",
       "add",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频",
       "create",
       "new",
       "plus",
@@ -25635,7 +26831,12 @@
       "music_off",
       "musicoff",
       "music",
-      "off"
+      "off",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -25646,7 +26847,17 @@
       "music_video",
       "musicvideo",
       "music",
-      "video"
+      "video",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -25657,7 +26868,11 @@
       "my_location",
       "mylocation",
       "my",
-      "location"
+      "location",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -26051,7 +27266,9 @@
       "nestfarsightweather",
       "nest",
       "farsight",
-      "weather"
+      "weather",
+      "天气",
+      "气候"
     ]
   },
   {
@@ -26076,7 +27293,10 @@
       "nest",
       "heat",
       "link",
-      "e"
+      "e",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -26090,7 +27310,10 @@
       "heat",
       "link",
       "gen",
-      "3"
+      "3",
+      "chain",
+      "链接",
+      "连接"
     ]
   },
   {
@@ -26308,7 +27531,9 @@
       "nestwifipoint",
       "nest",
       "wifi",
-      "point"
+      "point",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26320,7 +27545,9 @@
       "nestwifipro",
       "nest",
       "wifi",
-      "pro"
+      "pro",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26333,7 +27560,9 @@
       "nest",
       "wifi",
       "pro",
-      "2"
+      "2",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26345,7 +27574,9 @@
       "nestwifirouter",
       "nest",
       "wifi",
-      "router"
+      "router",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26374,7 +27605,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -26476,7 +27708,9 @@
       "network_wifi",
       "networkwifi",
       "network",
-      "wifi"
+      "wifi",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26489,7 +27723,9 @@
       "network",
       "wifi",
       "1",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26503,7 +27739,9 @@
       "wifi",
       "1",
       "bar",
-      "locked"
+      "locked",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26516,7 +27754,9 @@
       "network",
       "wifi",
       "2",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26530,7 +27770,9 @@
       "wifi",
       "2",
       "bar",
-      "locked"
+      "locked",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26543,7 +27785,9 @@
       "network",
       "wifi",
       "3",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26557,7 +27801,9 @@
       "wifi",
       "3",
       "bar",
-      "locked"
+      "locked",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -26569,7 +27815,9 @@
       "networkwifilocked",
       "network",
       "wifi",
-      "locked"
+      "locked",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -27025,7 +28273,11 @@
       "notlistedlocation",
       "not",
       "listed",
-      "location"
+      "location",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -27201,7 +28453,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -27217,7 +28470,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -27233,7 +28487,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -27249,7 +28504,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -27265,7 +28521,8 @@
       "alert",
       "remind",
       "通知",
-      "提醒"
+      "提醒",
+      "铃铛"
     ]
   },
   {
@@ -27542,7 +28799,10 @@
       "order_play",
       "orderplay",
       "order",
-      "play"
+      "play",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -27724,7 +28984,10 @@
       "overview_key",
       "overviewkey",
       "overview",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -27867,7 +29130,8 @@
       "ios",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -28205,7 +29469,10 @@
     "display": "Pause",
     "file": "pause.svg",
     "keywords": [
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -28216,7 +29483,10 @@
       "pause_circle",
       "pausecircle",
       "pause",
-      "circle"
+      "circle",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -28227,7 +29497,10 @@
       "pause_presentation",
       "pausepresentation",
       "pause",
-      "presentation"
+      "presentation",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -28239,7 +29512,14 @@
       "paymentarrowdown",
       "payment",
       "arrow",
-      "down"
+      "down",
+      "money",
+      "支付",
+      "信用卡",
+      "钱包",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -28250,7 +29530,11 @@
       "payment_card",
       "paymentcard",
       "payment",
-      "card"
+      "card",
+      "money",
+      "支付",
+      "信用卡",
+      "钱包"
     ]
   },
   {
@@ -28403,7 +29687,11 @@
       "permcameramic",
       "perm",
       "camera",
-      "mic"
+      "mic",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -28455,7 +29743,11 @@
       "permphonemsg",
       "perm",
       "phone",
-      "msg"
+      "msg",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -28467,7 +29759,9 @@
       "permscanwifi",
       "perm",
       "scan",
-      "wifi"
+      "wifi",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -28686,7 +29980,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -28794,7 +30089,10 @@
       "account",
       "avatar",
       "用户",
-      "个人"
+      "个人",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -28868,7 +30166,10 @@
       "account",
       "avatar",
       "用户",
-      "个人"
+      "个人",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -29004,7 +30305,12 @@
       "phonebluetoothspeaker",
       "phone",
       "bluetooth",
-      "speaker"
+      "speaker",
+      "call",
+      "telephone",
+      "电话",
+      "通话",
+      "蓝牙"
     ]
   },
   {
@@ -29015,7 +30321,11 @@
       "phone_callback",
       "phonecallback",
       "phone",
-      "callback"
+      "callback",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29026,7 +30336,11 @@
       "phone_cancel",
       "phonecancel",
       "phone",
-      "cancel"
+      "cancel",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29037,7 +30351,11 @@
       "phone_disabled",
       "phonedisabled",
       "phone",
-      "disabled"
+      "disabled",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29048,7 +30366,11 @@
       "phone_enabled",
       "phoneenabled",
       "phone",
-      "enabled"
+      "enabled",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29059,7 +30381,11 @@
       "phone_forwarded",
       "phoneforwarded",
       "phone",
-      "forwarded"
+      "forwarded",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29071,7 +30397,11 @@
       "phoneintalk",
       "phone",
       "in",
-      "talk"
+      "talk",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29082,7 +30412,11 @@
       "phone_locked",
       "phonelocked",
       "phone",
-      "locked"
+      "locked",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29093,7 +30427,11 @@
       "phone_missed",
       "phonemissed",
       "phone",
-      "missed"
+      "missed",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29104,7 +30442,11 @@
       "phone_paused",
       "phonepaused",
       "phone",
-      "paused"
+      "paused",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -29146,7 +30488,10 @@
       "photo_camera",
       "photocamera",
       "photo",
-      "camera"
+      "camera",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -29158,7 +30503,10 @@
       "photocameraback",
       "photo",
       "camera",
-      "back"
+      "back",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -29170,7 +30518,10 @@
       "photocamerafront",
       "photo",
       "camera",
-      "front"
+      "front",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -29393,7 +30744,10 @@
       "pie_chart",
       "piechart",
       "pie",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -29557,7 +30911,10 @@
       "pivottablechart",
       "pivot",
       "table",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -29630,7 +30987,13 @@
       "play_arrow",
       "playarrow",
       "play",
-      "arrow"
+      "arrow",
+      "start",
+      "播放",
+      "开始",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -29641,7 +31004,10 @@
       "play_circle",
       "playcircle",
       "play",
-      "circle"
+      "circle",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -29652,7 +31018,10 @@
       "play_disabled",
       "playdisabled",
       "play",
-      "disabled"
+      "disabled",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -29664,7 +31033,10 @@
       "playforwork",
       "play",
       "for",
-      "work"
+      "work",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -29675,7 +31047,10 @@
       "play_lesson",
       "playlesson",
       "play",
-      "lesson"
+      "lesson",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -29686,7 +31061,13 @@
       "play_pause",
       "playpause",
       "play",
-      "pause"
+      "pause",
+      "start",
+      "播放",
+      "开始",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -29756,7 +31137,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -29781,7 +31163,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -29809,7 +31192,10 @@
       "playlist_play",
       "playlistplay",
       "playlist",
-      "play"
+      "play",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -29952,7 +31338,9 @@
       "portablewifioff",
       "portable",
       "wifi",
-      "off"
+      "off",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -30206,7 +31594,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -30280,7 +31669,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -30356,7 +31746,10 @@
       "process_chart",
       "processchart",
       "process",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -30524,7 +31917,12 @@
       "qr_code",
       "qrcode",
       "qr",
-      "code"
+      "code",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -30536,7 +31934,12 @@
       "qrcode2",
       "qr",
       "code",
-      "2"
+      "2",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程"
     ]
   },
   {
@@ -30550,6 +31953,11 @@
       "code",
       "2",
       "add",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程",
       "create",
       "new",
       "plus",
@@ -30566,7 +31974,13 @@
       "qrcodescanner",
       "qr",
       "code",
-      "scanner"
+      "scanner",
+      "dev",
+      "programming",
+      "代码",
+      "开发",
+      "编程",
+      "扫描"
     ]
   },
   {
@@ -30610,7 +32024,12 @@
       "queue_music",
       "queuemusic",
       "queue",
-      "music"
+      "music",
+      "audio",
+      "song",
+      "音乐",
+      "歌曲",
+      "音频"
     ]
   },
   {
@@ -30622,7 +32041,10 @@
       "queueplaynext",
       "queue",
       "play",
-      "next"
+      "next",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -30807,7 +32229,10 @@
       "rainy_light",
       "rainylight",
       "rainy",
-      "light"
+      "light",
+      "明亮",
+      "亮度",
+      "灯光"
     ]
   },
   {
@@ -30948,7 +32373,11 @@
       "rear_camera",
       "rearcamera",
       "rear",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -31351,7 +32780,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -31362,7 +32792,12 @@
       "replace_video",
       "replacevideo",
       "replace",
-      "video"
+      "video",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -31511,7 +32946,8 @@
       "photo",
       "picture",
       "图片",
-      "照片"
+      "照片",
+      "图像"
     ]
   },
   {
@@ -31667,7 +33103,12 @@
     "display": "Restaurant",
     "file": "restaurant.svg",
     "keywords": [
-      "restaurant"
+      "restaurant",
+      "dining",
+      "food",
+      "餐厅",
+      "餐饮",
+      "食物"
     ]
   },
   {
@@ -31775,7 +33216,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -32105,7 +33547,10 @@
       "rule_folder",
       "rulefolder",
       "rule",
-      "folder"
+      "folder",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -32174,7 +33619,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -32193,7 +33639,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -32341,7 +33788,8 @@
       "trash",
       "bin",
       "clear",
-      "删除"
+      "删除",
+      "移除"
     ]
   },
   {
@@ -32349,7 +33797,8 @@
     "display": "Scanner",
     "file": "scanner.svg",
     "keywords": [
-      "scanner"
+      "scanner",
+      "扫描"
     ]
   },
   {
@@ -32403,7 +33852,10 @@
     "display": "School",
     "file": "school.svg",
     "keywords": [
-      "school"
+      "school",
+      "education",
+      "学校",
+      "教育"
     ]
   },
   {
@@ -32698,7 +34150,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -32722,7 +34175,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -32878,7 +34332,10 @@
       "security_key",
       "securitykey",
       "security",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -32924,7 +34381,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -33012,7 +34470,10 @@
       "sell_cloud",
       "sellcloud",
       "sell",
-      "cloud"
+      "cloud",
+      "云端",
+      "云",
+      "在线"
     ]
   },
   {
@@ -33055,7 +34516,10 @@
       "sendtimeextension",
       "send",
       "time",
-      "extension"
+      "extension",
+      "clock",
+      "时间",
+      "时钟"
     ]
   },
   {
@@ -33459,7 +34923,8 @@
       "gear",
       "options",
       "设置",
-      "配置"
+      "配置",
+      "蓝牙"
     ]
   },
   {
@@ -33687,7 +35152,11 @@
       "gear",
       "options",
       "设置",
-      "配置"
+      "配置",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -33705,7 +35174,10 @@
       "gear",
       "options",
       "设置",
-      "配置"
+      "配置",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -33827,7 +35299,16 @@
       "gear",
       "options",
       "设置",
-      "配置"
+      "配置",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -33972,7 +35453,11 @@
       "sharelocation",
       "share",
       "location",
-      "分享"
+      "分享",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -34069,7 +35554,10 @@
     "display": "Shield",
     "file": "shield.svg",
     "keywords": [
-      "shield"
+      "shield",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34080,7 +35568,10 @@
       "shield_card",
       "shieldcard",
       "shield",
-      "card"
+      "card",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34092,6 +35583,9 @@
       "shieldlock",
       "shield",
       "lock",
+      "安全",
+      "盾牌",
+      "保护",
       "secure",
       "password",
       "privacy",
@@ -34108,7 +35602,10 @@
       "shield_locked",
       "shieldlocked",
       "shield",
-      "locked"
+      "locked",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34119,7 +35616,10 @@
       "shield_moon",
       "shieldmoon",
       "shield",
-      "moon"
+      "moon",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34131,6 +35631,9 @@
       "shieldperson",
       "shield",
       "person",
+      "安全",
+      "盾牌",
+      "保护",
       "user",
       "profile",
       "account",
@@ -34147,7 +35650,10 @@
       "shield_question",
       "shieldquestion",
       "shield",
-      "question"
+      "question",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34158,7 +35664,10 @@
       "shield_radar",
       "shieldradar",
       "shield",
-      "radar"
+      "radar",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34169,7 +35678,10 @@
       "shield_toggle",
       "shieldtoggle",
       "shield",
-      "toggle"
+      "toggle",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34180,7 +35692,10 @@
       "shield_watch",
       "shieldwatch",
       "shield",
-      "watch"
+      "watch",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34192,7 +35707,10 @@
       "shieldwithheart",
       "shield",
       "with",
-      "heart"
+      "heart",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34204,7 +35722,10 @@
       "shieldwithhouse",
       "shield",
       "with",
-      "house"
+      "house",
+      "安全",
+      "盾牌",
+      "保护"
     ]
   },
   {
@@ -34229,7 +35750,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -34247,7 +35769,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -34387,7 +35910,10 @@
       "show_chart",
       "showchart",
       "show",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -34699,7 +36225,10 @@
       "signalcellularpause",
       "signal",
       "cellular",
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -34723,7 +36252,9 @@
       "signal",
       "wifi",
       "0",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -34736,7 +36267,9 @@
       "signal",
       "wifi",
       "4",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -34748,7 +36281,9 @@
       "signalwifibad",
       "signal",
       "wifi",
-      "bad"
+      "bad",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -34760,7 +36295,9 @@
       "signalwifioff",
       "signal",
       "wifi",
-      "off"
+      "off",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -34774,7 +36311,9 @@
       "wifi",
       "statusbar",
       "not",
-      "connected"
+      "connected",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -34787,7 +36326,9 @@
       "signal",
       "wifi",
       "statusbar",
-      "null"
+      "null",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -34881,7 +36422,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -35048,7 +36590,12 @@
       "slowmotionvideo",
       "slow",
       "motion",
-      "video"
+      "video",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -35159,7 +36706,10 @@
       "snippet_folder",
       "snippetfolder",
       "snippet",
-      "folder"
+      "folder",
+      "directory",
+      "文件夹",
+      "目录"
     ]
   },
   {
@@ -35467,7 +37017,10 @@
       "space_dashboard",
       "spacedashboard",
       "space",
-      "dashboard"
+      "dashboard",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -35479,7 +37032,10 @@
       "spacedashboard2",
       "space",
       "dashboard",
-      "2"
+      "2",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -35588,7 +37144,11 @@
       "speaker_phone",
       "speakerphone",
       "speaker",
-      "phone"
+      "phone",
+      "call",
+      "telephone",
+      "电话",
+      "通话"
     ]
   },
   {
@@ -35841,7 +37401,11 @@
       "speed_camera",
       "speedcamera",
       "speed",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -36056,7 +37620,9 @@
     "display": "Sports",
     "file": "sports.svg",
     "keywords": [
-      "sports"
+      "sports",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36068,7 +37634,9 @@
       "sportsandoutdoors",
       "sports",
       "and",
-      "outdoors"
+      "outdoors",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36079,7 +37647,9 @@
       "sports_bar",
       "sportsbar",
       "sports",
-      "bar"
+      "bar",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36090,7 +37660,9 @@
       "sports_baseball",
       "sportsbaseball",
       "sports",
-      "baseball"
+      "baseball",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36101,7 +37673,9 @@
       "sports_basketball",
       "sportsbasketball",
       "sports",
-      "basketball"
+      "basketball",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36112,7 +37686,9 @@
       "sports_cricket",
       "sportscricket",
       "sports",
-      "cricket"
+      "cricket",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36123,7 +37699,9 @@
       "sports_esports",
       "sportsesports",
       "sports",
-      "esports"
+      "esports",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36134,7 +37712,9 @@
       "sports_football",
       "sportsfootball",
       "sports",
-      "football"
+      "football",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36145,7 +37725,9 @@
       "sports_golf",
       "sportsgolf",
       "sports",
-      "golf"
+      "golf",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36156,7 +37738,9 @@
       "sports_gymnastics",
       "sportsgymnastics",
       "sports",
-      "gymnastics"
+      "gymnastics",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36167,7 +37751,9 @@
       "sports_handball",
       "sportshandball",
       "sports",
-      "handball"
+      "handball",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36178,7 +37764,9 @@
       "sports_hockey",
       "sportshockey",
       "sports",
-      "hockey"
+      "hockey",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36189,7 +37777,9 @@
       "sports_kabaddi",
       "sportskabaddi",
       "sports",
-      "kabaddi"
+      "kabaddi",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36201,7 +37791,9 @@
       "sportsmartialarts",
       "sports",
       "martial",
-      "arts"
+      "arts",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36212,7 +37804,9 @@
       "sports_mma",
       "sportsmma",
       "sports",
-      "mma"
+      "mma",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36223,7 +37817,9 @@
       "sports_motorsports",
       "sportsmotorsports",
       "sports",
-      "motorsports"
+      "motorsports",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36234,7 +37830,9 @@
       "sports_rugby",
       "sportsrugby",
       "sports",
-      "rugby"
+      "rugby",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36245,7 +37843,9 @@
       "sports_score",
       "sportsscore",
       "sports",
-      "score"
+      "score",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36256,7 +37856,9 @@
       "sports_soccer",
       "sportssoccer",
       "sports",
-      "soccer"
+      "soccer",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36267,7 +37869,9 @@
       "sports_tennis",
       "sportstennis",
       "sports",
-      "tennis"
+      "tennis",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36278,7 +37882,9 @@
       "sports_volleyball",
       "sportsvolleyball",
       "sports",
-      "volleyball"
+      "volleyball",
+      "运动",
+      "体育"
     ]
   },
   {
@@ -36354,7 +37960,10 @@
       "ssid_chart",
       "ssidchart",
       "ssid",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -36406,7 +38015,11 @@
       "stack_star",
       "stackstar",
       "stack",
-      "star"
+      "star",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -36418,7 +38031,10 @@
       "stackedbarchart",
       "stacked",
       "bar",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -36458,7 +38074,10 @@
       "stackedlinechart",
       "stacked",
       "line",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -36512,7 +38131,11 @@
     "display": "Star",
     "file": "star.svg",
     "keywords": [
-      "star"
+      "star",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -36523,7 +38146,11 @@
       "star_half",
       "starhalf",
       "star",
-      "half"
+      "half",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -36534,7 +38161,10 @@
       "star_rate",
       "starrate",
       "star",
-      "rate"
+      "rate",
+      "favorite",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -36546,7 +38176,10 @@
       "starratehalf",
       "star",
       "rate",
-      "half"
+      "half",
+      "favorite",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -36557,7 +38190,11 @@
       "star_shine",
       "starshine",
       "star",
-      "shine"
+      "shine",
+      "favorite",
+      "rate",
+      "星星",
+      "评分"
     ]
   },
   {
@@ -36752,7 +38389,10 @@
       "stethoscope_arrow",
       "stethoscopearrow",
       "stethoscope",
-      "arrow"
+      "arrow",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -36770,7 +38410,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -37107,7 +38748,10 @@
       "subdirectoryarrowleft",
       "subdirectory",
       "arrow",
-      "left"
+      "left",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -37119,7 +38763,10 @@
       "subdirectoryarrowright",
       "subdirectory",
       "arrow",
-      "right"
+      "right",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -37645,7 +39292,11 @@
       "switch_camera",
       "switchcamera",
       "switch",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -37689,7 +39340,12 @@
       "switch_video",
       "switchvideo",
       "switch",
-      "video"
+      "video",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -37763,7 +39419,10 @@
       "syncarrowdown",
       "sync",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -37775,7 +39434,10 @@
       "syncarrowup",
       "sync",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -37814,7 +39476,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -37894,7 +39557,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -37911,7 +39575,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -37928,7 +39593,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -38052,7 +39718,10 @@
       "table_chart",
       "tablechart",
       "table",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -38064,7 +39733,10 @@
       "tablechartview",
       "table",
       "chart",
-      "view"
+      "view",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -38135,7 +39807,12 @@
       "table_restaurant",
       "tablerestaurant",
       "table",
-      "restaurant"
+      "restaurant",
+      "dining",
+      "food",
+      "餐厅",
+      "餐饮",
+      "食物"
     ]
   },
   {
@@ -38210,7 +39887,11 @@
       "tablet_camera",
       "tabletcamera",
       "tablet",
-      "camera"
+      "camera",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -38368,7 +40049,10 @@
       "team_dashboard",
       "teamdashboard",
       "team",
-      "dashboard"
+      "dashboard",
+      "仪表盘",
+      "面板",
+      "仪表板"
     ]
   },
   {
@@ -38901,7 +40585,10 @@
       "thermostatarrowdown",
       "thermostat",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -38913,7 +40600,10 @@
       "thermostatarrowup",
       "thermostat",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -39098,7 +40788,10 @@
       "tiltarrowdown",
       "tilt",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -39110,7 +40803,10 @@
       "tiltarrowup",
       "tilt",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -39121,7 +40817,10 @@
       "time_auto",
       "timeauto",
       "time",
-      "auto"
+      "auto",
+      "clock",
+      "时间",
+      "时钟"
     ]
   },
   {
@@ -39274,7 +40973,10 @@
       "timerarrowdown",
       "timer",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -39286,7 +40988,10 @@
       "timerarrowup",
       "timer",
       "arrow",
-      "up"
+      "up",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -39308,7 +41013,10 @@
       "timer_pause",
       "timerpause",
       "timer",
-      "pause"
+      "pause",
+      "stop",
+      "暂停",
+      "停止"
     ]
   },
   {
@@ -39319,7 +41027,10 @@
       "timer_play",
       "timerplay",
       "timer",
-      "play"
+      "play",
+      "start",
+      "播放",
+      "开始"
     ]
   },
   {
@@ -39553,7 +41264,8 @@
       "cancel",
       "dismiss",
       "exit",
-      "关闭"
+      "关闭",
+      "取消"
     ]
   },
   {
@@ -40715,7 +42427,10 @@
       "uploadfile",
       "upload",
       "file",
-      "上传"
+      "上传",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -41006,7 +42721,12 @@
       "video_call",
       "videocall",
       "video",
-      "call"
+      "call",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41018,7 +42738,16 @@
       "videocameraback",
       "video",
       "camera",
-      "back"
+      "back",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -41032,6 +42761,15 @@
       "camera",
       "back",
       "add",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像",
       "create",
       "new",
       "plus",
@@ -41048,7 +42786,16 @@
       "videocamerafront",
       "video",
       "camera",
-      "front"
+      "front",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -41061,7 +42808,16 @@
       "video",
       "camera",
       "front",
-      "off"
+      "off",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "photo",
+      "拍照",
+      "相机",
+      "摄像"
     ]
   },
   {
@@ -41072,7 +42828,17 @@
       "video_chat",
       "videochat",
       "video",
-      "chat"
+      "chat",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -41083,7 +42849,15 @@
       "video_file",
       "videofile",
       "video",
-      "file"
+      "file",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
+      "document",
+      "文件",
+      "文档"
     ]
   },
   {
@@ -41095,7 +42869,12 @@
       "videoframecopy",
       "video",
       "frame",
-      "copy"
+      "copy",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41107,7 +42886,12 @@
       "videoframesave",
       "video",
       "frame",
-      "save"
+      "save",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41118,7 +42902,12 @@
       "video_label",
       "videolabel",
       "video",
-      "label"
+      "label",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41129,7 +42918,12 @@
       "video_library",
       "videolibrary",
       "video",
-      "library"
+      "library",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41141,6 +42935,11 @@
       "videosearch",
       "video",
       "search",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
       "find",
       "lookup",
       "magnifier",
@@ -41157,6 +42956,11 @@
       "videosettings",
       "video",
       "settings",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影",
       "config",
       "preferences",
       "gear",
@@ -41173,7 +42977,12 @@
       "video_stable",
       "videostable",
       "video",
-      "stable"
+      "stable",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41184,7 +42993,12 @@
       "video_template",
       "videotemplate",
       "video",
-      "template"
+      "template",
+      "movie",
+      "film",
+      "视频",
+      "影片",
+      "电影"
     ]
   },
   {
@@ -41572,7 +43386,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -41616,7 +43431,12 @@
       "voice_chat",
       "voicechat",
       "voice",
-      "chat"
+      "chat",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -41628,7 +43448,12 @@
       "voicechatoff",
       "voice",
       "chat",
-      "off"
+      "off",
+      "message",
+      "talk",
+      "消息",
+      "聊天",
+      "对话"
     ]
   },
   {
@@ -41767,7 +43592,10 @@
       "vpn_key",
       "vpnkey",
       "vpn",
-      "key"
+      "key",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -41779,7 +43607,10 @@
       "vpnkeyalert",
       "vpn",
       "key",
-      "alert"
+      "alert",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -41791,7 +43622,10 @@
       "vpnkeyoff",
       "vpn",
       "key",
-      "off"
+      "off",
+      "password",
+      "钥匙",
+      "密钥"
     ]
   },
   {
@@ -41808,7 +43642,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -41826,7 +43661,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -42032,7 +43868,10 @@
       "watch_arrow",
       "watcharrow",
       "watch",
-      "arrow"
+      "arrow",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -42044,7 +43883,10 @@
       "watcharrowdown",
       "watch",
       "arrow",
-      "down"
+      "down",
+      "direction",
+      "箭头",
+      "方向"
     ]
   },
   {
@@ -42085,7 +43927,8 @@
       "tick",
       "verify",
       "完成",
-      "确认"
+      "确认",
+      "勾选"
     ]
   },
   {
@@ -42102,7 +43945,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -42271,7 +44115,8 @@
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -42359,7 +44204,10 @@
       "waterfall_chart",
       "waterfallchart",
       "waterfall",
-      "chart"
+      "chart",
+      "图表",
+      "统计",
+      "数据"
     ]
   },
   {
@@ -42475,7 +44323,9 @@
       "weather_hail",
       "weatherhail",
       "weather",
-      "hail"
+      "hail",
+      "天气",
+      "气候"
     ]
   },
   {
@@ -42486,7 +44336,9 @@
       "weather_mix",
       "weathermix",
       "weather",
-      "mix"
+      "mix",
+      "天气",
+      "气候"
     ]
   },
   {
@@ -42497,7 +44349,9 @@
       "weather_snowy",
       "weathersnowy",
       "weather",
-      "snowy"
+      "snowy",
+      "天气",
+      "气候"
     ]
   },
   {
@@ -42646,7 +44500,8 @@
       "menu",
       "hamburger",
       "list",
-      "菜单"
+      "菜单",
+      "导航"
     ]
   },
   {
@@ -42717,7 +44572,9 @@
     "display": "Wifi",
     "file": "wifi.svg",
     "keywords": [
-      "wifi"
+      "wifi",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42729,7 +44586,9 @@
       "wifi1bar",
       "wifi",
       "1",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42741,7 +44600,9 @@
       "wifi2bar",
       "wifi",
       "2",
-      "bar"
+      "bar",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42753,6 +44614,8 @@
       "wifiadd",
       "wifi",
       "add",
+      "网络",
+      "无线",
       "create",
       "new",
       "plus",
@@ -42768,7 +44631,9 @@
       "wifi_calling",
       "wificalling",
       "wifi",
-      "calling"
+      "calling",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42781,7 +44646,9 @@
       "wifi",
       "calling",
       "bar",
-      "1"
+      "1",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42794,7 +44661,9 @@
       "wifi",
       "calling",
       "bar",
-      "2"
+      "2",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42807,7 +44676,9 @@
       "wifi",
       "calling",
       "bar",
-      "3"
+      "3",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42818,7 +44689,9 @@
       "wifi_channel",
       "wifichannel",
       "wifi",
-      "channel"
+      "channel",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42829,7 +44702,9 @@
       "wifi_device",
       "wifidevice",
       "wifi",
-      "device"
+      "device",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42840,7 +44715,9 @@
       "wifi_find",
       "wififind",
       "wifi",
-      "find"
+      "find",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42852,6 +44729,8 @@
       "wifihome",
       "wifi",
       "home",
+      "网络",
+      "无线",
       "house",
       "首页",
       "主页"
@@ -42866,12 +44745,15 @@
       "wifilock",
       "wifi",
       "lock",
+      "网络",
+      "无线",
       "secure",
       "password",
       "privacy",
       "safety",
       "锁",
-      "密码"
+      "密码",
+      "安全"
     ]
   },
   {
@@ -42882,7 +44764,9 @@
       "wifi_notification",
       "wifinotification",
       "wifi",
-      "notification"
+      "notification",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42893,7 +44777,9 @@
       "wifi_off",
       "wifioff",
       "wifi",
-      "off"
+      "off",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42904,7 +44790,9 @@
       "wifi_password",
       "wifipassword",
       "wifi",
-      "password"
+      "password",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42916,7 +44804,9 @@
       "wifiprotectedsetup",
       "wifi",
       "protected",
-      "setup"
+      "setup",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42927,7 +44817,9 @@
       "wifi_proxy",
       "wifiproxy",
       "wifi",
-      "proxy"
+      "proxy",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42938,7 +44830,9 @@
       "wifi_tethering",
       "wifitethering",
       "wifi",
-      "tethering"
+      "tethering",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42950,7 +44844,9 @@
       "wifitetheringerror",
       "wifi",
       "tethering",
-      "error"
+      "error",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -42962,7 +44858,9 @@
       "wifitetheringoff",
       "wifi",
       "tethering",
-      "off"
+      "off",
+      "网络",
+      "无线"
     ]
   },
   {
@@ -43193,7 +45091,11 @@
       "wrong_location",
       "wronglocation",
       "wrong",
-      "location"
+      "location",
+      "place",
+      "pin",
+      "位置",
+      "定位"
     ]
   },
   {
@@ -43347,7 +45249,9 @@
       "zoominmap",
       "zoom",
       "in",
-      "map"
+      "map",
+      "地图",
+      "导航"
     ]
   },
   {
@@ -43370,7 +45274,9 @@
       "zoomoutmap",
       "zoom",
       "out",
-      "map"
+      "map",
+      "地图",
+      "导航"
     ]
   }
 ]

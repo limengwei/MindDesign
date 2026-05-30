@@ -25,12 +25,18 @@ function mapFlexAlign(align?: string): string | undefined {
   }
 }
 
+function autoLayoutPadding(p: AutoLayout['padding']): [number, number, number, number] | number | undefined {
+  if (p === undefined) return undefined
+  if (typeof p === 'number') return p
+  return p as [number, number, number, number]
+}
+
 function mapAutoLayout(layout: AutoLayout) {
   return {
     display: 'flex' as const,
     flexDirection: layout.direction === 'column' ? 'column' as const : 'row' as const,
     gap: layout.gap,
-    padding: layout.padding,
+    padding: autoLayoutPadding(layout.padding),
     alignItems: mapFlexAlign(layout.align),
     justifyContent: mapFlexAlign(layout.align),
     flexWrap: layout.wrap ? 'wrap' as const : 'nowrap' as const,
@@ -200,8 +206,9 @@ export async function applyTree(
   newTree: ElementTree,
   _oldTree: ElementTree | null
 ): Promise<void> {
-  leafer.clear()
+  // 先构建新树（包含异步图标加载），再一次性替换，避免中间空白帧
   const root = await buildTree(newTree)
+  leafer.clear()
   leafer.add(root)
 }
 
@@ -217,6 +224,7 @@ export async function diffUpdate(
   const oldIds = collectIds(oldTree)
   const newIds = collectIds(newTree)
 
+  // 删除旧元素
   for (const id of oldIds) {
     if (!newIds.has(id)) {
       const el = (leafer as any).findById?.(id)
@@ -224,12 +232,24 @@ export async function diffUpdate(
     }
   }
 
+  // 增量更新：一次性替换（已内置 pre-build 避免闪烁）
   await applyTree(leafer, newTree, oldTree)
 }
 
+let _streamingTimer: ReturnType<typeof setTimeout> | null = null
+
+/**
+ * 流式增量渲染：AI 输出过程中尝试从文本提取元素树并渲染
+ * 防抖 300ms，避免每个 token 都触发重绘
+ */
 export function renderStreaming(
-  _leafer: Leafer,
+  leafer: Leafer,
   chunk: Partial<ElementTree>
 ): void {
-  console.log('Streaming chunk:', chunk)
+  if (!chunk.type) return
+
+  if (_streamingTimer) clearTimeout(_streamingTimer)
+  _streamingTimer = setTimeout(() => {
+    applyTree(leafer, chunk as ElementTree, null)
+  }, 300)
 }

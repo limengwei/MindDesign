@@ -1,5 +1,5 @@
 import type { ElementTree } from '../types/element'
-import { loadIconSvg, colorizeSvg } from '../icons/icon-loader'
+import { loadIconSvg, colorizeSvg, getSvgCache } from '../icons/icon-loader'
 
 function escapeHtml(text: string): string {
   return text
@@ -65,10 +65,27 @@ function commonStyleCSS(node: ElementTree): string {
   return parts.join(';')
 }
 
+/** 收集元素树中所有图标名并批量预加载，避免串行 await */
+function collectIconNames(node: ElementTree): Set<string> {
+  const names = new Set<string>()
+  if (node.type === 'Icon' && node.name) names.add(node.name)
+  if (node.children) {
+    for (const child of node.children) {
+      collectIconNames(child).forEach(n => names.add(n))
+    }
+  }
+  return names
+}
+
+async function preloadIcons(tree: ElementTree): Promise<void> {
+  const names = collectIconNames(tree)
+  await Promise.all(Array.from(names).map(name => loadIconSvg(name)))
+}
+
 async function iconToHTML(name: string, size: number, color: string): Promise<string> {
-  const svg = await loadIconSvg(name)
-  if (!svg) return `<span style="width:${size}px;height:${size}px;display:inline-block;background:#ccc;border-radius:4px"></span>`
-  const colored = colorizeSvg(svg, color)
+  const cached = getSvgCache(name)
+  if (!cached) return `<span style="width:${size}px;height:${size}px;display:inline-block;background:#ccc;border-radius:4px"></span>`
+  const colored = colorizeSvg(cached, color)
   return colored.replace(
     '<svg ',
     `<svg width="${size}" height="${size}" `
@@ -177,6 +194,8 @@ export async function elementToHTML(node: ElementTree, indent = ''): Promise<str
 }
 
 export async function generateHTML(tree: ElementTree, title = 'MindDesign Export'): Promise<string> {
+  // 预加载所有图标（并行），避免串行 await
+  await preloadIcons(tree)
   const body = await elementToHTML(tree, '    ')
 
   return `<!DOCTYPE html>
