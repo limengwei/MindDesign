@@ -191,9 +191,15 @@ const TOOLS: ToolDefinition[] = [
 ]
 
 async function executeToolCall(name: string, args: string): Promise<string> {
+  let parsed: Record<string, unknown>
+  try {
+    parsed = JSON.parse(args)
+  } catch (err) {
+    return `无效的参数格式: ${(err as Error).message}`
+  }
+
   if (name === 'search_icons') {
-    const parsed = JSON.parse(args)
-    const results = await searchIcons(parsed.query, parsed.limit)
+    const results = await searchIcons(parsed.query as string, parsed.limit as number | undefined)
     const icons = results.map((r) => `${r.name} (${r.keywords.join(', ')})`)
     return icons.length > 0
       ? `找到的图标: ${icons.join('; ')}`
