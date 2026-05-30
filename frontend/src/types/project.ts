@@ -1,4 +1,4 @@
-import type { CanvasCard } from '../stores/canvasStore'
+import type { CanvasCard, PageType, ColorScheme } from '../stores/canvasStore'
 
 export interface ProjectFile {
   formatVersion: 1
@@ -10,6 +10,8 @@ export interface ProjectFile {
   }
   canvas: {
     cards: CanvasCard[]
+    pageType: PageType
+    colorScheme: ColorScheme
     viewport: {
       zoom: number
       scrollX: number

@@ -12,6 +12,8 @@ export interface CanvasCard {
   tree: ElementTree
   x: number
   y: number
+  width: number
+  height: number
 }
 
 export const PAGE_DIMENSIONS: Record<PageType, { width: number; height: number }> = {
@@ -29,6 +31,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const colorScheme = ref<ColorScheme>('auto')
   const projectName = ref('未命名项目')
   const viewport = ref({ zoom: 1, scrollX: 0, scrollY: 0 })
+  const isGenerating = ref(false)
 
   /** 添加一张新卡片，自动排在已有卡片右侧 */
   function addCard(tree: ElementTree, label?: string): CanvasCard {
@@ -37,13 +40,15 @@ export const useCanvasStore = defineStore('canvas', () => {
     const gap = 60
     // 计算新卡片 x 位置：放在最后一张卡片右边
     const lastCard = cards.value[cards.value.length - 1]
-    const x = lastCard ? lastCard.x + dims.width + gap : 0
+    const x = lastCard ? lastCard.x + (lastCard.width || dims.width) + gap : 0
     const card: CanvasCard = {
       id: `card-${Date.now()}-${_cardCounter}`,
       label: label || `设计稿 ${cards.value.length + 1}`,
       tree,
       x,
       y: 0,
+      width: dims.width,
+      height: dims.height,
     }
     cards.value.push(card)
     selectedCardId.value = card.id
@@ -82,6 +87,10 @@ export const useCanvasStore = defineStore('canvas', () => {
     if (card) card.tree = tree
   }
 
+  function setGenerating(val: boolean) {
+    isGenerating.value = val
+  }
+
   function reset() {
     cards.value = []
     selectedCardId.value = null
@@ -89,6 +98,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     colorScheme.value = 'auto'
     projectName.value = '未命名项目'
     viewport.value = { zoom: 1, scrollX: 0, scrollY: 0 }
+    isGenerating.value = false
   }
 
   return {
@@ -99,12 +109,14 @@ export const useCanvasStore = defineStore('canvas', () => {
     colorScheme,
     projectName,
     viewport,
+    isGenerating,
     addCard,
     selectCard,
     setPageType,
     setColorScheme,
     setProjectName,
     setViewport,
+    setGenerating,
     updateSelectedCardTree,
     reset,
   }

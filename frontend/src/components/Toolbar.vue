@@ -24,7 +24,7 @@ async function handleSave() {
   const data: ProjectFile = {
     formatVersion: 1,
     meta: { name: canvasStore.projectName, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), appVersion: '1.0.0' },
-    canvas: { cards: canvasStore.cards, viewport: canvasStore.viewport },
+    canvas: { cards: canvasStore.cards, pageType: canvasStore.pageType, colorScheme: canvasStore.colorScheme, viewport: canvasStore.viewport },
     chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
   }
   try {

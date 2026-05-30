@@ -22,6 +22,8 @@ export function setupAutoSave() {
       },
       canvas: {
         cards: canvas.cards,
+        pageType: canvas.pageType,
+        colorScheme: canvas.colorScheme,
         viewport: canvas.viewport,
       },
       chat: chat.messages.map((m) => ({

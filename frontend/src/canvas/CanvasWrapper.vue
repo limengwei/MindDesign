@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { App, Leafer, Group, Rect, Text, Frame } from 'leafer-ui'
 import '@leafer-in/viewport'
 import { buildTree } from './renderer'
@@ -51,6 +51,12 @@ onMounted(() => {
     app.resize({ width: clientWidth, height: clientHeight })
   })
   resizeObserver.observe(containerRef.value)
+
+  nextTick(() => {
+    if (canvasStore.cards.length > 0) {
+      renderAll()
+    }
+  })
 })
 
 onUnmounted(() => {
@@ -70,6 +76,8 @@ async function renderCard(card: CanvasCard, selected: boolean) {
     id: card.id,
     x: card.x,
     y: card.y,
+    width: card.width || props.pageWidth,
+    height: card.height || props.pageHeight,
     strokeWidth: selected ? 3 : 1,
     stroke: selected ? '#818cf8' : '#2a2a4a',
     cornerRadius: 8,
@@ -149,6 +157,21 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 <template>
   <div class="canvas-wrapper">
     <div ref="containerRef" class="canvas-container"></div>
+
+    <Transition name="loading-fade">
+      <div v-if="canvasStore.isGenerating" class="canvas-loading-overlay">
+        <div class="loading-content">
+          <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+            <div class="spinner-ring"></div>
+          </div>
+          <div class="loading-text">AI 正在生成设计稿...</div>
+          <div class="loading-subtext">请稍候，这可能需要几秒钟</div>
+        </div>
+      </div>
+    </Transition>
+
     <div class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
     </div>
@@ -180,5 +203,80 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
   color: #6b7280;
   border-radius: 6px;
   pointer-events: none;
+}
+
+.canvas-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 15, 35, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.loading-spinner {
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+
+.spinner-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+}
+
+.spinner-ring:nth-child(1) {
+  border-top-color: #818cf8;
+  animation: spin 1.2s linear infinite;
+}
+
+.spinner-ring:nth-child(2) {
+  inset: 6px;
+  border-right-color: #6366f1;
+  animation: spin 1.6s linear infinite reverse;
+}
+
+.spinner-ring:nth-child(3) {
+  inset: 12px;
+  border-bottom-color: #4f46e5;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 16px;
+  font-weight: 500;
+  color: #e5e7eb;
+  letter-spacing: 0.5px;
+}
+
+.loading-subtext {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.loading-fade-enter-active,
+.loading-fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+
+.loading-fade-enter-from,
+.loading-fade-leave-to {
+  opacity: 0;
 }
 </style>

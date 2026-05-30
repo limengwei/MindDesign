@@ -59,8 +59,21 @@ onMounted(async () => {
   if (autoSaveData) {
     const shouldRecover = confirm('检测到上次未正常关闭的项目，是否恢复？')
     if (shouldRecover) {
+      if (autoSaveData.canvas.pageType) {
+        canvasStore.setPageType(autoSaveData.canvas.pageType)
+      }
+      if (autoSaveData.canvas.colorScheme) {
+        canvasStore.setColorScheme(autoSaveData.canvas.colorScheme)
+      }
       if (autoSaveData.canvas.cards) {
         canvasStore.cards = autoSaveData.canvas.cards
+      }
+      if (autoSaveData.canvas.viewport) {
+        canvasStore.setViewport(
+          autoSaveData.canvas.viewport.zoom,
+          autoSaveData.canvas.viewport.scrollX,
+          autoSaveData.canvas.viewport.scrollY,
+        )
       }
       if (autoSaveData.meta.name) {
         canvasStore.setProjectName(autoSaveData.meta.name)

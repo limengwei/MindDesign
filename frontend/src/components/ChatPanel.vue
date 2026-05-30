@@ -38,6 +38,7 @@ watch(() => chatStore.pendingSend, async (text) => {
   if (!text) return
   chatStore.pendingSend = null
   chatStore.setStreaming(true)
+  canvasStore.setGenerating(true)
   try {
     const result = await sendMessageToLLM(text, buildCallOptions())
     chatStore.addAssistantMessage(result.content, result.tree || undefined)
@@ -47,6 +48,7 @@ watch(() => chatStore.pendingSend, async (text) => {
     console.error('LLM error:', err)
   } finally {
     chatStore.setStreaming(false)
+    canvasStore.setGenerating(false)
   }
 })
 
@@ -57,6 +59,7 @@ async function handleSend() {
   inputText.value = ''
   chatStore.addUserMessage(text)
   chatStore.setStreaming(true)
+  canvasStore.setGenerating(true)
 
   try {
     const result = await sendMessageToLLM(text, buildCallOptions())
@@ -69,6 +72,7 @@ async function handleSend() {
     console.error('LLM error:', err)
   } finally {
     chatStore.setStreaming(false)
+    canvasStore.setGenerating(false)
   }
 }
 
