@@ -1,0 +1,3289 @@
+Class: Text&lt;TConstructorData&gt; | 🌿 LeaferJS
+https://www.leaferjs.com/ui/api/classes/Text.html
+
+<!DOCTYPE html>
+
+Class: Text<TConstructorData> | 🌿 LeaferJS
+
+Skip to content
+
+🌿 LeaferJS
+
+SearchK
+
+简体中文
+
+English 预计2.0版本启动翻译
+
+简体中文
+
+English 预计2.0版本启动翻译
+
+Appearance
+
+Menu
+Return to top
+
+Class: Text<TConstructorData> ​
+
+Type parameters ​
+
+NameType
+
+TConstructorDataITextInputData
+
+Hierarchy ​
+
+UI<TConstructorData>
+
+↳ Text
+
+Implements ​
+
+IText
+
+Table of contents ​
+
+Constructors ​
+
+constructor
+
+Properties ​
+
+innerId
+
+skipJSON
+
+syncEventer
+
+lockNormalStyle
+
+__layout
+
+__world
+
+__local
+
+__nowWorld
+
+__cameraWorld
+
+__worldOpacity
+
+__scrollWorld
+
+__level
+
+__tempNumber
+
+__hasAutoLayout
+
+__hasMask
+
+__hasEraser
+
+__hitCanvas
+
+__captureMap
+
+__bubbleMap
+
+__hasLocalEvent
+
+__hasWorldEvent
+
+topChildren
+
+destroyed
+
+__
+
+width
+
+height
+
+boxStyle
+
+resizeFontSize
+
+fill
+
+strokeAlign
+
+hitFill
+
+text
+
+placeholder
+
+fontFamily
+
+fontSize
+
+fontWeight
+
+italic
+
+textCase
+
+textDecoration
+
+letterSpacing
+
+lineHeight
+
+paraIndent
+
+paraSpacing
+
+writingMode
+
+textAlign
+
+verticalAlign
+
+autoSizeAlign
+
+textWrap
+
+textOverflow
+
+textEditing
+
+isOverflow
+
+proxyData
+
+__proxyData
+
+leafer
+
+parent
+
+zoomLayer
+
+children
+
+startLinker
+
+endLinker
+
+id
+
+name
+
+className
+
+blendMode
+
+opacity
+
+visible
+
+locked
+
+dim
+
+dimskip
+
+bright
+
+zIndex
+
+mask
+
+eraser
+
+x
+
+y
+
+scaleX
+
+scaleY
+
+scaleFixed
+
+rotation
+
+skewX
+
+skewY
+
+offsetX
+
+offsetY
+
+scrollX
+
+scrollY
+
+origin
+
+around
+
+lazy
+
+pixelRatio
+
+renderSpread
+
+path
+
+windingRule
+
+closed
+
+flow
+
+padding
+
+gap
+
+flowAlign
+
+flowWrap
+
+itemBox
+
+inFlow
+
+autoWidth
+
+autoHeight
+
+lockRatio
+
+autoBox
+
+widthRange
+
+heightRange
+
+draggable
+
+dragBounds
+
+dragBoundsType
+
+editable
+
+hittable
+
+hitStroke
+
+hitBox
+
+hitChildren
+
+hitSelf
+
+hitRadius
+
+cursor
+
+stroke
+
+strokeWidth
+
+strokeScaleFixed
+
+strokeCap
+
+strokeJoin
+
+dashPattern
+
+dashOffset
+
+miterLimit
+
+startArrow
+
+endArrow
+
+cornerRadius
+
+cornerSmoothing
+
+shadow
+
+innerShadow
+
+blur
+
+backgroundBlur
+
+grayscale
+
+filter
+
+complex
+
+animation
+
+animationOut
+
+transition
+
+transitionOut
+
+motionPath
+
+motionPrecision
+
+motion
+
+motionRotation
+
+states
+
+state
+
+selected
+
+disabled
+
+normalStyle
+
+hoverStyle
+
+pressStyle
+
+focusStyle
+
+selectedStyle
+
+disabledStyle
+
+placeholderStyle
+
+placeholderColor
+
+placeholderDelay
+
+button
+
+editConfig
+
+editOuter
+
+editInner
+
+data
+
+useFastShadow
+
+__box
+
+__animate
+
+Accessors ​
+
+tag
+
+innerName
+
+__DataProcessor
+
+__LayoutProcessor
+
+leaferIsCreated
+
+leaferIsReady
+
+isLeafer
+
+isBranch
+
+isBranchLeaf
+
+__localMatrix
+
+__localBoxBounds
+
+worldTransform
+
+localTransform
+
+scrollWorldTransform
+
+boxBounds
+
+renderBounds
+
+worldBoxBounds
+
+worldStrokeBounds
+
+worldRenderBounds
+
+worldOpacity
+
+__worldFlipped
+
+__onlyHitMask
+
+__ignoreHitWorld
+
+__inLazyBounds
+
+pathInputed
+
+event
+
+__tag
+
+textDrawData
+
+app
+
+isFrame
+
+strokeWidthFixed
+
+scale
+
+isAutoWidth
+
+isAutoHeight
+
+pen
+
+Methods ​
+
+resetCustom
+
+waitParent
+
+waitLeafer
+
+nextRender
+
+removeNextRender
+
+__bindLeafer
+
+setAttr
+
+getAttr
+
+getComputedAttr
+
+toJSON
+
+toString
+
+toSVG
+
+__SVG
+
+toHTML
+
+__setAttr
+
+__getAttr
+
+setProxyAttr
+
+getProxyAttr
+
+focus
+
+updateState
+
+updateLayout
+
+forceUpdate
+
+forceRender
+
+__extraUpdate
+
+__updateWorldMatrix
+
+__updateLocalMatrix
+
+__updateWorldBounds
+
+__updateLocalBounds
+
+__updateLocalBoxBounds
+
+__updateLocalStrokeBounds
+
+__updateLocalRenderBounds
+
+__updateContentBounds
+
+__updateStrokeBounds
+
+__updateAutoLayout
+
+__updateFlowLayout
+
+__updateNaturalSize
+
+__updateStrokeSpread
+
+__updateEraser
+
+__renderEraser
+
+__updateMask
+
+__renderMask
+
+__getNowWorld
+
+getClampRenderScale
+
+getRenderScaleData
+
+getTransform
+
+getBounds
+
+getLayoutBounds
+
+getLayoutPoints
+
+getWorldBounds
+
+worldToLocal
+
+localToWorld
+
+worldToInner
+
+innerToWorld
+
+getBoxPoint
+
+getBoxPointByInner
+
+getInnerPoint
+
+getInnerPointByBox
+
+getInnerPointByLocal
+
+getLocalPoint
+
+getLocalPointByInner
+
+getPagePoint
+
+getWorldPoint
+
+getWorldPointByBox
+
+getWorldPointByLocal
+
+getWorldPointByPage
+
+setTransform
+
+transform
+
+move
+
+moveInner
+
+scaleOf
+
+rotateOf
+
+skewOf
+
+transformWorld
+
+moveWorld
+
+scaleOfWorld
+
+rotateOfWorld
+
+skewOfWorld
+
+flip
+
+scaleResize
+
+__scaleResize
+
+resizeWidth
+
+resizeHeight
+
+hit
+
+__hitWorld
+
+__hit
+
+__hitFill
+
+__hitStroke
+
+__hitPixel
+
+__drawHitPath
+
+__updateHitCanvas
+
+__render
+
+__drawFast
+
+__clip
+
+__renderShape
+
+__updateWorldOpacity
+
+__updatePath
+
+getMotionPathData
+
+getMotionPoint
+
+getMotionTotal
+
+__updateMotionPath
+
+__runAnimation
+
+__updateSortChildren
+
+add
+
+remove
+
+dropTo
+
+on
+
+off
+
+on_
+
+off_
+
+once
+
+emit
+
+emitEvent
+
+hasEvent
+
+changeAttr
+
+addAttr
+
+__emitLifeEvent
+
+__updateTextDrawData
+
+__updateBoxBounds
+
+__updateRenderSpread
+
+__updateRenderBounds
+
+__updateChange
+
+__drawRenderPath
+
+__draw
+
+__drawShape
+
+destroy
+
+reset
+
+set
+
+get
+
+createProxyData
+
+clearProxyData
+
+find
+
+findTag
+
+findOne
+
+findId
+
+getPath
+
+getPathString
+
+asPath
+
+load
+
+__onUpdateSize
+
+__updateRenderPath
+
+__drawPath
+
+__drawPathByData
+
+__drawPathByBox
+
+drawImagePlaceholder
+
+animate
+
+killAnimate
+
+export
+
+syncExport
+
+clone
+
+one
+
+registerUI
+
+registerData
+
+setEditConfig
+
+setEditOuter
+
+setEditInner
+
+Constructors ​
+
+constructor ​
+
+• new Text<TConstructorData>(data?): Text<TConstructorData>
+
+Type parameters ​
+
+NameType
+
+TConstructorDataITextInputData
+
+Parameters ​
+
+NameType
+
+data?TConstructorData
+
+Returns ​
+
+Text<TConstructorData>
+
+Inherited from ​
+
+UI.constructor
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:116
+
+Properties ​
+
+innerId ​
+
+• Readonly innerId: number
+
+Implementation of ​
+
+IText.innerId
+
+Inherited from ​
+
+UI.innerId
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:33
+
+skipJSON ​
+
+• Optional skipJSON: boolean
+
+Implementation of ​
+
+IText.skipJSON
+
+Inherited from ​
+
+UI.skipJSON
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:49
+
+syncEventer ​
+
+• Optional syncEventer: ILeaf
+
+Implementation of ​
+
+IText.syncEventer
+
+Inherited from ​
+
+UI.syncEventer
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:50
+
+lockNormalStyle ​
+
+• Optional lockNormalStyle: boolean
+
+Implementation of ​
+
+IText.lockNormalStyle
+
+Inherited from ​
+
+UI.lockNormalStyle
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:51
+
+__layout ​
+
+• __layout: ILeafLayout
+
+Implementation of ​
+
+IText.__layout
+
+Inherited from ​
+
+UI.__layout
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:54
+
+__world ​
+
+• __world: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IText.__world
+
+Inherited from ​
+
+UI.__world
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:56
+
+__local ​
+
+• Optional __local: IMatrixWithBoundsData
+
+Implementation of ​
+
+IText.__local
+
+Inherited from ​
+
+UI.__local
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:57
+
+__nowWorld ​
+
+• Optional __nowWorld: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IText.__nowWorld
+
+Inherited from ​
+
+UI.__nowWorld
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:59
+
+__cameraWorld ​
+
+• Optional __cameraWorld: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IText.__cameraWorld
+
+Inherited from ​
+
+UI.__cameraWorld
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:60
+
+__worldOpacity ​
+
+• __worldOpacity: number
+
+Implementation of ​
+
+IText.__worldOpacity
+
+Inherited from ​
+
+UI.__worldOpacity
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:65
+
+__scrollWorld ​
+
+• Optional __scrollWorld: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IText.__scrollWorld
+
+Inherited from ​
+
+UI.__scrollWorld
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:71
+
+__level ​
+
+• __level: number
+
+Implementation of ​
+
+IText.__level
+
+Inherited from ​
+
+UI.__level
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:84
+
+__tempNumber ​
+
+• __tempNumber: number
+
+Implementation of ​
+
+IText.__tempNumber
+
+Inherited from ​
+
+UI.__tempNumber
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:85
+
+__hasAutoLayout ​
+
+• Optional __hasAutoLayout: boolean
+
+Implementation of ​
+
+IText.__hasAutoLayout
+
+Inherited from ​
+
+UI.__hasAutoLayout
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:89
+
+__hasMask ​
+
+• Optional __hasMask: boolean
+
+Implementation of ​
+
+IText.__hasMask
+
+Inherited from ​
+
+UI.__hasMask
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:90
+
+__hasEraser ​
+
+• Optional __hasEraser: boolean
+
+Implementation of ​
+
+IText.__hasEraser
+
+Inherited from ​
+
+UI.__hasEraser
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:91
+
+__hitCanvas ​
+
+• Optional __hitCanvas: IHitCanvas
+
+Implementation of ​
+
+IText.__hitCanvas
+
+Inherited from ​
+
+UI.__hitCanvas
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:92
+
+__captureMap ​
+
+• Optional __captureMap: IEventListenerMap
+
+Implementation of ​
+
+IText.__captureMap
+
+Inherited from ​
+
+UI.__captureMap
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:103
+
+__bubbleMap ​
+
+• Optional __bubbleMap: IEventListenerMap
+
+Implementation of ​
+
+IText.__bubbleMap
+
+Inherited from ​
+
+UI.__bubbleMap
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:104
+
+__hasLocalEvent ​
+
+• Optional __hasLocalEvent: boolean
+
+Implementation of ​
+
+IText.__hasLocalEvent
+
+Inherited from ​
+
+UI.__hasLocalEvent
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:106
+
+__hasWorldEvent ​
+
+• Optional __hasWorldEvent: boolean
+
+Implementation of ​
+
+IText.__hasWorldEvent
+
+Inherited from ​
+
+UI.__hasWorldEvent
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:107
+
+topChildren ​
+
+• Optional topChildren: ILeaf[]
+
+Implementation of ​
+
+IText.topChildren
+
+Inherited from ​
+
+UI.topChildren
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:111
+
+destroyed ​
+
+• destroyed: boolean
+
+Implementation of ​
+
+IText.destroyed
+
+Inherited from ​
+
+UI.destroyed
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:113
+
+__ ​
+
+• __: ITextData
+
+Implementation of ​
+
+IText.__
+
+Overrides ​
+
+UI.__
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:20
+
+width ​
+
+• Optional width: number
+
+Implementation of ​
+
+IText.width
+
+Overrides ​
+
+UI.width
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:24
+
+height ​
+
+• Optional height: number
+
+Implementation of ​
+
+IText.height
+
+Overrides ​
+
+UI.height
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:27
+
+boxStyle ​
+
+• boxStyle: IBackgroundBoxStyle
+
+Implementation of ​
+
+IText.boxStyle
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:30
+
+resizeFontSize ​
+
+• Optional resizeFontSize: boolean
+
+Implementation of ​
+
+IText.resizeFontSize
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:33
+
+fill ​
+
+• Optional fill: IFill
+
+Implementation of ​
+
+IText.fill
+
+Overrides ​
+
+UI.fill
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:36
+
+strokeAlign ​
+
+• Optional strokeAlign: IStrokeAlign
+
+Implementation of ​
+
+IText.strokeAlign
+
+Overrides ​
+
+UI.strokeAlign
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:39
+
+hitFill ​
+
+• Optional hitFill: IHitType
+
+Implementation of ​
+
+IText.hitFill
+
+Overrides ​
+
+UI.hitFill
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:42
+
+text ​
+
+• Optional text: string | number
+
+Implementation of ​
+
+IText.text
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:45
+
+placeholder ​
+
+• Optional placeholder: string
+
+Implementation of ​
+
+IText.placeholder
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:48
+
+fontFamily ​
+
+• Optional fontFamily: string
+
+Implementation of ​
+
+IText.fontFamily
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:51
+
+fontSize ​
+
+• Optional fontSize: number
+
+Implementation of ​
+
+IText.fontSize
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:54
+
+fontWeight ​
+
+• Optional fontWeight: IFontWeight
+
+Implementation of ​
+
+IText.fontWeight
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:57
+
+italic ​
+
+• Optional italic: boolean
+
+Implementation of ​
+
+IText.italic
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:60
+
+textCase ​
+
+• Optional textCase: ITextCase
+
+Implementation of ​
+
+IText.textCase
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:63
+
+textDecoration ​
+
+• Optional textDecoration: ITextDecoration
+
+Implementation of ​
+
+IText.textDecoration
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:66
+
+letterSpacing ​
+
+• Optional letterSpacing: number | IUnitData
+
+Implementation of ​
+
+IText.letterSpacing
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:69
+
+lineHeight ​
+
+• Optional lineHeight: number | IUnitData
+
+Implementation of ​
+
+IText.lineHeight
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:72
+
+paraIndent ​
+
+• Optional paraIndent: number
+
+Implementation of ​
+
+IText.paraIndent
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:75
+
+paraSpacing ​
+
+• Optional paraSpacing: number
+
+Implementation of ​
+
+IText.paraSpacing
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:78
+
+writingMode ​
+
+• Optional writingMode: IWritingMode
+
+Implementation of ​
+
+IText.writingMode
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:81
+
+textAlign ​
+
+• Optional textAlign: ITextAlign
+
+Implementation of ​
+
+IText.textAlign
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:84
+
+verticalAlign ​
+
+• Optional verticalAlign: IVerticalAlign
+
+Implementation of ​
+
+IText.verticalAlign
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:87
+
+autoSizeAlign ​
+
+• Optional autoSizeAlign: boolean
+
+Implementation of ​
+
+IText.autoSizeAlign
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:90
+
+textWrap ​
+
+• Optional textWrap: ITextWrap
+
+Implementation of ​
+
+IText.textWrap
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:93
+
+textOverflow ​
+
+• Optional textOverflow: ITextOverflow
+
+Implementation of ​
+
+IText.textOverflow
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:96
+
+textEditing ​
+
+• textEditing: boolean
+
+Implementation of ​
+
+IText.textEditing
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:99
+
+isOverflow ​
+
+• isOverflow: boolean
+
+Implementation of ​
+
+IText.isOverflow
+
+Defined in ​
+
+src/ui/packages/display/src/Text.ts:101
+
+proxyData ​
+
+• Optional proxyData: IUIInputData
+
+Implementation of ​
+
+IText.proxyData
+
+Inherited from ​
+
+UI.proxyData
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:21
+
+__proxyData ​
+
+• Optional __proxyData: IUIInputData
+
+Implementation of ​
+
+IText.__proxyData
+
+Inherited from ​
+
+UI.__proxyData
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:22
+
+leafer ​
+
+• Optional leafer: ILeafer
+
+Implementation of ​
+
+IText.leafer
+
+Inherited from ​
+
+UI.leafer
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:26
+
+parent ​
+
+• Optional parent: IGroup
+
+Implementation of ​
+
+IText.parent
+
+Inherited from ​
+
+UI.parent
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:27
+
+zoomLayer ​
+
+• zoomLayer: IGroup
+
+Implementation of ​
+
+IText.zoomLayer
+
+Inherited from ​
+
+UI.zoomLayer
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:30
+
+children ​
+
+• Optional children: IUI[]
+
+Implementation of ​
+
+IText.children
+
+Inherited from ​
+
+UI.children
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:34
+
+startLinker ​
+
+• Optional startLinker: ILinker[]
+
+Implementation of ​
+
+IText.startLinker
+
+Inherited from ​
+
+UI.startLinker
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:37
+
+endLinker ​
+
+• Optional endLinker: ILinker[]
+
+Implementation of ​
+
+IText.endLinker
+
+Inherited from ​
+
+UI.endLinker
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:38
+
+id ​
+
+• Optional id: string
+
+Implementation of ​
+
+IText.id
+
+Inherited from ​
+
+UI.id
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:44
+
+name ​
+
+• Optional name: string
+
+Implementation of ​
+
+IText.name
+
+Inherited from ​
+
+UI.name
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:47
+
+className ​
+
+• Optional className: string
+
+Implementation of ​
+
+IText.className
+
+Inherited from ​
+
+UI.className
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:50
+
+blendMode ​
+
+• Optional blendMode: IBlendMode
+
+Implementation of ​
+
+IText.blendMode
+
+Inherited from ​
+
+UI.blendMode
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:55
+
+opacity ​
+
+• Optional opacity: number
+
+Implementation of ​
+
+IText.opacity
+
+Inherited from ​
+
+UI.opacity
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:58
+
+visible ​
+
+• Optional visible: boolean | 0
+
+Implementation of ​
+
+IText.visible
+
+Inherited from ​
+
+UI.visible
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:61
+
+locked ​
+
+• Optional locked: boolean
+
+Implementation of ​
+
+IText.locked
+
+Inherited from ​
+
+UI.locked
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:65
+
+dim ​
+
+• Optional dim: number | boolean
+
+Implementation of ​
+
+IText.dim
+
+Inherited from ​
+
+UI.dim
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:71
+
+dimskip ​
+
+• Optional dimskip: boolean
+
+Implementation of ​
+
+IText.dimskip
+
+Inherited from ​
+
+UI.dimskip
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:74
+
+bright ​
+
+• Optional bright: boolean
+
+Implementation of ​
+
+IText.bright
+
+Inherited from ​
+
+UI.bright
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:76
+
+zIndex ​
+
+• Optional zIndex: number
+
+Implementation of ​
+
+IText.zIndex
+
+Inherited from ​
+
+UI.zIndex
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:80
+
+mask ​
+
+• Optional mask: boolean | IMaskType
+
+Implementation of ​
+
+IText.mask
+
+Inherited from ​
+
+UI.mask
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:84
+
+eraser ​
+
+• Optional eraser: boolean | IEraserType
+
+Implementation of ​
+
+IText.eraser
+
+Inherited from ​
+
+UI.eraser
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:87
+
+x ​
+
+• Optional x: number
+
+Implementation of ​
+
+IText.x
+
+Inherited from ​
+
+UI.x
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:92
+
+y ​
+
+• Optional y: number
+
+Implementation of ​
+
+IText.y
+
+Inherited from ​
+
+UI.y
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:95
+
+scaleX ​
+
+• Optional scaleX: number
+
+Implementation of ​
+
+IText.scaleX
+
+Inherited from ​
+
+UI.scaleX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:106
+
+scaleY ​
+
+• Optional scaleY: number
+
+Implementation of ​
+
+IText.scaleY
+
+Inherited from ​
+
+UI.scaleY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:109
+
+scaleFixed ​
+
+• Optional scaleFixed: IScaleFixed
+
+Implementation of ​
+
+IText.scaleFixed
+
+Inherited from ​
+
+UI.scaleFixed
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:112
+
+rotation ​
+
+• Optional rotation: number
+
+Implementation of ​
+
+IText.rotation
+
+Inherited from ​
+
+UI.rotation
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:116
+
+skewX ​
+
+• Optional skewX: number
+
+Implementation of ​
+
+IText.skewX
+
+Inherited from ​
+
+UI.skewX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:120
+
+skewY ​
+
+• Optional skewY: number
+
+Implementation of ​
+
+IText.skewY
+
+Inherited from ​
+
+UI.skewY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:123
+
+offsetX ​
+
+• Optional offsetX: number
+
+Implementation of ​
+
+IText.offsetX
+
+Inherited from ​
+
+UI.offsetX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:128
+
+offsetY ​
+
+• Optional offsetY: number
+
+Implementation of ​
+
+IText.offsetY
+
+Inherited from ​
+
+UI.offsetY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:131
+
+scrollX ​
+
+• Optional scrollX: number
+
+Implementation of ​
+
+IText.scrollX
+
+Inherited from ​
+
+UI.scrollX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:135
+
+scrollY ​
+
+• Optional scrollY: number
+
+Implementation of ​
+
+IText.scrollY
+
+Inherited from ​
+
+UI.scrollY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:138
+
+origin ​
+
+• Optional origin: IUnitPointData | IDirection
+
+Implementation of ​
+
+IText.origin
+
+Inherited from ​
+
+UI.origin
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:143
+
+around ​
+
+• Optional around: IUnitPointData | IDirection
+
+Implementation of ​
+
+IText.around
+
+Inherited from ​
+
+UI.around
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:146
+
+lazy ​
+
+• Optional lazy: boolean
+
+Implementation of ​
+
+IText.lazy
+
+Inherited from ​
+
+UI.lazy
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:151
+
+pixelRatio ​
+
+• Optional pixelRatio: number
+
+Implementation of ​
+
+IText.pixelRatio
+
+Inherited from ​
+
+UI.pixelRatio
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:154
+
+renderSpread ​
+
+• Optional renderSpread: IFourNumber
+
+Implementation of ​
+
+IText.renderSpread
+
+Inherited from ​
+
+UI.renderSpread
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:158
+
+path ​
+
+• Optional path: string | IPathCommandData | IPathCommandNode[] | IPathCommandObject[]
+
+Implementation of ​
+
+IText.path
+
+Inherited from ​
+
+UI.path
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:163
+
+windingRule ​
+
+• Optional windingRule: IWindingRule
+
+Implementation of ​
+
+IText.windingRule
+
+Inherited from ​
+
+UI.windingRule
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:166
+
+closed ​
+
+• Optional closed: boolean
+
+Implementation of ​
+
+IText.closed
+
+Inherited from ​
+
+UI.closed
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:169
+
+flow ​
+
+• Optional flow: IFlowType
+
+Implementation of ​
+
+IText.flow
+
+Inherited from ​
+
+UI.flow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:173
+
+padding ​
+
+• Optional padding: IFourNumber
+
+Implementation of ​
+
+IText.padding
+
+Inherited from ​
+
+UI.padding
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:176
+
+gap ​
+
+• Optional gap: IGap | IPointGap
+
+Implementation of ​
+
+IText.gap
+
+Inherited from ​
+
+UI.gap
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:178
+
+flowAlign ​
+
+• Optional flowAlign: IFlowAxisAlign | IFlowAlign
+
+Implementation of ​
+
+IText.flowAlign
+
+Inherited from ​
+
+UI.flowAlign
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:180
+
+flowWrap ​
+
+• Optional flowWrap: IFlowWrap
+
+Implementation of ​
+
+IText.flowWrap
+
+Inherited from ​
+
+UI.flowWrap
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:182
+
+itemBox ​
+
+• Optional itemBox: IFlowBoxType
+
+Implementation of ​
+
+IText.itemBox
+
+Inherited from ​
+
+UI.itemBox
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:185
+
+inFlow ​
+
+• Optional inFlow: boolean
+
+Implementation of ​
+
+IText.inFlow
+
+Inherited from ​
+
+UI.inFlow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:187
+
+autoWidth ​
+
+• Optional autoWidth: IAutoSize
+
+Implementation of ​
+
+IText.autoWidth
+
+Inherited from ​
+
+UI.autoWidth
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:190
+
+autoHeight ​
+
+• Optional autoHeight: IAutoSize
+
+Implementation of ​
+
+IText.autoHeight
+
+Inherited from ​
+
+UI.autoHeight
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:192
+
+lockRatio ​
+
+• Optional lockRatio: boolean
+
+Implementation of ​
+
+IText.lockRatio
+
+Inherited from ​
+
+UI.lockRatio
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:195
+
+autoBox ​
+
+• Optional autoBox: IAutoBoxData | IConstraint
+
+Implementation of ​
+
+IText.autoBox
+
+Inherited from ​
+
+UI.autoBox
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:197
+
+widthRange ​
+
+• Optional widthRange: IRangeSize
+
+Implementation of ​
+
+IText.widthRange
+
+Inherited from ​
+
+UI.widthRange
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:200
+
+heightRange ​
+
+• Optional heightRange: IRangeSize
+
+Implementation of ​
+
+IText.heightRange
+
+Inherited from ​
+
+UI.heightRange
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:203
+
+draggable ​
+
+• Optional draggable: boolean | IAxis
+
+Implementation of ​
+
+IText.draggable
+
+Inherited from ​
+
+UI.draggable
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:208
+
+dragBounds ​
+
+• Optional dragBounds: "parent" | IBoundsData
+
+Implementation of ​
+
+IText.dragBounds
+
+Inherited from ​
+
+UI.dragBounds
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:211
+
+dragBoundsType ​
+
+• Optional dragBoundsType: IDragBoundsType
+
+Implementation of ​
+
+IText.dragBoundsType
+
+Inherited from ​
+
+UI.dragBoundsType
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:214
+
+editable ​
+
+• Optional editable: boolean
+
+Implementation of ​
+
+IText.editable
+
+Inherited from ​
+
+UI.editable
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:218
+
+hittable ​
+
+• Optional hittable: boolean
+
+Implementation of ​
+
+IText.hittable
+
+Inherited from ​
+
+UI.hittable
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:223
+
+hitStroke ​
+
+• Optional hitStroke: IHitType
+
+Implementation of ​
+
+IText.hitStroke
+
+Inherited from ​
+
+UI.hitStroke
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:229
+
+hitBox ​
+
+• Optional hitBox: boolean
+
+Implementation of ​
+
+IText.hitBox
+
+Inherited from ​
+
+UI.hitBox
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:232
+
+hitChildren ​
+
+• Optional hitChildren: boolean
+
+Implementation of ​
+
+IText.hitChildren
+
+Inherited from ​
+
+UI.hitChildren
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:235
+
+hitSelf ​
+
+• Optional hitSelf: boolean
+
+Implementation of ​
+
+IText.hitSelf
+
+Inherited from ​
+
+UI.hitSelf
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:238
+
+hitRadius ​
+
+• Optional hitRadius: number
+
+Implementation of ​
+
+IText.hitRadius
+
+Inherited from ​
+
+UI.hitRadius
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:241
+
+cursor ​
+
+• Optional cursor: ICursorType | ICursorType[]
+
+Implementation of ​
+
+IText.cursor
+
+Inherited from ​
+
+UI.cursor
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:244
+
+stroke ​
+
+• Optional stroke: IStroke
+
+Implementation of ​
+
+IText.stroke
+
+Inherited from ​
+
+UI.stroke
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:257
+
+strokeWidth ​
+
+• Optional strokeWidth: string | IFourNumber
+
+Implementation of ​
+
+IText.strokeWidth
+
+Inherited from ​
+
+UI.strokeWidth
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:263
+
+strokeScaleFixed ​
+
+• Optional strokeScaleFixed: IScaleFixed
+
+Implementation of ​
+
+IText.strokeScaleFixed
+
+Inherited from ​
+
+UI.strokeScaleFixed
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:266
+
+strokeCap ​
+
+• Optional strokeCap: IStrokeCap
+
+Implementation of ​
+
+IText.strokeCap
+
+Inherited from ​
+
+UI.strokeCap
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:273
+
+strokeJoin ​
+
+• Optional strokeJoin: IStrokeJoin
+
+Implementation of ​
+
+IText.strokeJoin
+
+Inherited from ​
+
+UI.strokeJoin
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:276
+
+dashPattern ​
+
+• Optional dashPattern: string | number[]
+
+Implementation of ​
+
+IText.dashPattern
+
+Inherited from ​
+
+UI.dashPattern
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:279
+
+dashOffset ​
+
+• Optional dashOffset: number
+
+Implementation of ​
+
+IText.dashOffset
+
+Inherited from ​
+
+UI.dashOffset
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:282
+
+miterLimit ​
+
+• Optional miterLimit: number
+
+Implementation of ​
+
+IText.miterLimit
+
+Inherited from ​
+
+UI.miterLimit
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:285
+
+startArrow ​
+
+• Optional startArrow: IArrowStyle
+
+Implementation of ​
+
+IText.startArrow
+
+Inherited from ​
+
+UI.startArrow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:290
+
+endArrow ​
+
+• Optional endArrow: IArrowStyle
+
+Implementation of ​
+
+IText.endArrow
+
+Inherited from ​
+
+UI.endArrow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:292
+
+cornerRadius ​
+
+• Optional cornerRadius: string | IFourNumber
+
+Implementation of ​
+
+IText.cornerRadius
+
+Inherited from ​
+
+UI.cornerRadius
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:297
+
+cornerSmoothing ​
+
+• Optional cornerSmoothing: number
+
+Implementation of ​
+
+IText.cornerSmoothing
+
+Inherited from ​
+
+UI.cornerSmoothing
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:300
+
+shadow ​
+
+• Optional shadow: string | IShadowEffect | IShadowEffect[]
+
+Implementation of ​
+
+IText.shadow
+
+Inherited from ​
+
+UI.shadow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:305
+
+innerShadow ​
+
+• Optional innerShadow: string | IShadowEffect | IShadowEffect[]
+
+Implementation of ​
+
+IText.innerShadow
+
+Inherited from ​
+
+UI.innerShadow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:308
+
+blur ​
+
+• Optional blur: number | IBlurEffect
+
+Implementation of ​
+
+IText.blur
+
+Inherited from ​
+
+UI.blur
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:311
+
+backgroundBlur ​
+
+• Optional backgroundBlur: number | IBlurEffect
+
+Implementation of ​
+
+IText.backgroundBlur
+
+Inherited from ​
+
+UI.backgroundBlur
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:314
+
+grayscale ​
+
+• Optional grayscale: number | IGrayscaleEffect
+
+Implementation of ​
+
+IText.grayscale
+
+Inherited from ​
+
+UI.grayscale
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:317
+
+filter ​
+
+• Optional filter: IFilter | IFilter[]
+
+Implementation of ​
+
+IText.filter
+
+Inherited from ​
+
+UI.filter
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:320
+
+complex ​
+
+• Optional complex: boolean
+
+Implementation of ​
+
+IText.complex
+
+Inherited from ​
+
+UI.complex
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:325
+
+animation ​
+
+• Optional animation: IAnimation | IAnimation[]
+
+Implementation of ​
+
+IText.animation
+
+Inherited from ​
+
+UI.animation
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:330
+
+animationOut ​
+
+• Optional animationOut: IAnimation | IAnimation[]
+
+Implementation of ​
+
+IText.animationOut
+
+Inherited from ​
+
+UI.animationOut
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:332
+
+transition ​
+
+• Optional transition: ITransition
+
+Implementation of ​
+
+IText.transition
+
+Inherited from ​
+
+UI.transition
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:335
+
+transitionOut ​
+
+• Optional transitionOut: ITransition
+
+Implementation of ​
+
+IText.transitionOut
+
+Inherited from ​
+
+UI.transitionOut
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:337
+
+motionPath ​
+
+• Optional motionPath: boolean
+
+Implementation of ​
+
+IText.motionPath
+
+Inherited from ​
+
+UI.motionPath
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:342
+
+motionPrecision ​
+
+• Optional motionPrecision: number
+
+Implementation of ​
+
+IText.motionPrecision
+
+Inherited from ​
+
+UI.motionPrecision
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:344
+
+motion ​
+
+• Optional motion: number | IUnitData
+
+Implementation of ​
+
+IText.motion
+
+Inherited from ​
+
+UI.motion
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:347
+
+motionRotation ​
+
+• Optional motionRotation: number | boolean
+
+Implementation of ​
+
+IText.motionRotation
+
+Inherited from ​
+
+UI.motionRotation
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:349
+
+states ​
+
+• Optional states: IStates
+
+Implementation of ​
+
+IText.states
+
+Inherited from ​
+
+UI.states
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:354
+
+state ​
+
+• Optional state: string
+
+Implementation of ​
+
+IText.state
+
+Inherited from ​
+
+UI.state
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:356
+
+selected ​
+
+• Optional selected: boolean
+
+Implementation of ​
+
+IText.selected
+
+Inherited from ​
+
+UI.selected
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:359
+
+disabled ​
+
+• Optional disabled: boolean
+
+Implementation of ​
+
+IText.disabled
+
+Inherited from ​
+
+UI.disabled
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:361
+
+normalStyle ​
+
+• Optional normalStyle: IStateStyle
+
+Implementation of ​
+
+IText.normalStyle
+
+Inherited from ​
+
+UI.normalStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:364
+
+hoverStyle ​
+
+• Optional hoverStyle: IStateStyle
+
+Implementation of ​
+
+IText.hoverStyle
+
+Inherited from ​
+
+UI.hoverStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:366
+
+pressStyle ​
+
+• Optional pressStyle: IStateStyle
+
+Implementation of ​
+
+IText.pressStyle
+
+Inherited from ​
+
+UI.pressStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:368
+
+focusStyle ​
+
+• Optional focusStyle: IStateStyle
+
+Implementation of ​
+
+IText.focusStyle
+
+Inherited from ​
+
+UI.focusStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:370
+
+selectedStyle ​
+
+• Optional selectedStyle: IStateStyle
+
+Implementation of ​
+
+IText.selectedStyle
+
+Inherited from ​
+
+UI.selectedStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:372
+
+disabledStyle ​
+
+• Optional disabledStyle: IStateStyle
+
+Implementation of ​
+
+IText.disabledStyle
+
+Inherited from ​
+
+UI.disabledStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:374
+
+placeholderStyle ​
+
+• Optional placeholderStyle: IStateStyle
+
+Implementation of ​
+
+IText.placeholderStyle
+
+Inherited from ​
+
+UI.placeholderStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:377
+
+placeholderColor ​
+
+• Optional placeholderColor: string
+
+Implementation of ​
+
+IText.placeholderColor
+
+Inherited from ​
+
+UI.placeholderColor
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:380
+
+placeholderDelay ​
+
+• Optional placeholderDelay: number
+
+Implementation of ​
+
+IText.placeholderDelay
+
+Inherited from ​
+
+UI.placeholderDelay
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:383
+
+button ​
+
+• Optional button: boolean
+
+Implementation of ​
+
+IText.button
+
+Inherited from ​
+
+UI.button
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:386
+
+editConfig ​
+
+• editConfig: IEditorConfig
+
+Implementation of ​
+
+IText.editConfig
+
+Inherited from ​
+
+UI.editConfig
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:391
+
+editOuter ​
+
+• editOuter: string
+
+Implementation of ​
+
+IText.editOuter
+
+Inherited from ​
+
+UI.editOuter
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:393
+
+editInner ​
+
+• editInner: string
+
+Implementation of ​
+
+IText.editInner
+
+Inherited from ​
+
+UI.editInner
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:395
+
+data ​
+
+• data: IObject
+
+Implementation of ​
+
+IText.data
+
+Inherited from ​
+
+UI.data
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:400
+
+useFastShadow ​
+
+• Optional useFastShadow
+
+[… truncated 48792 chars …]

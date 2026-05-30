@@ -1,0 +1,1190 @@
+LeaferJS - 好用的 Canvas 引擎
+https://www.leaferjs.com/
+
+<!DOCTYPE html> LeaferJS - 好用的 Canvas 引擎
+
+文档
+
+优势
+
+功能
+
+Playground
+
+示例
+
+案例 
+
+博客 
+
+我们
+
+PxGrow · 咖啡墙 
+建议在PC端获得最佳体验
+
+中文
+
+EN
+
+LeaferJS
+
+✨ 好用 🌸 Canvas 引擎 🌿 
+轻松实现图形交互与编辑，AI 时代的无限画布引擎 
+
+快速上手 
+Nice ◠‿◠ Day
+
+更新 v2.1.2 - 70KB min+gzip 零依赖 - MIT 免费开源 
+
+承载 AI 创作的海量内容 
+可用于开发类似 Lovart、LibTV、TapNow 等无限画布创意产品
+我们不仅致力打造前沿的 2D 和未来的 3D 引擎技术，更希望创造一套简洁、开放、现代化的 UI 绘图标准。让开发者能够快速地构建 AI 时代的网页、应用、设计、画布、游戏和动画等可视化生产力工具，推动下一代本地优先的 Figma、Miro、Notion、Unity、Adobe、Canva、Webflow 等创新产品诞生，并激发更多创意技术和应用。 
+
+Leafer AI 知识库
+
+MCP & Skills
+
+Ask AI
+
+🎁 有奖征集你与 LeaferJS 的开源故事 
+
+做不起 Canva，我们用 LeaferJS 做了一个开源版在线设计器 
+
+放弃笨重的 3D：我用 LeaferJS 重塑了学校图书馆选座系统 
+
+从“零图形背景”到“海报编辑器上线”：与 LeaferJS 相爱相杀的日子 
+
+5年开源，我创造了2000万价值，却负债80万 
+本月金牌赞助商 
+
+入门场景 
+
+高效绘图
+
+生成图片、短视频、印刷品 ... 
+
+Flex自动布局、中心绘制，后端批量生成、渐变、内外阴影、裁剪、遮罩、擦除、圆角路径
+
+UI 交互
+
+小游戏、互动应用、工业可视化 ... 
+
+跨平台交互事件、手势，CSS交互状态、光标、动画、状态、过渡、运动路径、精灵、箭头、连线
+
+图形编辑
+
+AI无限画布、图形编辑器 ... 
+
+丰富的图形编辑功能、高可定制、框选、打组、标尺、吸附、视窗控制、滚动条、文字编辑
+
+在线体验
+
+在线 Playground 环境 
+GitHub
+
+核心优势 
+在浏览器里 “跑得动 100 万个图形” 的 Canvas 引擎 
+
+可以做 “Figma 级编辑器” 的 Canvas 内核 
+
+100万 
+交互矩形创建
+
+1.28秒 
+创建时长
+
+320MB 
+内存占用大小
+
+图形交互、编辑场景 
+测试环境 2K屏笔记本 / Chrome V143.0 
+
+创建元素 Create 
+100万个 可交互矩形的 创建时长和内存占用大小（同时渲染首屏画面）
+
+1万
+
+10万
+
+100万
+
+Leafer
+
+1.28秒
+
+SVG
+
+5.83秒
+
+HTML
+
+9.45秒
+
+Pixi
+
+9.91秒
+
+Konva
+
+15.93秒
+
+Fabric
+
+41.33秒
+
+Leafer
+
+0.32G
+
+HTML
+
+2.24G
+
+SVG
+
+2.67G
+
+Pixi
+
+3.17G
+
+Konva
+
+4.46G
+
+Fabric
+
+8.17G
+
+拖拽元素 Drag 
+100万个 可交互矩形中拖拽单个元素的 平均渲染帧率
+
+1万
+
+10万
+
+100万
+
+Leafer
+
+60帧/秒
+
+SVG
+
+4帧/秒
+
+Pixi
+
+1帧/秒
+
+HTML
+
+1帧/秒
+
+Konva
+
+0帧/秒
+
+Fabric
+
+0帧/秒
+
+平移视图 Move 
+同时平移 10万个 可交互矩形首屏画面的 平均渲染帧率
+
+1万
+
+10万
+
+100万
+
+Leafer
+
+55帧/秒
+
+SVG
+
+44帧/秒
+
+HTML
+
+34帧/秒
+
+Pixi
+
+17帧/秒
+
+Fabric
+
+3帧/秒
+
+Konva
+
+2帧/秒
+
+缩放视图 Zoom 
+同时缩放 10万个 可交互矩形的 平均渲染帧率
+
+1万
+
+10万
+
+100万
+
+SVG
+
+19帧/秒
+
+Leafer
+
+16帧/秒
+
+Pixi
+
+13帧/秒
+
+HTML
+
+8帧/秒
+
+Konva
+
+2帧/秒
+
+Fabric
+
+1帧/秒
+
+动态元素 Dynamic 
+1.6万个 可交互矩形在视图中随机移动的 平均渲染帧率
+
+1.6万
+
+10万
+
+100万
+
+Pixi
+
+58帧/秒
+
+Leafer
+
+40帧/秒
+
+SVG
+
+14帧/秒
+
+Konva
+
+10帧/秒
+
+HTML
+
+9帧/秒
+
+Fabric
+
+8帧/秒
+
+缩放图片 Image 
+同时缩放 1千张 1000 * 600px 图片 起始6秒钟 的平均渲染帧率
+
+1千
+
+10万
+
+100万
+
+Leafer
+
+60帧/秒
+
+Pixi
+
+58帧/秒
+
+SVG
+
+8帧/秒
+
+Konva
+
+7帧/秒
+
+Fabric
+
+7帧/秒
+
+HTML
+
+6帧/秒
+
+性能基准测试
+
+我们以此为基准，不断优化性能 
+
+以上性能基于默认配置，能满足大多数项目需求 
+
+复杂场景可进一步优化，官方生态 PxGrow已提供极端场景的解决方案 
+
+百万元素流畅缩放
+PxGrow 量子引擎
+
+产品案例 
+
+Nano Banana AI
+
+图像编辑工具
+
+OmniSystem
+
+综合信息管理系统
+
+转盘侠
+
+午餐吃什么？来转一转，可DIY
+
+光影日历
+
+DIY 精美日历
+
+图标工坊
+
+你的专属图标定制专家
+
+兔灵截图工具
+
+截图与美化一站式的截图插件
+
+边框水印精灵
+
+快速为您的照片添加水印
+
+fig2leafer
+
+leafer 渲染 figma 文件
+
+Lazyva 懒画
+
+在线设计工具（支持移动端）
+
+简单设计
+
+免费在线设计、图片处理工具
+
+趣设计
+
+PS海报头像拼图LOGO
+
+珠串设计
+
+微信小程序DIY精美珠串
+
+创意表情
+
+DIY有趣的微信表情
+
+无界云图
+
+可扩展的B/S图片编辑工具
+
+Gzm Design
+
+开源海报设计器
+
+leafer-ui
+
+现代化的 UI 绘图、交互框架
+
+场景案例 
+
+Online GenCAD Viewer 
+
+小行星幸存者游戏 
+
+照片拼图小工具 
+
+拼图工坊（AI随机生成图片） 
+
+综合信息管理系统 
+
+Leafer + Vue3 实现的插件化架构画板 
+
+在线制作运动数据视频 
+
+leafer-flow 仿 excalidraw 白板 
+
+俄罗斯方块小游戏 
+
+luminous 在线画板 
+
+贪吃蛇小游戏 
+
+信息学基础知识交互课件 
+
+音乐律动的背光键盘 
+
+模拟丰富多样的雪花效果 
+
+TO NORTH 在线标注工具 
+
+点阵背景效果 
+
+Leafer + vue3 实现的画板 
+
+扫雷小游戏 
+
+Minesweeper 扫雷小游戏 
+
+FlyCut 在线视频剪辑工具 
+
+ShotEasy 在线截图美化工具 
+
+超级玛丽游戏，可编辑地图 
+
+Leafer Games 小游戏中心 
+
+Tuhigh 支持手机端的在线设计工具 
+
+element-plus-leafer UI组件 
+
+不同之处 
+专注图形交互、编辑场景 
+
+运行环境
+
+支持多端、多产品形态，可复用同一套 API
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+Web
+
+覆盖范围最广、兼容性最强的内容浏览平台
+
+Web Worker 渲染
+
+解放主线程，支持复杂场景
+
+Node.js 渲染
+
+服务端渲染图形或生成图片
+
+小程序（微信）
+
+适配微信小程序环境，平台底层有比较难填的坑，请注意
+
+多产品形态
+
+同一引擎可做绘图、游戏、编辑器
+
+统一核心 API
+
+跨端一致接口，方便通过核心包开发跨平台插件、产品
+
+底层渲染可插拔
+
+核心逻辑与渲染实现解耦，底层未来可适配 WebGL、WebGPU、Skia，以及不同平台
+
+布局与渲染
+
+接近浏览器级排版，支持复杂 UI 构建
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+绝对 & 相对布局
+
+可自由定位元素
+
+自动布局（Flex）
+
+类似 Flex 的自动布局，更简单、直观，可以快速自动排版内容
+
+锚点布局
+
+围绕一个中心点绘制元素，不受宽高影响
+
+原点布局
+
+统一设置元素的旋转、缩放、位移参考点，方便进行动画
+
+局部布局与渲染
+
+只更新变化区域，提升性能
+
+坐标体系
+
+支持多层级坐标体系（box/内部/本地/世界等），并提供方便的坐标转换方法（任意层级间坐标互转）
+
+包围盒体系
+
+支持统一的包围盒体系，提供精确的几何边界、碰撞与布局计算，可获取任意坐标空间的包围盒
+
+元素包围盒变化事件
+
+支持直接监听元素不同坐标系的包围盒大小变化
+
+布局生命周期事件
+
+可在每个阶段定制复杂布局逻辑
+
+分层渲染
+
+将不同更新频率的内容分层渲染，以提升性能，并且事件能穿透层
+
+渲染生命周期事件
+
+可在每个阶段定制复杂渲染逻辑
+
+场景树与元素
+
+支持 UI 精细化管理
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+场景树管理
+
+可嵌套 Group、Frame、Box 等元素
+
+多类型元素支持
+
+图形、文字、图片、路径、折线、曲线等
+
+Frame、Box容器
+
+提供带外观的容器元素，类似 HTML div 元素
+
+Pen 元素自由绘画
+
+支持在画布上进行自由绘画，自动转为矢量路径，可使用所有 Canvas 2D 路径绘制方法
+
+路径优先模式
+
+所有图形元素可转为 SVG 路径数据，可通过设置 path 属性进入路径优先模式，方便编辑路径
+
+箭头元素
+
+支持矢量箭头元素，可自定义箭头头尾、线条样式
+
+自定义元素
+
+可扩展自己需要的元素类型
+
+外观与样式
+
+支持丰富样式与视觉效果，媲美专业图形编辑器
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+填充
+
+给元素填充颜色、渐变、图案，类似于 HTML5 中的 background-color，或文字的 color
+
+描边
+
+给元素描边，类似于 HTML5 中的 border-color
+
+固定大小
+
+缩放画面时，元素不随画布放大
+
+固定线宽
+
+缩放画面时，线宽不随画布放大
+
+外阴影
+
+元素的外阴影样式
+
+内阴影
+
+元素的内阴影样式
+
+Box 阴影
+
+和 CSS3 中的 boxShadow 效果一致, 只显示图形外部的阴影
+
+固定阴影
+
+缩放画面时，阴影不随画布放大
+
+多个填充、描边、阴影
+
+元素支持设置多个填充、描边、内外阴影叠加，设计工具必备功能
+
+路径圆角
+
+支持曲线与折线、折线与曲线之间的圆角
+
+滤镜与特效
+
+支持模糊、亮度、对比度等 CSS 风格滤镜
+
+高级渐变
+
+适合开发可视化线性、径向、锥形渐变控制工具
+
+图案填充
+
+支持clip、cover、fit、repeat等填充模式，支持对齐位置
+
+固定平铺图案
+
+缩放画面时，平铺图案不随画布放大
+
+平铺图案间距
+
+支持设置图案间距
+
+平铺图案交错
+
+支持纵横交错排列图案
+
+组透明度（无叠加）
+
+设置组透明度时，子元素作为一个整体进行透明，不会产生透明重叠效果
+
+突出显示元素
+
+置顶突出渲染元素，淡化其他元素的透明度
+
+遮罩与裁剪
+
+支持元素被形状、图像遮罩或裁剪，支持类似PS的剪贴蒙版功能
+
+擦除功能
+
+支持擦除元素部分内容，可按路径或图像擦除
+
+混合模式
+
+支持图形或图层的混合模式（如 normal、multiply、screen 等），实现透明、叠加、滤镜等视觉效果
+
+子混合模式
+
+支持元素内部各部分（描边、填充、阴影）单独指定混合模式，实现更精细的视觉叠加和效果控制
+
+像素对齐
+
+保证元素在非高清屏上显示清晰，避免模糊
+
+交互
+
+丰富的事件系统，媲美浏览器原生体验
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+事件捕获
+
+支持事件从根元素到目标元素冒泡前的捕获阶段
+
+事件冒泡
+
+支持事件在目标元素触发后向上冒泡到父元素
+
+事件穿透
+
+可以直接获取到被当前目标事件元素挡住的底部元素列表
+
+高级事件响应
+
+单独控制描边、填充、自身和子元素是否响应事件，像素级、路径、自定义检测
+
+手势交互
+
+支持平移、缩放、旋转手势识别，可识别单一手势
+
+拖拽与滑动
+
+元素可拖拽，支持 Drop、Swipe 动作
+
+光标与指针管理
+
+支持类似浏览器的光标管理功能，可以给元素直接设置光标样式
+
+缩放平移视口
+
+支持缩放、滚动视口，底层进行了滚轮、手势归一化，可自定义
+
+视图缩放菜单
+
+控制视图的缩放，支持放大、缩小、fit、fit-width、fit-height 视图， 支持聚焦元素，聚焦区域
+
+滚动条
+
+无限画布滚动条，按需显示视窗的横向、竖向滚动条
+
+动画与状态
+
+内置高性能动画与状态管理系统
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+基础动画功能
+
+支持缓动函数，过渡动画
+
+CSS 风格过渡动画
+
+提供类似 CSS transition 的属性级过渡机制，自动插值属性变化，用于平滑状态切换与交互动效
+
+高级动画功能
+
+支持延时、摇摆循环、seek、动画事件，可制作过渡动画、关键帧动画、路径动画
+
+精灵帧动画
+
+逐帧控制，可做游戏或动效
+
+文本打字机 / Count 动画
+
+内置文本打字机效果与数值递增（count）动画，可用于数据动效、状态提示与叙事动画
+
+虚线动画
+
+支持虚线线条动画，可用于展示数据流动、流程流向等动态效果，适合组态或可视化场景
+
+交互状态
+
+支持为元素增加 hover、press、focus、selected、disabled 等状态样式，并支持过渡效果
+
+自定义状态
+
+支持元素自定义状态，可预设复杂多样的元素或游戏状态，并可随时切换
+
+运动路径
+
+让元素沿着另一条路径运动，或进行自身描边、生长动画
+
+编辑器功能
+
+LeaferJS 原生支持的编辑器特性，方便快速开发图形与 UI 编辑器
+
+Leafer
+
+Fabric
+
+Konva
+
+Pixi
+
+基础变换编辑
+
+支持元素的移动、缩放、旋转、倾斜等基础变换操作
+
+Resize 原始尺寸
+
+支持修改元素的宽高、路径、文字大小达到调整大小的目的，非scale方式
+
+多选与框选
+
+支持多元素选择与拖拽框选操作
+
+编组与解组
+
+支持将多个元素编组与解组，作为整体进行编辑与管理
+
+双击进组编辑
+
+支持双击进入组内部进行局部编辑，类似 Figma / Sketch 的编辑体验
+
+元素锁定
+
+支持锁定元素，防止被误选或误编辑
+
+编辑器层级管理
+
+支持调整元素前后层级顺序，符合设计工具的层级管理语义
+
+自定义编辑工具
+
+提供可配置、可扩展的编辑工具体系，用于构建定制化编辑工具
+
+文字编辑
+
+内置文字编辑器，支持在画布中直接编辑文本
+
+自定义内部编辑器
+
+允许在引擎内部定制和扩展内部编辑器，双击或通过方法进入内部编辑细节
+
+标尺功能
+
+提供画布标尺，可显示坐标刻度、辅助线和尺寸参考，方便精确布局与对齐
+
+辅助线与吸附
+
+对齐元素更便捷，提升编辑效率
+
+功能由用户需求驱动开发，还有更多好用的功能无法全部展示 
+
+LeaferJS 以引擎形态覆盖大多数图形与交互场景 
+
+如需 图片裁剪、路径编辑 等现成功能，可通过官方生态 PxGrow 扩展，也支持按需申请插件开发 
+
+专业场景 
+
+在线设计
+
+Figma - 估值195亿美元
+
+InVision - 估值20亿美元
+
+Canva - 估值400亿美元 
+
+在线白板
+
+Miro - 估值175亿美元
+
+Mural - 估值20亿美元
+
+Microsoft Whiteboard 
+
+在线文档
+
+Notion - 估值100亿美元
+
+Google Docs
+
+Microsoft Office365 
+
+无代码平台
+
+Webflow - 估值40亿美元
+
+Framer - B轮2400万美元
+
+应用框架
+
+Flutter - 移动应用框架
+
+PixiJS - 游戏开发框架
+
+Leafer UI - UI绘图框架 
+
+数据可视化
+
+D3.js - 流行的可视化库
+
+Chart.js - 图表库
+
+ECharts.js - 数据可视化 
+
+场景覆盖 
+
+Step1
+
+高效绘图
+
+绘制海报、插图、界面
+
+组态、可视化数据
+
+训练AI绘图...
+
+Step2
+
+图形图像编辑
+
+海报、图片编辑器
+
+建筑、雕刻等矢量软件
+
+支撑专业设计软件...
+
+Step3
+
+网页、应用
+
+自动布局、交互状态、滚动条
+
+组件化、HTML互转
+
+支撑可视化生产...
+
+Step4
+
+游戏、动画
+
+游戏、动画、路径动画
+
+WebGPU/WebGL加速、变形动画
+
+支撑可视化设计...
+
+我们现阶段专注于绘图、编辑器场景 
+
+图形编辑 
+
+易学易用 
+<code data-astro-cid-rp2b3vac>
+
+<span class="token keyword" data-astro-cid-rp2b3vac>import</span> <span class="token punctuation" data-astro-cid-rp2b3vac>{</span> Leafer<span class="token punctuation" data-astro-cid-rp2b3vac>,</span> Rect <span class="token punctuation" data-astro-cid-rp2b3vac>}</span> <span class="token keyword" data-astro-cid-rp2b3vac>from</span> <span class="token string" data-astro-cid-rp2b3vac>'leafer-ui'</span>
+
+<span class="token comment" data-astro-cid-rp2b3vac>// 创建一个自适应窗口的交互应用</span>
+<span class="token keyword" data-astro-cid-rp2b3vac>const</span> leafer <span class="token operator" data-astro-cid-rp2b3vac>=</span> <span class="token keyword" data-astro-cid-rp2b3vac>new</span> <span class="token class-name" data-astro-cid-rp2b3vac>Leafer</span><span class="token punctuation" data-astro-cid-rp2b3vac>(</span><span class="token punctuation" data-astro-cid-rp2b3vac>{</span> view<span class="token operator" data-astro-cid-rp2b3vac>:</span> window <span class="token punctuation" data-astro-cid-rp2b3vac>}</span><span class="token punctuation" data-astro-cid-rp2b3vac>)</span>
+
+<span class="token comment" data-astro-cid-rp2b3vac>// 创建一个可以被拖拽的矩形</span>
+<span class="token keyword" data-astro-cid-rp2b3vac>const</span> rect <span class="token operator" data-astro-cid-rp2b3vac>=</span> <span class="token keyword" data-astro-cid-rp2b3vac>new</span> <span class="token class-name" data-astro-cid-rp2b3vac>Rect</span><span class="token punctuation" data-astro-cid-rp2b3vac>(</span><span class="token punctuation" data-astro-cid-rp2b3vac>{</span>
+x<span class="token operator" data-astro-cid-rp2b3vac>:</span> <span class="token number" data-astro-cid-rp2b3vac>100</span><span class="token punctuation" data-astro-cid-rp2b3vac>,</span>
+y<span class="token operator" data-astro-cid-rp2b3vac>:</span> <span class="token number" data-astro-cid-rp2b3vac>100</span><span class="token punctuation" data-astro-cid-rp2b3vac>,</span>
+width<span class="token operator" data-astro-cid-rp2b3vac>:</span> <span class="token number" data-astro-cid-rp2b3vac>200</span><span class="token punctuation" data-astro-cid-rp2b3vac>,</span>
+height<span class="token operator" data-astro-cid-rp2b3vac>:</span> <span class="token number" data-astro-cid-rp2b3vac>200</span><span class="token punctuation" data-astro-cid-rp2b3vac>,</span>
+fill<span class="token operator" data-astro-cid-rp2b3vac>:</span> <span class="token string" data-astro-cid-rp2b3vac>'#32cd79'</span><span class="token punctuation" data-astro-cid-rp2b3vac>,</span>
+draggable<span class="token operator" data-astro-cid-rp2b3vac>:</span> <span class="token boolean" data-astro-cid-rp2b3vac>true</span>
+<span class="token punctuation" data-astro-cid-rp2b3vac>}</span><span class="token punctuation" data-astro-cid-rp2b3vac>)</span>
+
+leafer<span class="token punctuation" data-astro-cid-rp2b3vac>.</span><span class="token function" data-astro-cid-rp2b3vac>add</span><span class="token punctuation" data-astro-cid-rp2b3vac>(</span>rect<span class="token punctuation" data-astro-cid-rp2b3vac>)</span>
+</code>
+
+做不起 Canva，我们用 LeaferJS 做了一个开源版在线设计器
+
+【开源故事】大家好，我们是 Gzm Design 的开发团队。在日常工作中，我们长期依赖各类在线设计工具来制作海报、活动图和营销物料。这些工具功能成熟，但随着使用深入，一些问题也逐渐显现出来
+
+作者：Gzm Design 2026/04/09 
+
+放弃笨重的 3D：我用 LeaferJS 重塑了学校图书馆选座系统
+
+【开源故事】大家好，我是 Seeridia，一名在读的学生开发者。作为一名经常出没于图书馆的“重度用户”，我每天都要和校方的选座平台打交道。但说实话，原有的系统体验实在让人有点“抓狂”
+
+作者：Seeridia 2026/03/30 
+
+5年开源，我创造了2000万价值，却负债80万
+
+在北京拼搏5年，用一丝白发换来一个奇迹。看中国开发者，如何向阳而生。
+
+作者：Leafer 2026/03/26 
+
+从“零图形背景”到“海报编辑器上线”：与 LeaferJS 相爱相杀的日子
+
+【开源故事】大家好，我是Ranbow！去年团队上线了一款在线设计工具 《图鲸灵》，主要功能是海报编辑、批量图片处理、以及AI生成图片，感兴趣的小伙伴可以体验一下
+
+作者：Ranbow 2026/03/20 
+
+有奖征集你与 LeaferJS 的开源故事
+
+我们见过太多真实而精彩的故事，有人用它做建筑绘图，有人用它做动画编辑软件，有人用它做 AI 无限画布， 有人用它做隧道监控，有人用它做设计工具，有人用它实现了百万节点的生产数据可视化...
+
+作者：Leafer 2026/03/19 
+
+【像素生长】五年坚持，从开源到盈利
+
+我想做出一个能承载上 百万个元素 仍然流畅操作的 开源图形引擎， 让设计和图形编辑更顺畅，能支撑 Adobe、Figma 级别的专业创意工具，让前端也能自由释放创意。
+
+作者：Leafer 2025/10/31 
+
+LeaferJS 社区提问指南
+
+发现 Bug 或有改进建议？欢迎在 GitHub 上 提交 issue，你的贡献能让 LeaferJS 变得更强大！。我们计划训练、对接外部 AI 助手，预计 未来几个月内 上线，可自动解答 LeaferJS 相关问题。
+
+作者：Leafer 2025/02/07 
+
+LeaferJS 试行 4 天工作制，探索更高效的开源协作
+
+新年新气象！为了专注突破核心目标，从即日起，LeaferJS 正式试行 每周 4 天工作制（周一、周二、周四、周五），希望借此提升创造力、优化开发节奏，并吸引更多优秀的开发者加入社区。
+
+作者：Leafer 2025/02/06 
+
+“心花怒放”：从梦境灵感到腾讯云 AI 开发黑客松的圆梦之旅
+
+2025 年 1 月 11 日下午，我从北京飞往上海，准备参加腾讯云举办的AI开发黑客松比赛。这次活动的地点是在华东理工大学，而我则以评审老师和颁奖嘉宾的身份参与。
+
+作者：Leafer 2025/01/23 
+
+LeaferJS 社区启动：推动 LeaferJS 像 Vue 一样在全球流行起来
+
+Hi，大家好，我是 LeaferJS 开源引擎的创始人万超（Leafer）。我想向大家讲述一个关于梦想与努力的开源故事，并诚挚地邀请感兴趣的朋友一起来书写这个开源故事的新篇章～
+
+作者：Leafer 2024/11/20 
+
+LeaferJS 亮相 AI 大赛，百万博主"小华"爆笑作品夺奖
+
+2024 年程序员节，“超级码工厂”大赛隆重举行，作为创新图形渲染引擎，LeaferJS 以强大的技术实力为参赛者提供了强力支持，助力他们实现创意编程和互动设计。
+
+作者：Leafer 2024/11/06 
+
+LeaferJS 发布全新动画、状态、过渡、游戏功能
+
+提供丰富的动画功能，支持延时、循环和 seek。你可以用它制作关键帧动画、摇摆动画、过渡动画、路径动画和滚动动画。通过 Robot 元素，可以快速制作出具有行走和攻击动作的游戏角色。
+
+作者：Leafer 2024/09/19 
+
+LeaferJS × Cloud Studio：好用的 Playground 环境
+
+有没有一个在线的 Playground 环境，可以直接运行官网示例代码，分享代码片段和案例？就在我思考如何解决这个需求时，一条私信跳了出来，是腾讯 Cloud Studio 的产品负责人甘米。
+
+作者：Leafer 2024/08/20 
+
+LeaferJS 1.0 重磅发布：好用的 Canvas 渲染引擎
+
+大家好，我是 LeaferJS 的创始人万超。 我很高兴的向大家宣布，经过我们 3 年多开发的 LeaferJS 开源引擎终于打磨成熟，迎来了正式版的发布～
+
+作者：Leafer 2024/07/09 
+
+♫ 绝境中盛开，一位独立开发者的故事
+
+仔细算来，我这次在北京创业已经整整 3年了， 在这漆黑漫长的 3 年里，面对不确定性，面对资金的匮乏，我无法想像自己是怎么坚持过来的。
+
+作者：Leafer 2024/04/08 
+
+LeaferJS 入选开源中国 2023 年度重磅官宣!
+
+LeaferJS 是一款绚丽多彩的 HTML5 Canvas 2D 图形渲染引擎，具备瞬间创建 100 万个图形的超强能力，可结合 AI 进行绘图，生成界面。
+
+作者：Leafer 2023/12/31 
+
+LeaferJS 引擎发布：开启绚丽多彩的数字创意世界！
+
+欢迎来到 LeaferJS 的世界，一个激发创造力、开启无限可能的引擎！在这里，数字化产品开发不再是一项艰难的任务，而是一个令人愉悦的探索之旅。
+
+作者：Leafer 2023/06/28 
+
+用户的评价 
+
+Step1
+
+来自微信文章
+
+参与传播 
+
+像树生长的Leafer - 7.5w+播放 
+
+布依前端 - 约2k阅读 
+
+二进制驿站 - UI 框架 
+
+AI前端探索 - 约4k阅读 
+
+前端开发爱好者 - 约18k阅读 
+
+格子开源栈 - 1w+阅读 
+
+茄子懂编程 - 近百万播放 
+
+积极的阿灰 - 1000+点赞 
+
+陈随易 - 创业访谈 
+
+LeaferJS - 创业故事 
+
+茄子懂编程 - 2.1w+播放 
+
+程序员Rain - 1w 播放 
+
+web前端智汇堂 - 1.2w+阅读 
+
+null - 21k+阅读 
+
+子洋 - 7k+阅读 
+
+Leafer - 1.2w+阅读 
+
+由你为 LeaferJS 代言，备受用户欢迎 
+
+参与生态，协作共赢 
+将惠及全球 1,000万+ 开发者 
+
+我们的使命 
+“ 让数字化产品开发变得更简单 ” 
+
+愿景与文化
+
+我们正在计划构建一个能够自我运转、不断成长的世界级开源社区组织
+
+让任何人都能轻松参与其中，并获得成长与回报 
+
+像小树发芽一样不断生长，充满希望和生命力 
+
+Thanks:
+Astro Vue Vite Vitest 
+Vitepress TypeDoc pnpm Rollup.js Node.js skia-canvas @napi-rs/canvas monaco-editor danmu.js 
+
+开源伙伴 
+
+🎉 成为伙伴
+
+联系我们 
+
+请注明来意～ 
+
+技术交流1群
+
+技术交流2群
+
+技术交流3群
+
+技术交流4群
+
+技术交流5群
+
+技术交流6群
+
+技术交流7群
+
+技术交流8群
+
+金牌赞助商 
+
+银牌赞助 
+
+༺铜牌赞助༻
+
+用户zw8T394C 用户zw8T398C 龙眼吃多了上火 用户zw8T392T 用户z89CSw69 用户CzP9SCAz Kim 用户249AzA8v l0f5c7bf 夏先生 yinuo 用户3wTwAz78 用户zw8T39zT 用户249AzA82 用户CzP9SCvz 用户39A334xT 用户3wTwAz3x 用户zw8T39zC 稀饭、微凉 用户CzP9SCT4 便宜VPS服务器 菲鸽 szhua Cheng Suezp beyond 用户3PvP2S63 o Arvin finallycc 用户39A3346C 大雷 用户CzP9SC4z 随风 用户z89CSwT9 用户3wTwAzCx UPMuling 军杨 桔子雨工作室 用户zw8T37xC 前端炒饭仔 用户z89CSw46 崮生 互动矩阵 ZhanYoHo 何佳Q coderhyh 早上好啊 快图设计 do 毛哥哥 迅排设计 用户z89CSw86 糖果 南城以北 黑色摩天仑 Charm Lauginwing 在路上 Jerry 张余🌈 李狗嗨。💢 用户zw8T376T 用户249AzA2v ʚ LMT ɞ 格子 等等 goosen F4nniu 梁福斌 江万江 杨超 ToB Dev 前端之虎陈随易 A☀️云☀️A zhk 爱发电用户_c9c82 轻简历 爱发电用户_0fac0 wangyesheji.cn 风间 爱发电用户_Tqsm 爱发电用户_6KpE 星小志 zwm 爱发电用户_3725c Noth1ng 纳西妲の√ 爱发电用户_Ahb9 爱发电用户_7617d 冷漠 爱发电用户_9RXB 今日值得读 爱发电用户_49sT 爱发电用户_NFCS 爱发电用户_43ad8 爱发电用户_30455 砖吐筷筷 xiaozhang 爱发电用户_b47b3 longbow1998 爱发电用户_5d755 爱发电用户_b76b8 爱发电用户_e70c2 xiaou@截图工具 ousiri 爱发电用户_039dc 花祁 爱发电用户_99f39 坤坤 爱发电用户_X6hp ycteng 曹吉美爸爸 啸沧海 Ronny 爱发电用户_UXEV Biu 王志强 SaltedFish 爱发电用户_76f9d PD.新城คิดถึง 糖颂缘冥倾 ALBERT. 爱发电用户_Pbm7 Leafer 赞助我们 
+
+LeaferJS
+
+LeaferJS 是一款革新、好用的 Canvas 引擎，轻松实现图形交互与编辑。适用于AI 无限画布、AI 设计工具、图形编辑、小游戏、互动应用、工业可视化、生成图片与短视频等场景。 能让你拥有瞬间创建100万个图形的超强能力，免费开源、易学易用、场景丰富。 
+
+软件著作权编号：
+
+[LeaferJS] 2021SR1143803
+
+[LeaferUI] 2023SR0528918
+
+像素生长（北京）科技中心 
+合作伙伴
+
+北 京: 北京彩动元码科技有限公司
+
+新加坡: Aedu AI Pte.Ltd.
+
+Copyright © 2021-2026 Chao (Leafer) Wan 
+
+赣ICP备18002459号

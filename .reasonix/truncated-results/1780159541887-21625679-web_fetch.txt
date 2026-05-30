@@ -1,0 +1,3281 @@
+Class: Image&lt;TInputData&gt; | 🌿 LeaferJS
+https://www.leaferjs.com/ui/api/classes/Image.html
+
+<!DOCTYPE html>
+
+Class: Image<TInputData> | 🌿 LeaferJS
+
+Skip to content
+
+🌿 LeaferJS
+
+SearchK
+
+简体中文
+
+English 预计2.0版本启动翻译
+
+简体中文
+
+English 预计2.0版本启动翻译
+
+Appearance
+
+Menu
+Return to top
+
+Class: Image<TInputData> ​
+
+Type parameters ​
+
+NameType
+
+TInputDataIImageInputData
+
+Hierarchy ​
+
+Rect<TInputData>
+
+↳ Image
+
+↳↳ HTMLText
+
+Implements ​
+
+IImage
+
+Table of contents ​
+
+Constructors ​
+
+constructor
+
+Properties ​
+
+innerId
+
+skipJSON
+
+syncEventer
+
+lockNormalStyle
+
+__layout
+
+__world
+
+__local
+
+__nowWorld
+
+__cameraWorld
+
+__worldOpacity
+
+__scrollWorld
+
+__level
+
+__tempNumber
+
+__hasAutoLayout
+
+__hasMask
+
+__hasEraser
+
+__hitCanvas
+
+__captureMap
+
+__bubbleMap
+
+__hasLocalEvent
+
+__hasWorldEvent
+
+topChildren
+
+destroyed
+
+__
+
+url
+
+proxyData
+
+__proxyData
+
+leafer
+
+parent
+
+zoomLayer
+
+children
+
+startLinker
+
+endLinker
+
+id
+
+name
+
+className
+
+blendMode
+
+opacity
+
+visible
+
+locked
+
+dim
+
+dimskip
+
+bright
+
+zIndex
+
+mask
+
+eraser
+
+x
+
+y
+
+width
+
+height
+
+scaleX
+
+scaleY
+
+scaleFixed
+
+rotation
+
+skewX
+
+skewY
+
+offsetX
+
+offsetY
+
+scrollX
+
+scrollY
+
+origin
+
+around
+
+lazy
+
+pixelRatio
+
+renderSpread
+
+path
+
+windingRule
+
+closed
+
+flow
+
+padding
+
+gap
+
+flowAlign
+
+flowWrap
+
+itemBox
+
+inFlow
+
+autoWidth
+
+autoHeight
+
+lockRatio
+
+autoBox
+
+widthRange
+
+heightRange
+
+draggable
+
+dragBounds
+
+dragBoundsType
+
+editable
+
+hittable
+
+hitFill
+
+hitStroke
+
+hitBox
+
+hitChildren
+
+hitSelf
+
+hitRadius
+
+cursor
+
+fill
+
+stroke
+
+strokeAlign
+
+strokeWidth
+
+strokeScaleFixed
+
+strokeCap
+
+strokeJoin
+
+dashPattern
+
+dashOffset
+
+miterLimit
+
+startArrow
+
+endArrow
+
+cornerRadius
+
+cornerSmoothing
+
+shadow
+
+innerShadow
+
+blur
+
+backgroundBlur
+
+grayscale
+
+filter
+
+complex
+
+animation
+
+animationOut
+
+transition
+
+transitionOut
+
+motionPath
+
+motionPrecision
+
+motion
+
+motionRotation
+
+states
+
+state
+
+selected
+
+disabled
+
+normalStyle
+
+hoverStyle
+
+pressStyle
+
+focusStyle
+
+selectedStyle
+
+disabledStyle
+
+placeholderStyle
+
+placeholderColor
+
+placeholderDelay
+
+button
+
+editConfig
+
+editOuter
+
+editInner
+
+data
+
+useFastShadow
+
+__box
+
+__animate
+
+Accessors ​
+
+tag
+
+innerName
+
+__DataProcessor
+
+__LayoutProcessor
+
+leaferIsCreated
+
+leaferIsReady
+
+isLeafer
+
+isBranch
+
+isBranchLeaf
+
+__localMatrix
+
+__localBoxBounds
+
+worldTransform
+
+localTransform
+
+scrollWorldTransform
+
+boxBounds
+
+renderBounds
+
+worldBoxBounds
+
+worldStrokeBounds
+
+worldRenderBounds
+
+worldOpacity
+
+__worldFlipped
+
+__onlyHitMask
+
+__ignoreHitWorld
+
+__inLazyBounds
+
+pathInputed
+
+event
+
+__tag
+
+ready
+
+image
+
+app
+
+isFrame
+
+strokeWidthFixed
+
+scale
+
+isAutoWidth
+
+isAutoHeight
+
+pen
+
+Methods ​
+
+resetCustom
+
+waitParent
+
+waitLeafer
+
+nextRender
+
+removeNextRender
+
+__bindLeafer
+
+setAttr
+
+getAttr
+
+getComputedAttr
+
+toJSON
+
+toString
+
+toSVG
+
+__SVG
+
+toHTML
+
+__setAttr
+
+__getAttr
+
+setProxyAttr
+
+getProxyAttr
+
+focus
+
+updateState
+
+updateLayout
+
+forceUpdate
+
+forceRender
+
+__extraUpdate
+
+__updateWorldMatrix
+
+__updateLocalMatrix
+
+__updateWorldBounds
+
+__updateLocalBounds
+
+__updateLocalBoxBounds
+
+__updateLocalStrokeBounds
+
+__updateLocalRenderBounds
+
+__updateBoxBounds
+
+__updateContentBounds
+
+__updateStrokeBounds
+
+__updateRenderBounds
+
+__updateAutoLayout
+
+__updateFlowLayout
+
+__updateNaturalSize
+
+__updateStrokeSpread
+
+__updateRenderSpread
+
+__updateEraser
+
+__renderEraser
+
+__updateMask
+
+__renderMask
+
+__getNowWorld
+
+getClampRenderScale
+
+getRenderScaleData
+
+getTransform
+
+getBounds
+
+getLayoutBounds
+
+getLayoutPoints
+
+getWorldBounds
+
+worldToLocal
+
+localToWorld
+
+worldToInner
+
+innerToWorld
+
+getBoxPoint
+
+getBoxPointByInner
+
+getInnerPoint
+
+getInnerPointByBox
+
+getInnerPointByLocal
+
+getLocalPoint
+
+getLocalPointByInner
+
+getPagePoint
+
+getWorldPoint
+
+getWorldPointByBox
+
+getWorldPointByLocal
+
+getWorldPointByPage
+
+setTransform
+
+transform
+
+move
+
+moveInner
+
+scaleOf
+
+rotateOf
+
+skewOf
+
+transformWorld
+
+moveWorld
+
+scaleOfWorld
+
+rotateOfWorld
+
+skewOfWorld
+
+flip
+
+scaleResize
+
+__scaleResize
+
+resizeWidth
+
+resizeHeight
+
+hit
+
+__hitWorld
+
+__hit
+
+__hitFill
+
+__hitStroke
+
+__hitPixel
+
+__drawHitPath
+
+__updateHitCanvas
+
+__render
+
+__drawFast
+
+__draw
+
+__clip
+
+__renderShape
+
+__drawShape
+
+__updateWorldOpacity
+
+__updateChange
+
+__updatePath
+
+getMotionPathData
+
+getMotionPoint
+
+getMotionTotal
+
+__updateMotionPath
+
+__runAnimation
+
+__updateSortChildren
+
+add
+
+remove
+
+dropTo
+
+on
+
+off
+
+on_
+
+off_
+
+once
+
+emit
+
+emitEvent
+
+hasEvent
+
+changeAttr
+
+addAttr
+
+__emitLifeEvent
+
+reset
+
+set
+
+get
+
+createProxyData
+
+clearProxyData
+
+find
+
+findTag
+
+findOne
+
+findId
+
+getPath
+
+getPathString
+
+asPath
+
+load
+
+__onUpdateSize
+
+__updateRenderPath
+
+__drawRenderPath
+
+__drawPath
+
+__drawPathByData
+
+__drawPathByBox
+
+drawImagePlaceholder
+
+animate
+
+killAnimate
+
+export
+
+syncExport
+
+clone
+
+one
+
+registerUI
+
+registerData
+
+setEditConfig
+
+setEditOuter
+
+setEditInner
+
+destroy
+
+Constructors ​
+
+constructor ​
+
+• new Image<TInputData>(data?): Image<TInputData>
+
+Type parameters ​
+
+NameType
+
+TInputDataIImageInputData
+
+Parameters ​
+
+NameType
+
+data?TInputData
+
+Returns ​
+
+Image<TInputData>
+
+Inherited from ​
+
+Rect.constructor
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:116
+
+Properties ​
+
+innerId ​
+
+• Readonly innerId: number
+
+Implementation of ​
+
+IImage.innerId
+
+Inherited from ​
+
+Rect.innerId
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:33
+
+skipJSON ​
+
+• Optional skipJSON: boolean
+
+Implementation of ​
+
+IImage.skipJSON
+
+Inherited from ​
+
+Rect.skipJSON
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:49
+
+syncEventer ​
+
+• Optional syncEventer: ILeaf
+
+Implementation of ​
+
+IImage.syncEventer
+
+Inherited from ​
+
+Rect.syncEventer
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:50
+
+lockNormalStyle ​
+
+• Optional lockNormalStyle: boolean
+
+Implementation of ​
+
+IImage.lockNormalStyle
+
+Inherited from ​
+
+Rect.lockNormalStyle
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:51
+
+__layout ​
+
+• __layout: ILeafLayout
+
+Implementation of ​
+
+IImage.__layout
+
+Inherited from ​
+
+Rect.__layout
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:54
+
+__world ​
+
+• __world: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IImage.__world
+
+Inherited from ​
+
+Rect.__world
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:56
+
+__local ​
+
+• Optional __local: IMatrixWithBoundsData
+
+Implementation of ​
+
+IImage.__local
+
+Inherited from ​
+
+Rect.__local
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:57
+
+__nowWorld ​
+
+• Optional __nowWorld: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IImage.__nowWorld
+
+Inherited from ​
+
+Rect.__nowWorld
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:59
+
+__cameraWorld ​
+
+• Optional __cameraWorld: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IImage.__cameraWorld
+
+Inherited from ​
+
+Rect.__cameraWorld
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:60
+
+__worldOpacity ​
+
+• __worldOpacity: number
+
+Implementation of ​
+
+IImage.__worldOpacity
+
+Inherited from ​
+
+Rect.__worldOpacity
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:65
+
+__scrollWorld ​
+
+• Optional __scrollWorld: IMatrixWithBoundsScaleData
+
+Implementation of ​
+
+IImage.__scrollWorld
+
+Inherited from ​
+
+Rect.__scrollWorld
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:71
+
+__level ​
+
+• __level: number
+
+Implementation of ​
+
+IImage.__level
+
+Inherited from ​
+
+Rect.__level
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:84
+
+__tempNumber ​
+
+• __tempNumber: number
+
+Implementation of ​
+
+IImage.__tempNumber
+
+Inherited from ​
+
+Rect.__tempNumber
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:85
+
+__hasAutoLayout ​
+
+• Optional __hasAutoLayout: boolean
+
+Implementation of ​
+
+IImage.__hasAutoLayout
+
+Inherited from ​
+
+Rect.__hasAutoLayout
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:89
+
+__hasMask ​
+
+• Optional __hasMask: boolean
+
+Implementation of ​
+
+IImage.__hasMask
+
+Inherited from ​
+
+Rect.__hasMask
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:90
+
+__hasEraser ​
+
+• Optional __hasEraser: boolean
+
+Implementation of ​
+
+IImage.__hasEraser
+
+Inherited from ​
+
+Rect.__hasEraser
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:91
+
+__hitCanvas ​
+
+• Optional __hitCanvas: IHitCanvas
+
+Implementation of ​
+
+IImage.__hitCanvas
+
+Inherited from ​
+
+Rect.__hitCanvas
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:92
+
+__captureMap ​
+
+• Optional __captureMap: IEventListenerMap
+
+Implementation of ​
+
+IImage.__captureMap
+
+Inherited from ​
+
+Rect.__captureMap
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:103
+
+__bubbleMap ​
+
+• Optional __bubbleMap: IEventListenerMap
+
+Implementation of ​
+
+IImage.__bubbleMap
+
+Inherited from ​
+
+Rect.__bubbleMap
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:104
+
+__hasLocalEvent ​
+
+• Optional __hasLocalEvent: boolean
+
+Implementation of ​
+
+IImage.__hasLocalEvent
+
+Inherited from ​
+
+Rect.__hasLocalEvent
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:106
+
+__hasWorldEvent ​
+
+• Optional __hasWorldEvent: boolean
+
+Implementation of ​
+
+IImage.__hasWorldEvent
+
+Inherited from ​
+
+Rect.__hasWorldEvent
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:107
+
+topChildren ​
+
+• Optional topChildren: ILeaf[]
+
+Implementation of ​
+
+IImage.topChildren
+
+Inherited from ​
+
+Rect.topChildren
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:111
+
+destroyed ​
+
+• destroyed: boolean
+
+Implementation of ​
+
+IImage.destroyed
+
+Inherited from ​
+
+Rect.destroyed
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:113
+
+__ ​
+
+• __: IImageData
+
+Implementation of ​
+
+IImage.__
+
+Overrides ​
+
+Rect.__
+
+Defined in ​
+
+src/ui/packages/display/src/Image.ts:16
+
+url ​
+
+• url: string
+
+Implementation of ​
+
+IImage.url
+
+Defined in ​
+
+src/ui/packages/display/src/Image.ts:19
+
+proxyData ​
+
+• Optional proxyData: IUIInputData
+
+Implementation of ​
+
+IImage.proxyData
+
+Inherited from ​
+
+Rect.proxyData
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:21
+
+__proxyData ​
+
+• Optional __proxyData: IUIInputData
+
+Implementation of ​
+
+IImage.__proxyData
+
+Inherited from ​
+
+Rect.__proxyData
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:22
+
+leafer ​
+
+• Optional leafer: ILeafer
+
+Implementation of ​
+
+IImage.leafer
+
+Inherited from ​
+
+Rect.leafer
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:26
+
+parent ​
+
+• Optional parent: IGroup
+
+Implementation of ​
+
+IImage.parent
+
+Inherited from ​
+
+Rect.parent
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:27
+
+zoomLayer ​
+
+• zoomLayer: IGroup
+
+Implementation of ​
+
+IImage.zoomLayer
+
+Inherited from ​
+
+Rect.zoomLayer
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:30
+
+children ​
+
+• Optional children: IUI[]
+
+Implementation of ​
+
+IImage.children
+
+Inherited from ​
+
+Rect.children
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:34
+
+startLinker ​
+
+• Optional startLinker: ILinker[]
+
+Implementation of ​
+
+IImage.startLinker
+
+Inherited from ​
+
+Rect.startLinker
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:37
+
+endLinker ​
+
+• Optional endLinker: ILinker[]
+
+Implementation of ​
+
+IImage.endLinker
+
+Inherited from ​
+
+Rect.endLinker
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:38
+
+id ​
+
+• Optional id: string
+
+Implementation of ​
+
+IImage.id
+
+Inherited from ​
+
+Rect.id
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:44
+
+name ​
+
+• Optional name: string
+
+Implementation of ​
+
+IImage.name
+
+Inherited from ​
+
+Rect.name
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:47
+
+className ​
+
+• Optional className: string
+
+Implementation of ​
+
+IImage.className
+
+Inherited from ​
+
+Rect.className
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:50
+
+blendMode ​
+
+• Optional blendMode: IBlendMode
+
+Implementation of ​
+
+IImage.blendMode
+
+Inherited from ​
+
+Rect.blendMode
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:55
+
+opacity ​
+
+• Optional opacity: number
+
+Implementation of ​
+
+IImage.opacity
+
+Inherited from ​
+
+Rect.opacity
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:58
+
+visible ​
+
+• Optional visible: boolean | 0
+
+Implementation of ​
+
+IImage.visible
+
+Inherited from ​
+
+Rect.visible
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:61
+
+locked ​
+
+• Optional locked: boolean
+
+Implementation of ​
+
+IImage.locked
+
+Inherited from ​
+
+Rect.locked
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:65
+
+dim ​
+
+• Optional dim: number | boolean
+
+Implementation of ​
+
+IImage.dim
+
+Inherited from ​
+
+Rect.dim
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:71
+
+dimskip ​
+
+• Optional dimskip: boolean
+
+Implementation of ​
+
+IImage.dimskip
+
+Inherited from ​
+
+Rect.dimskip
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:74
+
+bright ​
+
+• Optional bright: boolean
+
+Implementation of ​
+
+IImage.bright
+
+Inherited from ​
+
+Rect.bright
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:76
+
+zIndex ​
+
+• Optional zIndex: number
+
+Implementation of ​
+
+IImage.zIndex
+
+Inherited from ​
+
+Rect.zIndex
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:80
+
+mask ​
+
+• Optional mask: boolean | IMaskType
+
+Implementation of ​
+
+IImage.mask
+
+Inherited from ​
+
+Rect.mask
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:84
+
+eraser ​
+
+• Optional eraser: boolean | IEraserType
+
+Implementation of ​
+
+IImage.eraser
+
+Inherited from ​
+
+Rect.eraser
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:87
+
+x ​
+
+• Optional x: number
+
+Implementation of ​
+
+IImage.x
+
+Inherited from ​
+
+Rect.x
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:92
+
+y ​
+
+• Optional y: number
+
+Implementation of ​
+
+IImage.y
+
+Inherited from ​
+
+Rect.y
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:95
+
+width ​
+
+• Optional width: number
+
+Implementation of ​
+
+IImage.width
+
+Inherited from ​
+
+Rect.width
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:99
+
+height ​
+
+• Optional height: number
+
+Implementation of ​
+
+IImage.height
+
+Inherited from ​
+
+Rect.height
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:102
+
+scaleX ​
+
+• Optional scaleX: number
+
+Implementation of ​
+
+IImage.scaleX
+
+Inherited from ​
+
+Rect.scaleX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:106
+
+scaleY ​
+
+• Optional scaleY: number
+
+Implementation of ​
+
+IImage.scaleY
+
+Inherited from ​
+
+Rect.scaleY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:109
+
+scaleFixed ​
+
+• Optional scaleFixed: IScaleFixed
+
+Implementation of ​
+
+IImage.scaleFixed
+
+Inherited from ​
+
+Rect.scaleFixed
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:112
+
+rotation ​
+
+• Optional rotation: number
+
+Implementation of ​
+
+IImage.rotation
+
+Inherited from ​
+
+Rect.rotation
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:116
+
+skewX ​
+
+• Optional skewX: number
+
+Implementation of ​
+
+IImage.skewX
+
+Inherited from ​
+
+Rect.skewX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:120
+
+skewY ​
+
+• Optional skewY: number
+
+Implementation of ​
+
+IImage.skewY
+
+Inherited from ​
+
+Rect.skewY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:123
+
+offsetX ​
+
+• Optional offsetX: number
+
+Implementation of ​
+
+IImage.offsetX
+
+Inherited from ​
+
+Rect.offsetX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:128
+
+offsetY ​
+
+• Optional offsetY: number
+
+Implementation of ​
+
+IImage.offsetY
+
+Inherited from ​
+
+Rect.offsetY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:131
+
+scrollX ​
+
+• Optional scrollX: number
+
+Implementation of ​
+
+IImage.scrollX
+
+Inherited from ​
+
+Rect.scrollX
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:135
+
+scrollY ​
+
+• Optional scrollY: number
+
+Implementation of ​
+
+IImage.scrollY
+
+Inherited from ​
+
+Rect.scrollY
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:138
+
+origin ​
+
+• Optional origin: IUnitPointData | IDirection
+
+Implementation of ​
+
+IImage.origin
+
+Inherited from ​
+
+Rect.origin
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:143
+
+around ​
+
+• Optional around: IUnitPointData | IDirection
+
+Implementation of ​
+
+IImage.around
+
+Inherited from ​
+
+Rect.around
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:146
+
+lazy ​
+
+• Optional lazy: boolean
+
+Implementation of ​
+
+IImage.lazy
+
+Inherited from ​
+
+Rect.lazy
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:151
+
+pixelRatio ​
+
+• Optional pixelRatio: number
+
+Implementation of ​
+
+IImage.pixelRatio
+
+Inherited from ​
+
+Rect.pixelRatio
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:154
+
+renderSpread ​
+
+• Optional renderSpread: IFourNumber
+
+Implementation of ​
+
+IImage.renderSpread
+
+Inherited from ​
+
+Rect.renderSpread
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:158
+
+path ​
+
+• Optional path: string | IPathCommandData | IPathCommandNode[] | IPathCommandObject[]
+
+Implementation of ​
+
+IImage.path
+
+Inherited from ​
+
+Rect.path
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:163
+
+windingRule ​
+
+• Optional windingRule: IWindingRule
+
+Implementation of ​
+
+IImage.windingRule
+
+Inherited from ​
+
+Rect.windingRule
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:166
+
+closed ​
+
+• Optional closed: boolean
+
+Implementation of ​
+
+IImage.closed
+
+Inherited from ​
+
+Rect.closed
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:169
+
+flow ​
+
+• Optional flow: IFlowType
+
+Implementation of ​
+
+IImage.flow
+
+Inherited from ​
+
+Rect.flow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:173
+
+padding ​
+
+• Optional padding: IFourNumber
+
+Implementation of ​
+
+IImage.padding
+
+Inherited from ​
+
+Rect.padding
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:176
+
+gap ​
+
+• Optional gap: IGap | IPointGap
+
+Implementation of ​
+
+IImage.gap
+
+Inherited from ​
+
+Rect.gap
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:178
+
+flowAlign ​
+
+• Optional flowAlign: IFlowAxisAlign | IFlowAlign
+
+Implementation of ​
+
+IImage.flowAlign
+
+Inherited from ​
+
+Rect.flowAlign
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:180
+
+flowWrap ​
+
+• Optional flowWrap: IFlowWrap
+
+Implementation of ​
+
+IImage.flowWrap
+
+Inherited from ​
+
+Rect.flowWrap
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:182
+
+itemBox ​
+
+• Optional itemBox: IFlowBoxType
+
+Implementation of ​
+
+IImage.itemBox
+
+Inherited from ​
+
+Rect.itemBox
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:185
+
+inFlow ​
+
+• Optional inFlow: boolean
+
+Implementation of ​
+
+IImage.inFlow
+
+Inherited from ​
+
+Rect.inFlow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:187
+
+autoWidth ​
+
+• Optional autoWidth: IAutoSize
+
+Implementation of ​
+
+IImage.autoWidth
+
+Inherited from ​
+
+Rect.autoWidth
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:190
+
+autoHeight ​
+
+• Optional autoHeight: IAutoSize
+
+Implementation of ​
+
+IImage.autoHeight
+
+Inherited from ​
+
+Rect.autoHeight
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:192
+
+lockRatio ​
+
+• Optional lockRatio: boolean
+
+Implementation of ​
+
+IImage.lockRatio
+
+Inherited from ​
+
+Rect.lockRatio
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:195
+
+autoBox ​
+
+• Optional autoBox: IAutoBoxData | IConstraint
+
+Implementation of ​
+
+IImage.autoBox
+
+Inherited from ​
+
+Rect.autoBox
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:197
+
+widthRange ​
+
+• Optional widthRange: IRangeSize
+
+Implementation of ​
+
+IImage.widthRange
+
+Inherited from ​
+
+Rect.widthRange
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:200
+
+heightRange ​
+
+• Optional heightRange: IRangeSize
+
+Implementation of ​
+
+IImage.heightRange
+
+Inherited from ​
+
+Rect.heightRange
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:203
+
+draggable ​
+
+• Optional draggable: boolean | IAxis
+
+Implementation of ​
+
+IImage.draggable
+
+Inherited from ​
+
+Rect.draggable
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:208
+
+dragBounds ​
+
+• Optional dragBounds: "parent" | IBoundsData
+
+Implementation of ​
+
+IImage.dragBounds
+
+Inherited from ​
+
+Rect.dragBounds
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:211
+
+dragBoundsType ​
+
+• Optional dragBoundsType: IDragBoundsType
+
+Implementation of ​
+
+IImage.dragBoundsType
+
+Inherited from ​
+
+Rect.dragBoundsType
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:214
+
+editable ​
+
+• Optional editable: boolean
+
+Implementation of ​
+
+IImage.editable
+
+Inherited from ​
+
+Rect.editable
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:218
+
+hittable ​
+
+• Optional hittable: boolean
+
+Implementation of ​
+
+IImage.hittable
+
+Inherited from ​
+
+Rect.hittable
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:223
+
+hitFill ​
+
+• Optional hitFill: IHitType
+
+Implementation of ​
+
+IImage.hitFill
+
+Inherited from ​
+
+Rect.hitFill
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:226
+
+hitStroke ​
+
+• Optional hitStroke: IHitType
+
+Implementation of ​
+
+IImage.hitStroke
+
+Inherited from ​
+
+Rect.hitStroke
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:229
+
+hitBox ​
+
+• Optional hitBox: boolean
+
+Implementation of ​
+
+IImage.hitBox
+
+Inherited from ​
+
+Rect.hitBox
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:232
+
+hitChildren ​
+
+• Optional hitChildren: boolean
+
+Implementation of ​
+
+IImage.hitChildren
+
+Inherited from ​
+
+Rect.hitChildren
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:235
+
+hitSelf ​
+
+• Optional hitSelf: boolean
+
+Implementation of ​
+
+IImage.hitSelf
+
+Inherited from ​
+
+Rect.hitSelf
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:238
+
+hitRadius ​
+
+• Optional hitRadius: number
+
+Implementation of ​
+
+IImage.hitRadius
+
+Inherited from ​
+
+Rect.hitRadius
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:241
+
+cursor ​
+
+• Optional cursor: ICursorType | ICursorType[]
+
+Implementation of ​
+
+IImage.cursor
+
+Inherited from ​
+
+Rect.cursor
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:244
+
+fill ​
+
+• Optional fill: IFill
+
+Implementation of ​
+
+IImage.fill
+
+Inherited from ​
+
+Rect.fill
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:252
+
+stroke ​
+
+• Optional stroke: IStroke
+
+Implementation of ​
+
+IImage.stroke
+
+Inherited from ​
+
+Rect.stroke
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:257
+
+strokeAlign ​
+
+• Optional strokeAlign: IStrokeAlign
+
+Implementation of ​
+
+IImage.strokeAlign
+
+Inherited from ​
+
+Rect.strokeAlign
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:260
+
+strokeWidth ​
+
+• Optional strokeWidth: string | IFourNumber
+
+Implementation of ​
+
+IImage.strokeWidth
+
+Inherited from ​
+
+Rect.strokeWidth
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:263
+
+strokeScaleFixed ​
+
+• Optional strokeScaleFixed: IScaleFixed
+
+Implementation of ​
+
+IImage.strokeScaleFixed
+
+Inherited from ​
+
+Rect.strokeScaleFixed
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:266
+
+strokeCap ​
+
+• Optional strokeCap: IStrokeCap
+
+Implementation of ​
+
+IImage.strokeCap
+
+Inherited from ​
+
+Rect.strokeCap
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:273
+
+strokeJoin ​
+
+• Optional strokeJoin: IStrokeJoin
+
+Implementation of ​
+
+IImage.strokeJoin
+
+Inherited from ​
+
+Rect.strokeJoin
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:276
+
+dashPattern ​
+
+• Optional dashPattern: string | number[]
+
+Implementation of ​
+
+IImage.dashPattern
+
+Inherited from ​
+
+Rect.dashPattern
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:279
+
+dashOffset ​
+
+• Optional dashOffset: number
+
+Implementation of ​
+
+IImage.dashOffset
+
+Inherited from ​
+
+Rect.dashOffset
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:282
+
+miterLimit ​
+
+• Optional miterLimit: number
+
+Implementation of ​
+
+IImage.miterLimit
+
+Inherited from ​
+
+Rect.miterLimit
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:285
+
+startArrow ​
+
+• Optional startArrow: IArrowStyle
+
+Implementation of ​
+
+IImage.startArrow
+
+Inherited from ​
+
+Rect.startArrow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:290
+
+endArrow ​
+
+• Optional endArrow: IArrowStyle
+
+Implementation of ​
+
+IImage.endArrow
+
+Inherited from ​
+
+Rect.endArrow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:292
+
+cornerRadius ​
+
+• Optional cornerRadius: string | IFourNumber
+
+Implementation of ​
+
+IImage.cornerRadius
+
+Inherited from ​
+
+Rect.cornerRadius
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:297
+
+cornerSmoothing ​
+
+• Optional cornerSmoothing: number
+
+Implementation of ​
+
+IImage.cornerSmoothing
+
+Inherited from ​
+
+Rect.cornerSmoothing
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:300
+
+shadow ​
+
+• Optional shadow: string | IShadowEffect | IShadowEffect[]
+
+Implementation of ​
+
+IImage.shadow
+
+Inherited from ​
+
+Rect.shadow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:305
+
+innerShadow ​
+
+• Optional innerShadow: string | IShadowEffect | IShadowEffect[]
+
+Implementation of ​
+
+IImage.innerShadow
+
+Inherited from ​
+
+Rect.innerShadow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:308
+
+blur ​
+
+• Optional blur: number | IBlurEffect
+
+Implementation of ​
+
+IImage.blur
+
+Inherited from ​
+
+Rect.blur
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:311
+
+backgroundBlur ​
+
+• Optional backgroundBlur: number | IBlurEffect
+
+Implementation of ​
+
+IImage.backgroundBlur
+
+Inherited from ​
+
+Rect.backgroundBlur
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:314
+
+grayscale ​
+
+• Optional grayscale: number | IGrayscaleEffect
+
+Implementation of ​
+
+IImage.grayscale
+
+Inherited from ​
+
+Rect.grayscale
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:317
+
+filter ​
+
+• Optional filter: IFilter | IFilter[]
+
+Implementation of ​
+
+IImage.filter
+
+Inherited from ​
+
+Rect.filter
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:320
+
+complex ​
+
+• Optional complex: boolean
+
+Implementation of ​
+
+IImage.complex
+
+Inherited from ​
+
+Rect.complex
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:325
+
+animation ​
+
+• Optional animation: IAnimation | IAnimation[]
+
+Implementation of ​
+
+IImage.animation
+
+Inherited from ​
+
+Rect.animation
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:330
+
+animationOut ​
+
+• Optional animationOut: IAnimation | IAnimation[]
+
+Implementation of ​
+
+IImage.animationOut
+
+Inherited from ​
+
+Rect.animationOut
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:332
+
+transition ​
+
+• Optional transition: ITransition
+
+Implementation of ​
+
+IImage.transition
+
+Inherited from ​
+
+Rect.transition
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:335
+
+transitionOut ​
+
+• Optional transitionOut: ITransition
+
+Implementation of ​
+
+IImage.transitionOut
+
+Inherited from ​
+
+Rect.transitionOut
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:337
+
+motionPath ​
+
+• Optional motionPath: boolean
+
+Implementation of ​
+
+IImage.motionPath
+
+Inherited from ​
+
+Rect.motionPath
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:342
+
+motionPrecision ​
+
+• Optional motionPrecision: number
+
+Implementation of ​
+
+IImage.motionPrecision
+
+Inherited from ​
+
+Rect.motionPrecision
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:344
+
+motion ​
+
+• Optional motion: number | IUnitData
+
+Implementation of ​
+
+IImage.motion
+
+Inherited from ​
+
+Rect.motion
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:347
+
+motionRotation ​
+
+• Optional motionRotation: number | boolean
+
+Implementation of ​
+
+IImage.motionRotation
+
+Inherited from ​
+
+Rect.motionRotation
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:349
+
+states ​
+
+• Optional states: IStates
+
+Implementation of ​
+
+IImage.states
+
+Inherited from ​
+
+Rect.states
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:354
+
+state ​
+
+• Optional state: string
+
+Implementation of ​
+
+IImage.state
+
+Inherited from ​
+
+Rect.state
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:356
+
+selected ​
+
+• Optional selected: boolean
+
+Implementation of ​
+
+IImage.selected
+
+Inherited from ​
+
+Rect.selected
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:359
+
+disabled ​
+
+• Optional disabled: boolean
+
+Implementation of ​
+
+IImage.disabled
+
+Inherited from ​
+
+Rect.disabled
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:361
+
+normalStyle ​
+
+• Optional normalStyle: IStateStyle
+
+Implementation of ​
+
+IImage.normalStyle
+
+Inherited from ​
+
+Rect.normalStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:364
+
+hoverStyle ​
+
+• Optional hoverStyle: IStateStyle
+
+Implementation of ​
+
+IImage.hoverStyle
+
+Inherited from ​
+
+Rect.hoverStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:366
+
+pressStyle ​
+
+• Optional pressStyle: IStateStyle
+
+Implementation of ​
+
+IImage.pressStyle
+
+Inherited from ​
+
+Rect.pressStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:368
+
+focusStyle ​
+
+• Optional focusStyle: IStateStyle
+
+Implementation of ​
+
+IImage.focusStyle
+
+Inherited from ​
+
+Rect.focusStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:370
+
+selectedStyle ​
+
+• Optional selectedStyle: IStateStyle
+
+Implementation of ​
+
+IImage.selectedStyle
+
+Inherited from ​
+
+Rect.selectedStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:372
+
+disabledStyle ​
+
+• Optional disabledStyle: IStateStyle
+
+Implementation of ​
+
+IImage.disabledStyle
+
+Inherited from ​
+
+Rect.disabledStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:374
+
+placeholderStyle ​
+
+• Optional placeholderStyle: IStateStyle
+
+Implementation of ​
+
+IImage.placeholderStyle
+
+Inherited from ​
+
+Rect.placeholderStyle
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:377
+
+placeholderColor ​
+
+• Optional placeholderColor: string
+
+Implementation of ​
+
+IImage.placeholderColor
+
+Inherited from ​
+
+Rect.placeholderColor
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:380
+
+placeholderDelay ​
+
+• Optional placeholderDelay: number
+
+Implementation of ​
+
+IImage.placeholderDelay
+
+Inherited from ​
+
+Rect.placeholderDelay
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:383
+
+button ​
+
+• Optional button: boolean
+
+Implementation of ​
+
+IImage.button
+
+Inherited from ​
+
+Rect.button
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:386
+
+editConfig ​
+
+• editConfig: IEditorConfig
+
+Implementation of ​
+
+IImage.editConfig
+
+Inherited from ​
+
+Rect.editConfig
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:391
+
+editOuter ​
+
+• editOuter: string
+
+Implementation of ​
+
+IImage.editOuter
+
+Inherited from ​
+
+Rect.editOuter
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:393
+
+editInner ​
+
+• editInner: string
+
+Implementation of ​
+
+IImage.editInner
+
+Inherited from ​
+
+Rect.editInner
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:395
+
+data ​
+
+• data: IObject
+
+Implementation of ​
+
+IImage.data
+
+Inherited from ​
+
+Rect.data
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:400
+
+useFastShadow ​
+
+• Optional useFastShadow: boolean
+
+Implementation of ​
+
+IImage.useFastShadow
+
+Inherited from ​
+
+Rect.useFastShadow
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:409
+
+__box ​
+
+• Optional __box: IUI
+
+Implementation of ​
+
+IImage.__box
+
+Inherited from ​
+
+Rect.__box
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:411
+
+__animate ​
+
+• Optional __animate: IAnimate | IAnimateList
+
+Implementation of ​
+
+IImage.__animate
+
+Inherited from ​
+
+Rect.__animate
+
+Defined in ​
+
+src/ui/packages/display/src/UI.ts:412
+
+Accessors ​
+
+tag ​
+
+• get tag(): string
+
+Returns ​
+
+string
+
+Implementation of ​
+
+IImage.tag
+
+Inherited from ​
+
+Rect.tag
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:28
+
+• set tag(_value): void
+
+Parameters ​
+
+NameType
+
+_valuestring
+
+Returns ​
+
+void
+
+Implementation of ​
+
+IImage.tag
+
+Inherited from ​
+
+Rect.tag
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:29
+
+innerName ​
+
+• get innerName(): string
+
+Returns ​
+
+string
+
+Implementation of ​
+
+IImage.innerName
+
+Inherited from ​
+
+Rect.innerName
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:34
+
+__DataProcessor ​
+
+• get __DataProcessor(): typeof LeafData
+
+Returns ​
+
+typeof LeafData
+
+Implementation of ​
+
+IImage.__DataProcessor
+
+Inherited from ​
+
+Rect.__DataProcessor
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:36
+
+__LayoutProcessor ​
+
+• get __LayoutProcessor(): typeof LeafLayout
+
+Returns ​
+
+typeof LeafLayout
+
+Implementation of ​
+
+IImage.__LayoutProcessor
+
+Inherited from ​
+
+Rect.__LayoutProcessor
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:37
+
+leaferIsCreated ​
+
+• get leaferIsCreated(): boolean
+
+Returns ​
+
+boolean
+
+Implementation of ​
+
+IImage.leaferIsCreated
+
+Inherited from ​
+
+Rect.leaferIsCreated
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:42
+
+leaferIsReady ​
+
+• get leaferIsReady(): boolean
+
+Returns ​
+
+boolean
+
+Implementation of ​
+
+IImage.leaferIsReady
+
+Inherited from ​
+
+Rect.leaferIsReady
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:43
+
+isLeafer ​
+
+• get isLeafer(): boolean
+
+Returns ​
+
+boolean
+
+Implementation of ​
+
+IImage.isLeafer
+
+Inherited from ​
+
+Rect.isLeafer
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:45
+
+isBranch ​
+
+• get isBranch(): boolean
+
+Returns ​
+
+boolean
+
+Implementation of ​
+
+IImage.isBranch
+
+Inherited from ​
+
+Rect.isBranch
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:46
+
+isBranchLeaf ​
+
+• get isBranchLeaf(): boolean
+
+Returns ​
+
+boolean
+
+Implementation of ​
+
+IImage.isBranchLeaf
+
+Inherited from ​
+
+Rect.isBranchLeaf
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:47
+
+__localMatrix ​
+
+• get __localMatrix(): IMatrixData
+
+Returns ​
+
+IMatrixData
+
+Implementation of ​
+
+IImage.__localMatrix
+
+Inherited from ​
+
+Rect.__localMatrix
+
+Defined in ​
+
+src/leafer/packages/display/src/Leaf.ts:62
+
+__localBoxBounds ​
+
+• get __localBoxBounds(): IBoundsData
+
+Returns ​
+
+IBoundsData
+
+Implementation of ​
+
+IImage.__localBoxBounds
+
+Inherited
+
+[… truncated 46716 chars …]
