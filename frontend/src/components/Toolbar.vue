@@ -20,11 +20,11 @@ function handleExport() {
 }
 
 async function handleSave() {
-  if (!canvasStore.currentTree && chatStore.messages.length === 0) return
+  if (!canvasStore.cards.length && chatStore.messages.length === 0) return
   const data: ProjectFile = {
     formatVersion: 1,
     meta: { name: canvasStore.projectName, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), appVersion: '1.0.0' },
-    canvas: { tree: canvasStore.currentTree, viewport: { zoom: 1, scrollX: 0, scrollY: 0 } },
+    canvas: { cards: canvasStore.cards, viewport: canvasStore.viewport },
     chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
   }
   try {

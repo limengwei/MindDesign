@@ -154,12 +154,30 @@ export async function sendMessageToLLM(
       if (result.tree) {
         return { content: result.content, tree: result.tree }
       }
-      console.warn('LLM did not return a valid tree, falling back to mock')
+      // LLM 返回了但没提取到 tree：返回 AI 的文本给用户看
+      const msg = result.content || 'AI 已回复，但未能生成设计稿，请重试。'
+      throw new Error(msg)
     } catch (err) {
-      console.error('LLM API error, falling back to mock:', err)
+      const msg = (err as Error).message || String(err)
+      // 只有明确的 mock fallback 才走 mock
+      if (msg.includes('未能生成设计稿')) {
+        return { content: msg, tree: mockFallback(userText) }
+      }
+      // 真正的 API 错误：返回错误消息给用户，不走 mock
+      return {
+        content: `❌ API 错误: ${msg}`,
+        tree: null as unknown as ElementTree
+      }
     }
   }
 
-  await new Promise((r) => setTimeout(r, 600))
-  return callMockLLM(userText)
+  // 未配置 API Key：提示用户
+  return {
+    content: '⚠️ 未配置 AI 服务。请点击右上角齿轮图标设置 API Key。支持 DeepSeek / 智谱 GLM / OpenAI。',
+    tree: null as unknown as ElementTree
+  }
+}
+
+function mockFallback(userText: string): ElementTree {
+  return matchMock(userText)
 }

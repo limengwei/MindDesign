@@ -20,10 +20,18 @@ watch(() => chatStore.pendingSend, async (text) => {
       pageType: canvasStore.pageType,
       colorScheme: canvasStore.colorScheme,
       history,
-      onStreamingTree: (tree) => { canvasStore.setTree(tree) },
+      onStreamingTree: (tree) => {
+        // 找到或更新最后一张流式卡片
+        const cards = canvasStore.cards
+        if (cards.length > 0) {
+          cards[cards.length - 1].tree = tree
+        } else {
+          canvasStore.addCard(tree)
+        }
+      },
     })
-    chatStore.addAssistantMessage(result.content, result.tree)
-    if (result.tree) canvasStore.setTree(result.tree)
+    chatStore.addAssistantMessage(result.content, result.tree || undefined)
+    if (result.tree) canvasStore.addCard(result.tree)
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
     console.error('LLM error:', err)
@@ -51,13 +59,19 @@ async function handleSend() {
       colorScheme: canvasStore.colorScheme,
       history,
       onStreamingTree: (tree) => {
-        canvasStore.setTree(tree)
+        // Streaming 过程中更新最后一张卡片
+        const cards = canvasStore.cards
+        if (cards.length > 0) {
+          cards[cards.length - 1].tree = tree
+        } else {
+          canvasStore.addCard(tree)
+        }
       },
     })
 
-    chatStore.addAssistantMessage(result.content, result.tree)
+    chatStore.addAssistantMessage(result.content, result.tree || undefined)
     if (result.tree) {
-      canvasStore.setTree(result.tree)
+      canvasStore.addCard(result.tree)
     }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
@@ -77,7 +91,7 @@ function handleKeydown(e: KeyboardEvent) {
 function handleRevert(idx: number) {
   const msg = chatStore.messages[idx]
   if (msg?.role === 'assistant' && msg.tree) {
-    canvasStore.setTree(msg.tree)
+    canvasStore.addCard(msg.tree, '回溯设计稿')
     chatStore.messages = chatStore.messages.slice(0, idx + 1)
   }
 }
@@ -151,8 +165,9 @@ function handleRevert(idx: number) {
 
 <style scoped>
 .chat-panel {
-  width: 360px;
-  min-width: 360px;
+  flex: 0 0 300px;
+  min-width: 260px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
   background: #fafafa;

@@ -10,7 +10,7 @@ export function setupAutoSave() {
   let timer: ReturnType<typeof setTimeout> | null = null
 
   async function doAutoSave() {
-    if (!canvas.currentTree && chat.messages.length === 0) return
+    if (!canvas.cards.length && chat.messages.length === 0) return
 
     const data: ProjectFile = {
       formatVersion: 1,
@@ -21,8 +21,8 @@ export function setupAutoSave() {
         appVersion: '1.0.0',
       },
       canvas: {
-        tree: canvas.currentTree,
-        viewport: { zoom: 1, scrollX: 0, scrollY: 0 },
+        cards: canvas.cards,
+        viewport: canvas.viewport,
       },
       chat: chat.messages.map((m) => ({
         role: m.role,
@@ -43,7 +43,7 @@ export function setupAutoSave() {
     timer = setTimeout(doAutoSave, 5000)
   }
 
-  watch(() => canvas.currentTree, schedule, { deep: true })
+  watch(() => canvas.cards, schedule, { deep: true })
   watch(() => chat.messages, schedule, { deep: true })
 }
 

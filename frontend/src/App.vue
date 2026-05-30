@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useCanvasStore, PAGE_DIMENSIONS } from './stores/canvasStore'
 import { useChatStore } from './stores/chatStore'
 import { setupAutoSave, checkAutoSave, clearAutoSave } from './stores/autoSave'
@@ -29,38 +29,37 @@ function handleProjectCreate(config: { name: string; pageType: string; colorSche
   }
 }
 
+function handleKeydown(e: KeyboardEvent) {
+  const mod = e.ctrlKey || e.metaKey
+  if (mod && e.key === 's' && !e.shiftKey) {
+    e.preventDefault()
+    document.querySelector<HTMLButtonElement>('.toolbar-btn[title="保存 (Ctrl+S)"]')?.click()
+  }
+  if (mod && e.key === 'o') {
+    e.preventDefault()
+    if (chatStore.messages.length > 0) {
+      if (!confirm('当前项目未保存，是否确认新建？')) return
+    }
+    canvasStore.reset()
+    chatStore.reset()
+  }
+  if (mod && e.key === 'n') {
+    e.preventDefault()
+    showProjectDialog.value = true
+  }
+}
+
 onMounted(async () => {
   setupAutoSave()
 
-  // 键盘快捷键
-  window.addEventListener('keydown', (e) => {
-    const mod = e.ctrlKey || e.metaKey
-    if (mod && e.key === 's' && !e.shiftKey) {
-      e.preventDefault()
-      // Ctrl+S: 通过 Toolbar 的 ref 调用 handleSave
-      document.querySelector<HTMLButtonElement>('.toolbar-btn[title="保存 (Ctrl+S)"]')?.click()
-    }
-    if (mod && e.key === 'o') {
-      e.preventDefault()
-      // Ctrl+O: 新建项目（重置）
-      if (chatStore.messages.length > 0) {
-        if (!confirm('当前项目未保存，是否确认新建？')) return
-      }
-      canvasStore.reset()
-      chatStore.reset()
-    }
-    if (mod && e.key === 'n') {
-      e.preventDefault()
-      showProjectDialog.value = true
-    }
-  })
+  window.addEventListener('keydown', handleKeydown)
 
   const autoSaveData = await checkAutoSave()
   if (autoSaveData) {
     const shouldRecover = confirm('检测到上次未正常关闭的项目，是否恢复？')
     if (shouldRecover) {
-      if (autoSaveData.canvas.tree) {
-        canvasStore.setTree(autoSaveData.canvas.tree)
+      if (autoSaveData.canvas.cards) {
+        canvasStore.cards = autoSaveData.canvas.cards
       }
       if (autoSaveData.meta.name) {
         canvasStore.setProjectName(autoSaveData.meta.name)
@@ -76,6 +75,10 @@ onMounted(async () => {
     }
   }
 })
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+})
 </script>
 
 <template>
@@ -84,7 +87,6 @@ onMounted(async () => {
     <div class="app-layout">
       <ChatPanel />
       <CanvasWrapper
-        :tree="canvasStore.currentTree"
         :page-width="pageDimensions.width"
         :page-height="pageDimensions.height"
       />

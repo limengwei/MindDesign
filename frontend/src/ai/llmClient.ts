@@ -97,7 +97,11 @@ async function parseSSEStream(
 
     for (const line of lines) {
       const trimmed = line.trim()
-      if (!trimmed || trimmed === 'data: [DONE]') continue
+      if (!trimmed) continue
+      // 兼容多种 DONE 格式: data: [DONE], [DONE], data:[DONE]
+      if (trimmed === 'data: [DONE]' || trimmed === '[DONE]' || trimmed === 'data:[DONE]') {
+        break
+      }
       if (!trimmed.startsWith('data: ')) continue
 
       try {

@@ -162,8 +162,9 @@ function handleCreate() {
 }
 
 .option-card {
-  flex: 1;
-  padding: 12px;
+  flex: 1 1 0;
+  min-width: 100px;
+  padding: 12px 8px;
   border: 2px solid #e5e5e5;
   border-radius: 10px;
   background: #fff;
@@ -182,7 +183,10 @@ function handleCreate() {
 }
 
 .option-card.small {
+  flex: 0 1 auto;
+  min-width: 80px;
   padding: 8px 12px;
+  white-space: nowrap;
 }
 
 .option-label {

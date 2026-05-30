@@ -1,5 +1,8 @@
 import type { ElementTree } from './element'
 
+import type { ElementTree } from './element'
+import type { CanvasCard } from '../stores/canvasStore'
+
 export interface ProjectFile {
   formatVersion: 1
   meta: {
@@ -9,7 +12,7 @@ export interface ProjectFile {
     appVersion: string
   }
   canvas: {
-    tree: ElementTree | null
+    cards: CanvasCard[]
     viewport: {
       zoom: number
       scrollX: number
