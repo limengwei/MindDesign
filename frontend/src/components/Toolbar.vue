@@ -103,8 +103,8 @@ defineExpose({ handleExport, handleNewProject })
   justify-content: space-between;
   padding: 0 16px;
   height: 40px;
-  background: #ffffff;
-  border-bottom: 1px solid #e5e5e5;
+  background: #16213e;
+  border-bottom: 1px solid #2a2a4a;
   flex-shrink: 0;
 }
 
@@ -117,12 +117,12 @@ defineExpose({ handleExport, handleNewProject })
 .app-name {
   font-size: 13px;
   font-weight: 600;
-  color: #4f46e5;
+  color: #818cf8;
 }
 
 .project-name {
   font-size: 12px;
-  color: #999;
+  color: #6b7280;
 }
 
 .toolbar-center {
@@ -140,17 +140,17 @@ defineExpose({ handleExport, handleNewProject })
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: #9ca3af;
   transition: all 0.15s;
 }
 
 .toolbar-btn:hover {
-  background: #f0f0f0;
-  color: #333;
+  background: #2a2a4a;
+  color: #e5e7eb;
 }
 
 .toolbar-btn.active {
-  color: #10b981;
+  color: #34d399;
 }
 
 .toolbar-right {
@@ -161,6 +161,6 @@ defineExpose({ handleExport, handleNewProject })
 
 .size-info {
   font-size: 11px;
-  color: #999;
+  color: #6b7280;
 }
 </style>

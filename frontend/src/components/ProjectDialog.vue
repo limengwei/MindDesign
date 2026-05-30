@@ -98,7 +98,7 @@ function handleCreate() {
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,21 +106,22 @@ function handleCreate() {
 }
 
 .dialog {
-  background: #fff;
+  background: #1e1e36;
   border-radius: 16px;
   padding: 32px;
   width: 480px;
   max-width: 90vw;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid #2a2a4a;
 }
 
 .dialog-title {
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 24px;
-  color: #1a1a1a;
+  color: #e5e7eb;
 }
 
 .form-group {
@@ -131,23 +132,29 @@ function handleCreate() {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: #666;
+  color: #9ca3af;
   margin-bottom: 8px;
 }
 
 .input {
   width: 100%;
   padding: 10px 14px;
-  border: 1px solid #ddd;
+  border: 1px solid #2a2a4a;
   border-radius: 8px;
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s;
   box-sizing: border-box;
+  background: #16213e;
+  color: #e5e7eb;
+}
+
+.input::placeholder {
+  color: #4b5563;
 }
 
 .input:focus {
-  border-color: #4f46e5;
+  border-color: #818cf8;
 }
 
 .textarea {
@@ -165,21 +172,22 @@ function handleCreate() {
   flex: 1 1 0;
   min-width: 100px;
   padding: 12px 8px;
-  border: 2px solid #e5e5e5;
+  border: 2px solid #2a2a4a;
   border-radius: 10px;
-  background: #fff;
+  background: #16213e;
   cursor: pointer;
   text-align: center;
   transition: all 0.2s;
+  color: #e5e7eb;
 }
 
 .option-card:hover {
-  border-color: #c0c0c0;
+  border-color: #3a3a5c;
 }
 
 .option-card.active {
-  border-color: #4f46e5;
-  background: #f0f0ff;
+  border-color: #818cf8;
+  background: #1e1b4b;
 }
 
 .option-card.small {
@@ -196,7 +204,7 @@ function handleCreate() {
 
 .option-hint {
   font-size: 12px;
-  color: #999;
+  color: #6b7280;
   margin-top: 4px;
 }
 
@@ -218,12 +226,12 @@ function handleCreate() {
 }
 
 .btn-secondary {
-  background: #f0f0f0;
-  color: #666;
+  background: #2a2a4a;
+  color: #9ca3af;
 }
 
 .btn-secondary:hover {
-  background: #e0e0e0;
+  background: #3a3a5c;
 }
 
 .btn-primary {
@@ -232,6 +240,6 @@ function handleCreate() {
 }
 
 .btn-primary:hover {
-  background: #4338ca;
+  background: #6366f1;
 }
 </style>

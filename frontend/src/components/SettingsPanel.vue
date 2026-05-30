@@ -81,7 +81,7 @@ const emit = defineEmits<{
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,10 +90,11 @@ const emit = defineEmits<{
 
 .settings-panel {
   width: 440px;
-  background: #fff;
+  background: #1e1e36;
   border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   overflow: hidden;
+  border: 1px solid #2a2a4a;
 }
 
 .panel-header {
@@ -101,13 +102,13 @@ const emit = defineEmits<{
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #2a2a4a;
 }
 
 .panel-header h3 {
   font-size: 15px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #e5e7eb;
 }
 
 .close-btn {
@@ -116,7 +117,7 @@ const emit = defineEmits<{
   border: none;
   background: none;
   font-size: 18px;
-  color: #999;
+  color: #6b7280;
   cursor: pointer;
   border-radius: 6px;
   display: flex;
@@ -125,8 +126,8 @@ const emit = defineEmits<{
 }
 
 .close-btn:hover {
-  background: #f0f0f0;
-  color: #333;
+  background: #2a2a4a;
+  color: #e5e7eb;
 }
 
 .panel-body {
@@ -145,29 +146,39 @@ const emit = defineEmits<{
 .form-group label {
   font-size: 13px;
   font-weight: 500;
-  color: #555;
+  color: #9ca3af;
 }
 
 .form-group input,
 .form-group select {
   padding: 8px 12px;
-  border: 1px solid #ddd;
+  border: 1px solid #2a2a4a;
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
   outline: none;
   transition: border-color 0.2s;
-  background: #fff;
+  background: #16213e;
+  color: #e5e7eb;
+}
+
+.form-group input::placeholder {
+  color: #4b5563;
+}
+
+.form-group select option {
+  background: #16213e;
+  color: #e5e7eb;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: #4f46e5;
+  border-color: #818cf8;
 }
 
 .hint {
   font-size: 11px;
-  color: #999;
+  color: #6b7280;
 }
 
 .status-bar {
@@ -177,13 +188,13 @@ const emit = defineEmits<{
   padding: 10px 12px;
   border-radius: 8px;
   font-size: 12px;
-  background: #fef3cd;
-  color: #856404;
+  background: #422006;
+  color: #fbbf24;
 }
 
 .status-bar.configured {
-  background: #d1fae5;
-  color: #065f46;
+  background: #064e3b;
+  color: #34d399;
 }
 
 .status-dot {
@@ -203,7 +214,7 @@ const emit = defineEmits<{
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 20px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #2a2a4a;
 }
 
 .btn {
@@ -217,12 +228,12 @@ const emit = defineEmits<{
 }
 
 .btn-secondary {
-  background: #f5f5f5;
-  color: #555;
+  background: #2a2a4a;
+  color: #9ca3af;
 }
 
 .btn-secondary:hover {
-  background: #eee;
+  background: #3a3a5c;
 }
 
 .btn-primary {
@@ -231,6 +242,6 @@ const emit = defineEmits<{
 }
 
 .btn-primary:hover {
-  background: #4338ca;
+  background: #6366f1;
 }
 </style>

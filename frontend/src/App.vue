@@ -115,7 +115,7 @@ html, body, #app {
 }
 
 body {
-  background: #ffffff;
+  background: #1a1a2e;
 }
 </style>
 

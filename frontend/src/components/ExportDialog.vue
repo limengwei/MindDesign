@@ -130,7 +130,7 @@ async function handleDownloadPNG() {
 .dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -138,14 +138,15 @@ async function handleDownloadPNG() {
 }
 
 .dialog {
-  background: #fff;
+  background: #1e1e36;
   border-radius: 16px;
   width: 720px;
   max-width: 90vw;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 1px solid #2a2a4a;
 }
 
 .dialog-header {
@@ -153,30 +154,33 @@ async function handleDownloadPNG() {
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #2a2a4a;
 }
 
 .dialog-header h2 {
   font-size: 16px;
   font-weight: 600;
   margin: 0;
+  color: #e5e7eb;
 }
 
 .close-btn {
   width: 28px;
   height: 28px;
   border: none;
-  background: #f0f0f0;
+  background: #2a2a4a;
   border-radius: 50%;
   font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #9ca3af;
 }
 
 .close-btn:hover {
-  background: #e0e0e0;
+  background: #3a3a5c;
+  color: #e5e7eb;
 }
 
 .tabs {
@@ -192,12 +196,12 @@ async function handleDownloadPNG() {
   font-size: 13px;
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  color: #999;
+  color: #6b7280;
 }
 
 .tab.active {
-  color: #4f46e5;
-  border-bottom-color: #4f46e5;
+  color: #818cf8;
+  border-bottom-color: #818cf8;
 }
 
 .dialog-body {
@@ -214,9 +218,9 @@ async function handleDownloadPNG() {
 .preview-iframe {
   width: 100%;
   height: 400px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #2a2a4a;
   border-radius: 8px;
-  background: #f5f5f5;
+  background: #0f0f23;
 }
 
 .code-area {
@@ -224,7 +228,7 @@ async function handleDownloadPNG() {
 }
 
 .code-block {
-  background: #1e1e1e;
+  background: #0f0f23;
   color: #d4d4d4;
   padding: 16px;
   border-radius: 8px;
@@ -234,6 +238,7 @@ async function handleDownloadPNG() {
   max-height: 400px;
   white-space: pre-wrap;
   word-break: break-all;
+  border: 1px solid #2a2a4a;
 }
 
 .dialog-actions {
@@ -241,7 +246,7 @@ async function handleDownloadPNG() {
   justify-content: flex-end;
   gap: 8px;
   padding: 16px 24px;
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #2a2a4a;
 }
 
 .btn {
@@ -260,12 +265,12 @@ async function handleDownloadPNG() {
 }
 
 .btn-secondary {
-  background: #f0f0f0;
-  color: #666;
+  background: #2a2a4a;
+  color: #9ca3af;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #e0e0e0;
+  background: #3a3a5c;
 }
 
 .btn-primary {
@@ -274,6 +279,6 @@ async function handleDownloadPNG() {
 }
 
 .btn-primary:hover {
-  background: #4338ca;
+  background: #6366f1;
 }
 </style>

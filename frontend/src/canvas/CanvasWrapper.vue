@@ -23,7 +23,7 @@ onMounted(() => {
 
   app = new App({
     view: containerRef.value,
-    fill: '#f5f5f5',
+    fill: '#0f0f23',
     tree: { type: 'design' },
     zoom: {
       min: 0.1,
@@ -62,9 +62,9 @@ async function renderCard(card: CanvasCard, selected: boolean) {
     x: card.x,
     y: card.y,
     strokeWidth: selected ? 3 : 1,
-    stroke: selected ? '#4F46E5' : '#e0e0e0',
+    stroke: selected ? '#818cf8' : '#2a2a4a',
     cornerRadius: 8,
-    fill: '#ffffff',
+    fill: '#16213e',
   })
   const root = await buildTree(card.tree)
   group.add(root as any)
@@ -72,7 +72,7 @@ async function renderCard(card: CanvasCard, selected: boolean) {
   const label = new Text({
     text: card.label,
     fontSize: 12,
-    fill: '#999',
+    fill: '#6b7280',
     y: -22,
   })
   group.add(label as any)
@@ -114,7 +114,7 @@ watch(
     for (const [id, group] of cardGroups) {
       const sel = id === canvasStore.selectedCardId
       ;(group as any).strokeWidth = sel ? 3 : 1
-      ;(group as any).stroke = sel ? '#4F46E5' : '#e0e0e0'
+      ;(group as any).stroke = sel ? '#818cf8' : '#2a2a4a'
     }
   }
 )
@@ -153,7 +153,7 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #f0f0f0;
+  background: #0f0f23;
   overflow: hidden;
 }
 
@@ -170,9 +170,9 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 
 .canvas-info {
   padding: 6px 12px;
-  background: #e8e8e8;
+  background: #16213e;
   font-size: 12px;
-  color: #666;
+  color: #6b7280;
   text-align: center;
   flex-shrink: 0;
 }

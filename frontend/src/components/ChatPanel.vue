@@ -153,20 +153,20 @@ function handleRevert(idx: number) {
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  background: #fafafa;
-  border-right: 1px solid #e5e5e5;
+  background: #1e1e36;
+  border-right: 1px solid #2a2a4a;
 }
 
 .chat-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e5e5;
-  background: #fff;
+  border-bottom: 1px solid #2a2a4a;
+  background: #16213e;
 }
 
 .chat-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #e5e7eb;
 }
 
 .chat-messages {
@@ -181,7 +181,7 @@ function handleRevert(idx: number) {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #999;
+  color: #6b7280;
   text-align: center;
 }
 
@@ -197,7 +197,7 @@ function handleRevert(idx: number) {
 
 .empty-hint {
   font-size: 12px !important;
-  color: #bbb !important;
+  color: #4b5563 !important;
 }
 
 .message {
@@ -219,11 +219,11 @@ function handleRevert(idx: number) {
   justify-content: center;
   font-size: 16px;
   flex-shrink: 0;
-  background: #f0f0f0;
+  background: #2a2a4a;
 }
 
 .message.user .message-avatar {
-  background: #e8e0ff;
+  background: #312e81;
 }
 
 .message-content {
@@ -242,9 +242,9 @@ function handleRevert(idx: number) {
 }
 
 .message.assistant .message-content {
-  background: #fff;
-  color: #333;
-  border: 1px solid #e5e5e5;
+  background: #16213e;
+  color: #e5e7eb;
+  border: 1px solid #2a2a4a;
   border-bottom-left-radius: 4px;
 }
 
@@ -252,19 +252,19 @@ function handleRevert(idx: number) {
   display: inline-block;
   margin-top: 8px;
   padding: 2px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #3a3a5c;
   border-radius: 4px;
-  background: #fafafa;
+  background: #1e1e36;
   font-size: 11px;
-  color: #888;
+  color: #9ca3af;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .revert-btn:hover {
-  background: #f0f0ff;
-  border-color: #4f46e5;
-  color: #4f46e5;
+  background: #2a2a4a;
+  border-color: #818cf8;
+  color: #818cf8;
 }
 
 .streaming {
@@ -277,7 +277,7 @@ function handleRevert(idx: number) {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #999;
+  background: #6b7280;
   animation: blink 1.4s infinite both;
 }
 
@@ -293,28 +293,35 @@ function handleRevert(idx: number) {
   display: flex;
   gap: 8px;
   padding: 12px 16px;
-  border-top: 1px solid #e5e5e5;
-  background: #fff;
+  border-top: 1px solid #2a2a4a;
+  background: #16213e;
 }
 
 .chat-input {
   flex: 1;
   padding: 10px 14px;
-  border: 1px solid #ddd;
+  border: 1px solid #2a2a4a;
   border-radius: 10px;
   font-size: 14px;
   font-family: inherit;
   outline: none;
   resize: none;
   transition: border-color 0.2s;
+  background: #1e1e36;
+  color: #e5e7eb;
+}
+
+.chat-input::placeholder {
+  color: #6b7280;
 }
 
 .chat-input:focus {
-  border-color: #4f46e5;
+  border-color: #818cf8;
 }
 
 .chat-input:disabled {
-  background: #f5f5f5;
+  background: #16213e;
+  color: #4b5563;
 }
 
 .send-btn {
@@ -333,11 +340,11 @@ function handleRevert(idx: number) {
 }
 
 .send-btn:hover:not(:disabled) {
-  background: #4338ca;
+  background: #6366f1;
 }
 
 .send-btn:disabled {
-  background: #ccc;
+  background: #3a3a5c;
   cursor: not-allowed;
 }
 </style>
