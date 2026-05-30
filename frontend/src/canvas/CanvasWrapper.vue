@@ -25,7 +25,6 @@ onMounted(() => {
 
   app = new App({
     view: containerRef.value,
-    ground: { type: 'draw' },
     tree: { type: 'design' },
     zoom: {
       min: 0.1,
@@ -39,7 +38,7 @@ onMounted(() => {
   })
 
   treeLayer = app.tree as Leafer
-  dotGrid = new DotGrid(app, {
+  dotGrid = new DotGrid(containerRef.value, app, {
     dotColor: 'rgba(255,255,255,0.1)',
     dotSize: 1.2,
     gridGap: 24,
@@ -165,6 +164,7 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 }
 
 .canvas-container {
+  position: relative;
   width: 100%;
   height: 100%;
 }
