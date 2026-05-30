@@ -139,9 +139,7 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 
 <template>
   <div class="canvas-wrapper">
-    <div class="canvas-viewport">
-      <div ref="containerRef" class="canvas-container"></div>
-    </div>
+    <div ref="containerRef" class="canvas-container"></div>
     <div class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
     </div>
@@ -150,17 +148,10 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 
 <style scoped>
 .canvas-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  position: absolute;
+  inset: 0;
   background: #0f0f23;
   overflow: hidden;
-}
-
-.canvas-viewport {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
 }
 
 .canvas-container {
@@ -169,11 +160,15 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 }
 
 .canvas-info {
-  padding: 6px 12px;
-  background: #16213e;
-  font-size: 12px;
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  background: rgba(22, 33, 62, 0.8);
+  font-size: 11px;
   color: #6b7280;
-  text-align: center;
-  flex-shrink: 0;
+  border-radius: 6px;
+  pointer-events: none;
 }
 </style>

@@ -11,6 +11,7 @@ import ProjectDialog from './components/ProjectDialog.vue'
 const canvasStore = useCanvasStore()
 const chatStore = useChatStore()
 const showProjectDialog = ref(true)
+const chatCollapsed = ref(false)
 
 const pageDimensions = computed(() => PAGE_DIMENSIONS[canvasStore.pageType])
 
@@ -83,14 +84,17 @@ onUnmounted(() => {
 
 <template>
   <div class="app-root">
+    <CanvasWrapper
+      :page-width="pageDimensions.width"
+      :page-height="pageDimensions.height"
+    />
+
     <Toolbar />
-    <div class="app-layout">
-      <ChatPanel />
-      <CanvasWrapper
-        :page-width="pageDimensions.width"
-        :page-height="pageDimensions.height"
-      />
-    </div>
+
+    <ChatPanel
+      :collapsed="chatCollapsed"
+      @toggle="chatCollapsed = !chatCollapsed"
+    />
 
     <ProjectDialog
       v-if="showProjectDialog"
@@ -121,15 +125,9 @@ body {
 
 <style scoped>
 .app-root {
-  display: flex;
-  flex-direction: column;
+  position: relative;
   width: 100%;
   height: 100%;
-}
-
-.app-layout {
-  flex: 1;
-  display: flex;
   overflow: hidden;
 }
 </style>

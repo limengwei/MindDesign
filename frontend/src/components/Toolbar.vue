@@ -98,13 +98,20 @@ defineExpose({ handleExport, handleNewProject })
 
 <style scoped>
 .toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  height: 40px;
-  background: #16213e;
-  border-bottom: 1px solid #2a2a4a;
+  height: 44px;
+  background: rgba(22, 33, 62, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(42, 42, 74, 0.6);
   flex-shrink: 0;
 }
 
@@ -145,7 +152,7 @@ defineExpose({ handleExport, handleNewProject })
 }
 
 .toolbar-btn:hover {
-  background: #2a2a4a;
+  background: rgba(42, 42, 74, 0.6);
   color: #e5e7eb;
 }
 
