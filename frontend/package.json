@@ -14,6 +14,7 @@
   "dependencies": {
     "@leafer-in/editor": "^2.1.2",
     "@leafer-in/export": "^2.1.2",
+    "@leafer-in/view": "^2.1.2",
     "@leafer-in/viewport": "^2.1.2",
     "@wailsio/runtime": "latest",
     "html2canvas": "^1.4.1",

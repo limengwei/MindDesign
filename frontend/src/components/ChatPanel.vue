@@ -41,7 +41,9 @@ watch(() => chatStore.pendingSend, async (text) => {
   try {
     const result = await sendMessageToLLM(text, buildCallOptions())
     chatStore.addAssistantMessage(result.content, result.html)
-    if (result.html) canvasStore.addCard(result.html, result.screenshot || '')
+    if (result.html) {
+      canvasStore.addCard(result.html, result.screenshot || '')
+    }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
     console.error('LLM error:', err)
