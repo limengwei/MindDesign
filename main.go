@@ -33,7 +33,11 @@ func main() {
 			Backdrop:                application.MacBackdropTranslucent,
 			TitleBar:                application.MacTitleBarHiddenInset,
 		},
-		BackgroundColour: application.NewRGB(255, 255, 255),
+		Windows: application.WindowsWindow{
+			BackdropType: application.Mica,
+		},
+		Frameless:        true,
+		BackgroundColour: application.NewRGB(15, 15, 35),
 		URL:              "/",
 		Width:            1280,
 		Height:           800,

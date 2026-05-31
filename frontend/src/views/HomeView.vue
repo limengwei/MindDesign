@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRecentProjects, createProject, type RecentProject } from '../services/projectBridge'
+import WindowControls from '../components/WindowControls.vue'
 
 const router = useRouter()
 const projects = ref<RecentProject[]>([])
@@ -83,6 +84,14 @@ let smoothX = -9999
 let smoothY = -9999
 let mouseInside = false
 
+let animating = false
+
+function startDotAnimation() {
+  if (animating) return
+  animating = true
+  tickDotGrid()
+}
+
 function initDotGrid() {
   if (!homeRef.value) return
   dotCanvas = document.createElement('canvas')
@@ -91,7 +100,7 @@ function initDotGrid() {
   dotCtx = dotCanvas.getContext('2d')!
   resizeDotCanvas()
   window.addEventListener('resize', resizeDotCanvas)
-  tickDotGrid()
+  drawDots()
 }
 
 function resizeDotCanvas() {
@@ -103,15 +112,18 @@ function resizeDotCanvas() {
 function handleMouseMove(e: MouseEvent) {
   mouseX = e.clientX
   mouseY = e.clientY
-  if (!mouseInside) {
-    mouseInside = true
-    smoothX = mouseX
-    smoothY = mouseY
-  }
+  startDotAnimation()
 }
 
-function handleMouseEnter() { mouseInside = true }
-function handleMouseLeave() { mouseInside = false }
+function handleMouseEnter(e: MouseEvent) {
+  mouseInside = true
+  mouseX = e.clientX
+  mouseY = e.clientY
+  smoothX = e.clientX
+  smoothY = e.clientY
+  startDotAnimation()
+}
+function handleMouseLeave() { mouseInside = false; startDotAnimation() }
 
 function tickDotGrid() {
   const targetX = mouseInside ? mouseX : -9999
@@ -125,7 +137,7 @@ function tickDotGrid() {
     dotRaf = requestAnimationFrame(tickDotGrid)
   } else {
     smoothX = -9999; smoothY = -9999
-    dotRaf = requestAnimationFrame(tickDotGrid)
+    animating = false
   }
 }
 
@@ -188,6 +200,15 @@ onUnmounted(() => {
 
 <template>
   <div class="home" ref="homeRef" @mousemove="handleMouseMove" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+    <div class="titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-app-name">MindDesign</span>
+      </div>
+      <div class="titlebar-center"></div>
+      <div class="titlebar-right">
+        <WindowControls />
+      </div>
+    </div>
     <div class="home-header">
       <h1 class="app-title">MindDesign</h1>
       <p class="app-subtitle">AI 对话式 UI 设计工具</p>
@@ -273,14 +294,51 @@ onUnmounted(() => {
   position: relative;
   min-height: 100vh;
   background: transparent;
-  padding: 80px 40px 40px;
+  padding-top: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
 }
 
-.home > * {
+.titlebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  background: rgba(22, 33, 62, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(42, 42, 74, 0.6);
+  --wails-draggable: drag;
+}
+
+.titlebar-left {
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+  --wails-draggable: no-drag;
+}
+
+.titlebar-app-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #818cf8;
+}
+
+.titlebar-center {
+  flex: 1;
+}
+
+.titlebar-right {
+  --wails-draggable: no-drag;
+}
+
+.home > *:not(.titlebar) {
   position: relative;
   z-index: 1;
 }
@@ -288,6 +346,7 @@ onUnmounted(() => {
 .home-header {
   text-align: center;
   margin-bottom: 48px;
+  padding-top: 48px;
 }
 
 .app-title {
@@ -310,6 +369,7 @@ onUnmounted(() => {
   gap: 16px;
   width: 100%;
   max-width: 960px;
+  padding: 0 40px 40px;
 }
 
 .project-card {
