@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { useChatStore } from '../stores/chatStore'
+import { useChatStore, type Session } from '../stores/chatStore'
 import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM } from '../ai/chat'
 
@@ -16,12 +16,14 @@ const chatStore = useChatStore()
 const canvasStore = useCanvasStore()
 
 const inputText = ref('')
+const showSessionList = ref(false)
 
-function buildCallOptions() {
+function buildCallOptions(selectedHtml?: string) {
   return {
     pageType: canvasStore.pageType,
     colorScheme: canvasStore.colorScheme,
-    history: chatStore.messages.map(m => ({ role: m.role, content: m.content })),
+    history: [] as Array<{ role: string; content: string }>,
+    selectedHtml,
     onStreamingHTML: (html: string) => {
       const genId = canvasStore.generatingCardId
       if (genId) {
@@ -39,27 +41,23 @@ watch(() => chatStore.pendingSend, async (text) => {
 })
 
 async function doGenerate(text: string) {
+  const session = chatStore.createSession(text)
   chatStore.addUserMessage(text)
   chatStore.setStreaming(true)
 
-  let targetCardId: string
   const selectedId = canvasStore.selectedCardId
   const selectedCard = selectedId ? canvasStore.cards.find(c => c.id === selectedId) : null
 
-  if (selectedCard) {
-    targetCardId = selectedCard.id
-  } else {
-    const card = canvasStore.addCard('', '')
-    targetCardId = card.id
-  }
+  const card = canvasStore.addCard('', '', undefined, session.id, selectedCard?.id)
+  chatStore.addCardToSession(card.id)
 
-  canvasStore.setGeneratingCardId(targetCardId)
+  canvasStore.setGeneratingCardId(card.id)
 
   try {
-    const result = await sendMessageToLLM(text, buildCallOptions())
-    chatStore.addAssistantMessage(result.content, result.html)
+    const result = await sendMessageToLLM(text, buildCallOptions(selectedCard?.html))
+    chatStore.addAssistantMessage(result.content, result.html || undefined)
     if (result.html) {
-      canvasStore.updateCardContent(targetCardId, result.html, result.screenshot || '')
+      canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
     }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
@@ -84,52 +82,86 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-function handleRevert(idx: number) {
-  const msg = chatStore.messages[idx]
-  if (msg?.role === 'assistant' && msg.html) {
-    canvasStore.addCard(msg.html, '', '回溯设计稿')
-    chatStore.messages = chatStore.messages.slice(0, idx + 1)
+function handleSessionClick(session: Session) {
+  chatStore.setActiveSession(session.id)
+  showSessionList.value = false
+
+  if (session.cardIds.length > 0) {
+    const lastCardId = session.cardIds[session.cardIds.length - 1]
+    canvasStore.selectCard(lastCardId)
+  } else {
+    canvasStore.selectCard(null)
   }
+}
+
+function formatTime(iso: string) {
+  const d = new Date(iso)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${mm}`
 }
 </script>
 
 <template>
   <div class="chat-history-panel" :class="{ collapsed }">
     <div class="chat-history-header">
-      <span class="chat-history-title">对话记录</span>
-      <button class="toggle-btn" @click="emit('toggle')" :title="collapsed ? '展开' : '收起'">
-        <svg v-if="collapsed" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-        <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </button>
+      <span class="chat-history-title">{{ chatStore.activeSession ? chatStore.activeSession.title : '对话记录' }}</span>
+      <div class="header-btns">
+        <button
+          v-if="!collapsed"
+          class="toggle-btn"
+          title="会话列表"
+          @click="showSessionList = !showSessionList"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        </button>
+        <button class="toggle-btn" @click="emit('toggle')" :title="collapsed ? '展开' : '收起'">
+          <svg v-if="collapsed" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+      </div>
     </div>
 
-    <div v-if="!collapsed" class="chat-messages">
-      <div v-if="chatStore.messages.length === 0" class="chat-empty">
+    <div v-if="!collapsed && showSessionList" class="session-list">
+      <div v-if="chatStore.sessions.length === 0" class="chat-empty">
+        <div class="empty-icon">✨</div>
+        <p>还没有对话记录</p>
+      </div>
+      <div
+        v-for="session in [...chatStore.sessions].reverse()"
+        :key="session.id"
+        :class="['session-item', { active: session.id === chatStore.activeSessionId }]"
+        @click="handleSessionClick(session)"
+      >
+        <div class="session-title">{{ session.title }}</div>
+        <div class="session-meta">
+          <span class="session-time">{{ formatTime(session.createdAt) }}</span>
+          <span v-if="session.cardIds.length" class="session-card-count">{{ session.cardIds.length }} 个设计稿</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="!collapsed" class="chat-messages">
+      <div v-if="!chatStore.activeSession" class="chat-empty">
         <div class="empty-icon">✨</div>
         <p>描述你想要的界面</p>
         <p class="empty-hint">AI 将为你生成设计稿</p>
       </div>
 
-      <div
-        v-for="(msg, idx) in chatStore.messages"
-        :key="idx"
-        :class="['message', msg.role]"
-      >
-        <div class="message-avatar">
-          {{ msg.role === 'user' ? '👤' : '🤖' }}
+      <template v-if="chatStore.activeSession">
+        <div
+          v-for="(msg, idx) in chatStore.messages"
+          :key="idx"
+          :class="['message', msg.role]"
+        >
+          <div class="message-avatar">
+            {{ msg.role === 'user' ? '👤' : '🤖' }}
+          </div>
+          <div class="message-content">
+            {{ msg.content }}
+          </div>
         </div>
-        <div class="message-content">
-          {{ msg.content }}
-          <button
-            v-if="msg.role === 'assistant' && msg.html"
-            class="revert-btn"
-            title="回退到此版本"
-            @click="handleRevert(idx)"
-          >
-            ↩ 回退
-          </button>
-        </div>
-      </div>
+      </template>
 
       <div v-if="chatStore.isStreaming" class="message assistant">
         <div class="message-avatar">🤖</div>
@@ -151,7 +183,7 @@ function handleRevert(idx: number) {
         rows="1"
         :disabled="chatStore.isStreaming"
         @keydown="handleKeydown"
-      ></textarea>
+      />
       <button
         class="send-btn"
         :disabled="!inputText.trim() || chatStore.isStreaming"
@@ -202,10 +234,21 @@ function handleRevert(idx: number) {
   font-size: 13px;
   font-weight: 600;
   color: #e5e7eb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 4px;
 }
 
 .collapsed .chat-history-title {
   display: none;
+}
+
+.header-btns {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .toggle-btn {
@@ -229,6 +272,49 @@ function handleRevert(idx: number) {
 .toggle-btn:hover {
   background: rgba(42, 42, 74, 0.6);
   color: #e5e7eb;
+}
+
+.session-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.session-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 4px;
+}
+
+.session-item:hover {
+  background: rgba(42, 42, 74, 0.6);
+}
+
+.session-item.active {
+  background: rgba(79, 70, 229, 0.2);
+  border: 1px solid rgba(79, 70, 229, 0.4);
+}
+
+.session-title {
+  font-size: 13px;
+  color: #e5e7eb;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.session-meta {
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.session-card-count {
+  color: #818cf8;
 }
 
 .chat-messages {
@@ -308,25 +394,6 @@ function handleRevert(idx: number) {
   color: #e5e7eb;
   border: 1px solid rgba(42, 42, 74, 0.6);
   border-bottom-left-radius: 4px;
-}
-
-.revert-btn {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 2px 8px;
-  border: 1px solid #3a3a5c;
-  border-radius: 4px;
-  background: rgba(30, 30, 54, 0.6);
-  font-size: 11px;
-  color: #9ca3af;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.revert-btn:hover {
-  background: rgba(42, 42, 74, 0.6);
-  border-color: #818cf8;
-  color: #818cf8;
 }
 
 .streaming {

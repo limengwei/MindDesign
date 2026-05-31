@@ -81,9 +81,10 @@ onMounted(async () => {
           autoSaveData.canvas.viewport.scrollY,
         )
       }
-      if (autoSaveData.chat) {
-        for (const msg of autoSaveData.chat) {
-          chatStore.messages.push(msg as any)
+      if (autoSaveData.sessions) {
+        chatStore.sessions = autoSaveData.sessions
+        if (chatStore.sessions.length > 0) {
+          chatStore.setActiveSession(chatStore.sessions[chatStore.sessions.length - 1].id)
         }
       }
       showProjectDialog.value = false

@@ -10,10 +10,10 @@ export function setupAutoSave() {
   let timer: ReturnType<typeof setTimeout> | null = null
 
   async function doAutoSave() {
-    if (!canvas.cards.length && chat.messages.length === 0) return
+    if (!canvas.cards.length && chat.sessions.length === 0) return
 
     const data: ProjectFile = {
-      formatVersion: 1,
+      formatVersion: 2,
       meta: {
         name: canvas.projectName,
         createdAt: canvas.createdAt || new Date().toISOString(),
@@ -26,11 +26,7 @@ export function setupAutoSave() {
         colorScheme: canvas.colorScheme,
         viewport: canvas.viewport,
       },
-      chat: chat.messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-        timestamp: m.timestamp,
-      })),
+      sessions: chat.sessions,
     }
 
     try {
@@ -46,7 +42,7 @@ export function setupAutoSave() {
   }
 
   watch(() => canvas.cards, schedule, { deep: true })
-  watch(() => chat.messages, schedule, { deep: true })
+  watch(() => chat.sessions, schedule, { deep: true })
 }
 
 export async function checkAutoSave(): Promise<ProjectFile | null> {

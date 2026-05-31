@@ -17,7 +17,7 @@ const showSettingsPanel = ref(false)
 
 function buildProjectData(): ProjectFile {
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     meta: {
       name: canvasStore.projectName,
       createdAt: canvasStore.createdAt || new Date().toISOString(),
@@ -30,12 +30,12 @@ function buildProjectData(): ProjectFile {
       colorScheme: canvasStore.colorScheme,
       viewport: canvasStore.viewport,
     },
-    chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
+    sessions: chatStore.sessions,
   }
 }
 
 async function handleSave() {
-  if (!canvasStore.cards.length && chatStore.messages.length === 0) return
+  if (!canvasStore.cards.length && chatStore.sessions.length === 0) return
 
   const data = buildProjectData()
   const json = JSON.stringify(data, null, 2)
@@ -55,7 +55,7 @@ async function handleSave() {
 }
 
 async function handleSaveAs() {
-  if (!canvasStore.cards.length && chatStore.messages.length === 0) return
+  if (!canvasStore.cards.length && chatStore.sessions.length === 0) return
 
   const path = await showSaveDialog(canvasStore.projectName + '.mind')
   if (!path) return
@@ -95,9 +95,10 @@ async function handleOpen() {
     if (data.canvas.viewport) {
       canvasStore.setViewport(data.canvas.viewport.zoom, data.canvas.viewport.scrollX, data.canvas.viewport.scrollY)
     }
-    if (data.chat) {
-      for (const msg of data.chat) {
-        chatStore.messages.push(msg as any)
+    if (data.sessions) {
+      chatStore.sessions = data.sessions
+      if (chatStore.sessions.length > 0) {
+        chatStore.setActiveSession(chatStore.sessions[chatStore.sessions.length - 1].id)
       }
     }
     canvasStore.setCurrentFilePath(path)
@@ -112,7 +113,7 @@ function handleExport() {
 }
 
 function handleNewProject() {
-  if (chatStore.messages.length > 0) {
+  if (chatStore.sessions.length > 0) {
     if (!confirm('当前项目未保存，是否确认新建？')) return
   }
   canvasStore.reset()

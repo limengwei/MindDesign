@@ -57,6 +57,7 @@ export interface SendMessageOptions {
   pageType: PageType
   colorScheme: ColorScheme
   history: Array<{ role: string; content: string }>
+  selectedHtml?: string
   onStreamingHTML?: (html: string) => void
 }
 
@@ -69,9 +70,20 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
-    ...options.history.map(m => ({ role: m.role as ChatMessage['role'], content: m.content })),
-    { role: 'user', content: userText },
   ]
+
+  if (options.selectedHtml) {
+    messages.push({
+      role: 'user',
+      content: `以下是我当前的设计稿 HTML，请基于它进行修改：\n\n${options.selectedHtml}`,
+    })
+    messages.push({
+      role: 'assistant',
+      content: '好的，我已经了解了你当前的设计稿，请告诉我你想要做哪些修改。',
+    })
+  }
+
+  messages.push({ role: 'user', content: userText })
 
   let fullContent = ''
 

@@ -1,7 +1,8 @@
 import type { CanvasCard, PageType, ColorScheme } from '../stores/canvasStore'
+import type { Session } from '../stores/chatStore'
 
 export interface ProjectFile {
-  formatVersion: 1
+  formatVersion: 2
   meta: {
     name: string
     createdAt: string
@@ -18,9 +19,5 @@ export interface ProjectFile {
       scrollY: number
     }
   }
-  chat: {
-    role: 'user' | 'assistant'
-    content: string
-    timestamp: string
-  }[]
+  sessions: Session[]
 }

@@ -14,6 +14,8 @@ export interface CanvasCard {
   y: number
   width: number
   height: number
+  sessionId?: string
+  parentId?: string
 }
 
 export const PAGE_DIMENSIONS: Record<PageType, { width: number; height: number }> = {
@@ -36,7 +38,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const currentFilePath = ref('')
   const createdAt = ref('')
 
-  function addCard(html: string, screenshot: string, label?: string): CanvasCard {
+  function addCard(html: string, screenshot: string, label?: string, sessionId?: string, parentId?: string): CanvasCard {
     _cardCounter++
     const dims = PAGE_DIMENSIONS[pageType.value]
     const gap = 60
@@ -51,6 +53,8 @@ export const useCanvasStore = defineStore('canvas', () => {
       y: 0,
       width: dims.width,
       height: dims.height,
+      sessionId,
+      parentId,
     }
     cards.value.push(card)
     selectedCardId.value = card.id
