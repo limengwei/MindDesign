@@ -135,7 +135,18 @@ async function replaceIcons(html: string): Promise<string> {
     }
   })
 
-  return doc.body.innerHTML
+  const head = doc.head
+  let headHtml = ''
+  if (head) {
+    const styles = head.querySelectorAll('style')
+    styles.forEach(s => { headHtml += s.outerHTML })
+  }
+
+  const bodyContent = doc.body.innerHTML
+
+  if (!headHtml) return bodyContent
+
+  return `<!DOCTYPE html><html><head>${headHtml}</head><body>${bodyContent}</body></html>`
 }
 
 async function htmlToScreenshot(html: string): Promise<string> {
