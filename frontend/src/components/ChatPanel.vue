@@ -5,6 +5,7 @@ import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM, type DesignCritique, type PreflightData } from '../ai/chat'
 import { BUILT_IN_SKILLS, getSkillById, type DesignSkill } from '../prompts/skills'
 import { buildPreflightFollowUpPrompt } from '../prompts/preflight'
+import { isBlueprintEmpty, type ProductBlueprint } from '../prompts/blueprint'
 import { saveProject } from '../stores/autoSave'
 
 const props = defineProps<{
@@ -25,6 +26,8 @@ const showCritique = ref(false)
 const activePreflight = ref<PreflightData | null>(null)
 const preflightAnswers = ref<Record<string, string | string[]>>({})
 const showSkillBar = ref(true)
+const showBlueprintPanel = ref(false)
+const isRebuildingBlueprint = ref(false)
 
 const activeSkill = computed<DesignSkill | null>(() => {
   const id = canvasStore.activeSkillId
@@ -50,6 +53,7 @@ function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
     selectedHtml,
     skill: activeSkill.value,
     isFirstMessage,
+    blueprint: canvasStore.productBlueprint,
     onStreamingHTML: (html: string) => {
       const genId = canvasStore.generatingCardId
       if (genId) {
@@ -101,6 +105,10 @@ async function doGenerate(text: string) {
         canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
       }
     }
+
+    if (result.blueprintUpdate) {
+      canvasStore.updateProductBlueprint(result.blueprintUpdate)
+    }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
     console.error('LLM error:', err)
@@ -134,6 +142,9 @@ async function handlePreflightSubmit() {
     chatStore.addAssistantMessage(result.content, result.html || undefined)
     if (result.html) {
       canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
+    }
+    if (result.blueprintUpdate) {
+      canvasStore.updateProductBlueprint(result.blueprintUpdate)
     }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
@@ -181,6 +192,33 @@ function critiqueScoreColor(score: number): string {
   if (score >= 3) return '#f59e0b'
   return '#ef4444'
 }
+
+async function handleRebuildBlueprint() {
+  if (isRebuildingBlueprint.value || chatStore.isStreaming) return
+  isRebuildingBlueprint.value = true
+  chatStore.setStreaming(true)
+  chatStore.addUserMessage('重新整理产品蓝图')
+
+  try {
+    const rebuildPrompt = '请根据当前所有设计稿和对话历史，重新整理产品蓝图。保持信息完整但精炼，确保所有字段都是最新的。输出 action 为 "rebuild" 的完整蓝图。'
+    const result = await sendMessageToLLM(rebuildPrompt, buildCallOptions(undefined, false))
+    if (result.blueprintUpdate) {
+      canvasStore.updateProductBlueprint(result.blueprintUpdate)
+      chatStore.addAssistantMessage('📋 产品蓝图已重新整理完成。')
+    } else {
+      chatStore.addAssistantMessage('蓝图重整未能完成，请重试。')
+    }
+  } catch (err) {
+    chatStore.addAssistantMessage('蓝图重整失败，请重试。')
+    console.error('Blueprint rebuild error:', err)
+  } finally {
+    isRebuildingBlueprint.value = false
+    chatStore.setStreaming(false)
+    await saveProject()
+  }
+}
+
+const hasBlueprint = computed(() => !isBlueprintEmpty(canvasStore.productBlueprint))
 
 async function handleSend() {
   const text = inputText.value.trim()
@@ -353,6 +391,47 @@ function formatTime(iso: string) {
         </div>
       </div>
 
+      <div v-if="hasBlueprint" class="blueprint-card">
+        <div class="blueprint-header" @click="showBlueprintPanel = !showBlueprintPanel">
+          <span>📋 产品蓝图 v{{ canvasStore.productBlueprint.version }}</span>
+          <svg :style="{ transform: showBlueprintPanel ? 'rotate(180deg)' : '' }" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="transition: transform 0.2s"><path d="M7 10l5 5 5-5z"/></svg>
+        </div>
+        <div v-if="showBlueprintPanel" class="blueprint-body">
+          <div v-if="canvasStore.productBlueprint.product.name" class="blueprint-section">
+            <div class="blueprint-section-title">产品概述</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product.name">名称：{{ canvasStore.productBlueprint.product.name }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product.category">类型：{{ canvasStore.productBlueprint.product.category }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product.targetUsers">目标用户：{{ canvasStore.productBlueprint.product.targetUsers }}</div>
+          </div>
+          <div v-if="canvasStore.productBlueprint.visualSpec.primaryColor" class="blueprint-section">
+            <div class="blueprint-section-title">视觉规范</div>
+            <div class="blueprint-field">主色：<span class="color-dot" :style="{ background: canvasStore.productBlueprint.visualSpec.primaryColor }"></span>{{ canvasStore.productBlueprint.visualSpec.primaryColor }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.visualSpec.styleKeywords.length">风格：{{ canvasStore.productBlueprint.visualSpec.styleKeywords.join('、') }}</div>
+          </div>
+          <div v-if="canvasStore.productBlueprint.pages.length" class="blueprint-section">
+            <div class="blueprint-section-title">页面 ({{ canvasStore.productBlueprint.pages.length }})</div>
+            <div v-for="(p, i) in canvasStore.productBlueprint.pages" :key="i" class="blueprint-page-item">
+              <span :class="['page-status', p.status]">{{ p.status === 'designed' ? '✓' : '○' }}</span>
+              <span class="page-name">{{ p.name }}</span>
+              <span class="page-purpose">{{ p.purpose }}</span>
+            </div>
+          </div>
+          <div v-if="canvasStore.productBlueprint.features.confirmed.length" class="blueprint-section">
+            <div class="blueprint-section-title">已确认功能</div>
+            <div class="blueprint-tags">
+              <span v-for="f in canvasStore.productBlueprint.features.confirmed" :key="f" class="blueprint-tag">{{ f }}</span>
+            </div>
+          </div>
+          <div v-if="canvasStore.productBlueprint.designDecisions.length" class="blueprint-section">
+            <div class="blueprint-section-title">设计决策</div>
+            <div v-for="(d, i) in canvasStore.productBlueprint.designDecisions" :key="i" class="blueprint-decision">• {{ d }}</div>
+          </div>
+          <button class="blueprint-rebuild-btn" :disabled="isRebuildingBlueprint" @click="handleRebuildBlueprint">
+            {{ isRebuildingBlueprint ? '整理中...' : '🔄 重新整理蓝图' }}
+          </button>
+        </div>
+      </div>
+
       <div v-if="chatStore.isStreaming" class="message assistant">
         <div class="message-avatar">🤖</div>
         <div class="message-content streaming">
@@ -479,4 +558,25 @@ function formatTime(iso: string) {
 .send-btn { width: 36px; height: 36px; border: none; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--transition-normal); flex-shrink: 0; }
 .send-btn:hover:not(:disabled) { background: var(--color-primary-hover); }
 .send-btn:disabled { background: #3a3a5c; cursor: not-allowed; }
+
+.blueprint-card { background: rgba(22, 33, 62, 0.9); border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+.blueprint-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.blueprint-header:hover { background: rgba(255,255,255,0.03); }
+.blueprint-body { padding: 0 14px 14px; }
+.blueprint-section { margin-bottom: 10px; }
+.blueprint-section-title { font-size: 11px; font-weight: 600; color: var(--color-primary-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.blueprint-field { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+.blueprint-page-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.8; }
+.page-status { font-size: 10px; flex-shrink: 0; }
+.page-status.designed { color: #22c55e; }
+.page-status.planned { color: #f59e0b; }
+.page-name { color: var(--text-primary); font-weight: 500; }
+.page-purpose { color: var(--text-muted); }
+.blueprint-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.blueprint-tag { padding: 2px 8px; border-radius: 10px; background: rgba(79, 70, 229, 0.15); color: var(--color-primary-light); font-size: 11px; }
+.blueprint-decision { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+.blueprint-rebuild-btn { width: 100%; padding: 7px; border-radius: 8px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.15s ease; font-family: inherit; margin-top: 4px; }
+.blueprint-rebuild-btn:hover:not(:disabled) { border-color: var(--border-hover); color: var(--text-primary); }
+.blueprint-rebuild-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

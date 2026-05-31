@@ -4,10 +4,13 @@ import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
 import type { DesignSpecId } from '../prompts/designSpecs'
 import type { SkillCategory } from '../prompts/skills'
+import type { ProductBlueprint } from '../prompts/blueprint'
+import { createEmptyBlueprint } from '../prompts/blueprint'
 
 export type { PageType, ColorScheme }
 export type { DesignSpecId }
 export type { SkillCategory }
+export type { ProductBlueprint }
 
 export interface CanvasCard {
   id: string
@@ -44,6 +47,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const designSpecId = ref<DesignSpecId>('none')
   const customDesignContent = ref('')
   const activeSkillId = ref<string | null>(null)
+  const productBlueprint = ref<ProductBlueprint>(createEmptyBlueprint())
 
   function addCard(html: string, screenshot: string, label?: string, sessionId?: string, parentId?: string): CanvasCard {
     _cardCounter++
@@ -110,6 +114,10 @@ export const useCanvasStore = defineStore('canvas', () => {
   function setDesignSpecId(id: DesignSpecId) { designSpecId.value = id }
   function setCustomDesignContent(content: string) { customDesignContent.value = content }
   function setActiveSkillId(id: string | null) { activeSkillId.value = id }
+  function setProductBlueprint(bp: ProductBlueprint) { productBlueprint.value = bp }
+  function updateProductBlueprint(update: { action: string; blueprint: ProductBlueprint }) {
+    productBlueprint.value = { ...update.blueprint, version: (update.blueprint.version || 0) + 1, lastUpdated: new Date().toISOString() }
+  }
 
   function reset() {
     cards.value = []
@@ -125,13 +133,14 @@ export const useCanvasStore = defineStore('canvas', () => {
     designSpecId.value = 'none'
     customDesignContent.value = ''
     activeSkillId.value = null
+    productBlueprint.value = createEmptyBlueprint()
   }
 
   return {
     cards, selectedCardId,
-    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt, designSpecId, customDesignContent, activeSkillId,
+    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt, designSpecId, customDesignContent, activeSkillId, productBlueprint,
     addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
-    setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, setActiveSkillId, reset,
+    setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, setActiveSkillId, setProductBlueprint, updateProductBlueprint, reset,
   }
 })

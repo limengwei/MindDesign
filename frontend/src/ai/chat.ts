@@ -2,6 +2,8 @@ import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
 import type { DesignSpecId } from '../prompts/designSpecs'
 import type { DesignSkill } from '../prompts/skills'
+import type { ProductBlueprint } from '../prompts/blueprint'
+import { extractBlueprintUpdate } from '../prompts/blueprint'
 import { buildSystemPrompt } from '../prompts/system'
 import { searchIcons, searchIconsToolDefinition } from './tools'
 import { callOpenAICompatible, type ChatMessage, type ToolDefinition } from './llmClient'
@@ -38,6 +40,7 @@ export interface LLMResult {
   screenshot: string
   critique?: DesignCritique | null
   preflight?: PreflightData | null
+  blueprintUpdate?: { action: string; blueprint: ProductBlueprint } | null
 }
 
 const TOOLS: ToolDefinition[] = [
@@ -68,6 +71,7 @@ async function executeToolCall(name: string, args: string): Promise<string> {
 function extractHTML(text: string): string | null {
   let cleaned = text.replace(/<!-- DESIGN_CRITIQUE[\s\S]*?DESIGN_CRITIQUE -->/g, '')
   cleaned = cleaned.replace(/<!-- PREFLIGHT[\s\S]*?PREFLIGHT -->/g, '')
+  cleaned = cleaned.replace(/<!-- BLUEPRINT_UPDATE[\s\S]*?BLUEPRINT_UPDATE -->/g, '')
   const md = cleaned.match(/```html?\s*([\s\S]*?)```/)
   if (md) cleaned = md[1]
   const md2 = cleaned.match(/```\s*([\s\S]*?)```/)
@@ -136,6 +140,7 @@ export interface SendMessageOptions {
   onStreamingHTML?: (html: string) => void
   skill?: DesignSkill | null
   isFirstMessage?: boolean
+  blueprint?: ProductBlueprint | null
 }
 
 const MAX_TOOL_ROUNDS = 8
@@ -144,7 +149,7 @@ const MAX_TOOL_CALLS = 2
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
-  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme, options.designSpecId, options.customDesignContent, options.skill, options.isFirstMessage)
+  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme, options.designSpecId, options.customDesignContent, options.skill, options.isFirstMessage, options.blueprint)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -222,18 +227,20 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     const html = extractHTML(finalContent)
     const critique = extractCritique(finalContent)
     const preflight = extractPreflight(finalContent)
-    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html, 'critique:', !!critique, 'preflight:', !!preflight)
+    const blueprintUpdate = extractBlueprintUpdate(finalContent)
+    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html, 'critique:', !!critique, 'preflight:', !!preflight, 'blueprint:', !!blueprintUpdate)
     if (!html && finalContent) {
       console.log('[LLM] raw content (first 500):', finalContent.slice(0, 500))
     }
-    return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight }
+    return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight, blueprintUpdate }
   }
 
   const html = extractHTML(fullContent)
   const critique = extractCritique(fullContent)
   const preflight = extractPreflight(fullContent)
+  const blueprintUpdate = extractBlueprintUpdate(fullContent)
   console.log('[LLM] max rounds reached, fullContent length:', fullContent.length, 'html extracted:', !!html)
-  return { content: html ? '已为你生成了设计稿。' : fullContent, html, screenshot: '', critique, preflight }
+  return { content: html ? '已为你生成了设计稿。' : fullContent, html, screenshot: '', critique, preflight, blueprintUpdate }
 }
 
 export async function sendMessageToLLM(
@@ -246,7 +253,7 @@ export async function sendMessageToLLM(
     try {
       const result = await callRealLLM(userText, options)
       if (result.html || result.preflight) return result
-      return { content: result.content || 'AI 已回复，但未能生成设计稿，请重试。', html: null, screenshot: '', critique: result.critique, preflight: result.preflight }
+      return { content: result.content || 'AI 已回复，但未能生成设计稿，请重试。', html: null, screenshot: '', critique: result.critique, preflight: result.preflight, blueprintUpdate: result.blueprintUpdate }
     } catch (err) {
       const msg = (err as Error).message || String(err)
       return { content: `❌ API 错误: ${msg}`, html: null, screenshot: '' }

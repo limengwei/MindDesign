@@ -3,6 +3,7 @@ import type { ColorScheme } from './colors'
 import type { DesignSpecId } from './designSpecs'
 import type { DesignSkill } from './skills'
 import { PREFLIGHT_SYSTEM_ADDON } from './preflight'
+import { BLUEPRINT_PROTOCOL, buildBlueprintPromptSection, type ProductBlueprint } from './blueprint'
 import { PAGE_TYPE_CONSTRAINTS } from './page-types'
 import { ICON_CONSTRAINTS } from './icons'
 import { COLOR_CONSTRAINTS } from './colors'
@@ -69,10 +70,12 @@ export function buildSystemPrompt(
   customDesignContent?: string,
   skill?: DesignSkill | null,
   isFirstMessage?: boolean,
+  blueprint?: ProductBlueprint | null,
 ): string {
   const designSpecSection = buildDesignSpecPrompt(designSpecId, customDesignContent)
   const skillSection = skill?.systemPromptAddons ? `\n${skill.systemPromptAddons}\n` : ''
   const preflightSection = (skill?.preflightEnabled && isFirstMessage) ? `\n${PREFLIGHT_SYSTEM_ADDON}\n` : ''
+  const blueprintSection = blueprint ? buildBlueprintPromptSection(blueprint) : ''
 
   return `你是 MindDesign 的 AI 设计师助手。你通过自然语言对话为用户生成 UI 设计稿。
 
@@ -125,6 +128,8 @@ ${DESIGN_CONSTRAINTS}
 
 ${preflightSection}
 ${CRITIQUE_PROTOCOL}
+${BLUEPRINT_PROTOCOL}
+${blueprintSection}
 ## 示例输出
 
 用户："设计一个登录页面"
