@@ -157,25 +157,51 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
   if (!html) return { dataUrl: '', contentHeight: props.pageHeight }
 
   const processed = await replaceIcons(html)
+  console.log('[Screenshot] processed HTML length:', processed.length)
 
+  const container = document.createElement('div')
+  container.style.cssText = `position:fixed;left:-9999px;top:0;width:${props.pageWidth}px;overflow:visible;background:#fff;z-index:-1;`
+  const shadow = container.attachShadow({ mode: 'open' })
   const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + props.pageWidth + 'px;border:none;'
-  document.body.appendChild(iframe)
-  const doc = iframe.contentDocument!
-  doc.open(); doc.write(processed); doc.close()
-  await new Promise(r => setTimeout(r, 600))
+  iframe.style.cssText = `width:${props.pageWidth}px;height:${props.pageHeight}px;border:none;display:block;`
+  iframe.setAttribute('sandbox', 'allow-same-origin')
+  iframe.srcdoc = processed
+  shadow.appendChild(iframe)
+  document.body.appendChild(container)
+
+  await new Promise<void>((resolve) => {
+    iframe.onload = () => resolve()
+  })
+  await new Promise(r => setTimeout(r, 500))
+
   try {
+    const doc = iframe.contentDocument!
     doc.documentElement.style.height = 'auto'
     doc.documentElement.style.overflow = 'visible'
     doc.body.style.height = 'auto'
     doc.body.style.overflow = 'visible'
     const contentHeight = Math.ceil(Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, props.pageHeight))
+    console.log('[Screenshot] contentHeight:', contentHeight, 'body scrollHeight:', doc.body.scrollHeight)
     iframe.style.height = contentHeight + 'px'
-    const c = await html2canvas(doc.body, { width: props.pageWidth, height: contentHeight, scale: 2, useCORS: true, backgroundColor: '#ffffff' })
-    document.body.removeChild(iframe)
-    return { dataUrl: c.toDataURL('image/png'), contentHeight }
+    container.style.height = contentHeight + 'px'
+    await new Promise(r => setTimeout(r, 200))
+
+    const c = await html2canvas(doc.documentElement, {
+      width: props.pageWidth,
+      height: contentHeight,
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      foreignObjectRendering: false,
+      removeContainer: false,
+    })
+    const dataUrl = c.toDataURL('image/png')
+    console.log('[Screenshot] canvas size:', c.width, 'x', c.height, 'dataUrl length:', dataUrl.length)
+    document.body.removeChild(container)
+    return { dataUrl, contentHeight }
   } catch (e) {
-    document.body.removeChild(iframe)
+    console.error('[Screenshot] error:', e)
+    document.body.removeChild(container)
     return { dataUrl: '', contentHeight: props.pageHeight }
   }
 }

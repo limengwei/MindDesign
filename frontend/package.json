@@ -17,6 +17,7 @@
     "@leafer-in/view": "^2.1.2",
     "@leafer-in/viewport": "^2.1.2",
     "@wailsio/runtime": "latest",
+    "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
     "leafer-ui": "^2.1.2",
     "pinia": "^3.0.4",
