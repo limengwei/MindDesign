@@ -16,6 +16,7 @@
     "@leafer-in/export": "^2.1.2",
     "@leafer-in/viewport": "^2.1.2",
     "@wailsio/runtime": "latest",
+    "html2canvas": "^1.4.1",
     "leafer-ui": "^2.1.2",
     "pinia": "^3.0.4",
     "vue": "^3.2.45"

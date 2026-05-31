@@ -167,7 +167,7 @@ defineExpose({ handleExport, handleNewProject, handleSave, handleSaveAs, handleO
 
   <ExportDialog
     v-if="showExportDialog"
-    :tree="canvasStore.currentTree"
+    :html="canvasStore.cards.find(c => c.id === canvasStore.selectedCardId)?.html ?? null"
     :project-name="canvasStore.projectName"
     @close="showExportDialog = false"
   />

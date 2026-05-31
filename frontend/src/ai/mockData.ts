@@ -1,143 +1,16 @@
-import type { ElementTree } from '../types/element'
+const BUTTON_HTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet"><style>*,::after,::before{box-sizing:border-box;margin:0;padding:0}body{width:200px;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}</style></head>
+<body><button style="display:flex;align-items:center;gap:8px;padding:12px 24px;background:#EF4444;color:#fff;border:none;border-radius:24px;font-size:16px;cursor:pointer"><span class="material-symbols-outlined">search</span>搜索</button></body></html>`
 
-export const MOCK_TREES: Record<string, ElementTree> = {
-  button: {
-    type: 'Frame',
-    width: 200,
-    height: 48,
-    fill: '#EF4444',
-    cornerRadius: 24,
-    autoLayout: { direction: 'row', gap: 8, align: 'center' },
-    children: [
-      { type: 'Icon', name: 'search', size: 20, color: '#FFFFFF' },
-      { type: 'Text', text: '搜索', fontSize: 16, fill: '#FFFFFF', fontWeight: 500 },
-    ],
-  },
-  login: {
-    type: 'Frame',
-    width: 375,
-    fill: '#FFFFFF',
-    autoLayout: { direction: 'column', gap: 24, padding: 32 },
-    children: [
-      {
-        type: 'Frame',
-        autoLayout: { direction: 'column', gap: 8, align: 'center' },
-        children: [
-          { type: 'Icon', name: 'account_circle', size: 64, color: '#4F46E5' },
-          { type: 'Text', text: '欢迎回来', fontSize: 28, fontWeight: 700, fill: '#1A1A1A', textAlign: 'center' },
-        ],
-      },
-      {
-        type: 'Frame',
-        autoLayout: { direction: 'column', gap: 12 },
-        children: [
-          {
-            type: 'Frame', autoLayout: { direction: 'row', gap: 12 },
-            fill: '#F5F5F5', cornerRadius: 12,
-            children: [
-              { type: 'Icon', name: 'email', size: 24, color: '#666666' },
-              { type: 'Text', text: '请输入邮箱', fontSize: 14, fill: '#999999' },
-            ],
-          },
-          {
-            type: 'Frame', autoLayout: { direction: 'row', gap: 12 },
-            fill: '#F5F5F5', cornerRadius: 12,
-            children: [
-              { type: 'Icon', name: 'lock', size: 24, color: '#666666' },
-              { type: 'Text', text: '请输入密码', fontSize: 14, fill: '#999999' },
-              { type: 'Icon', name: 'visibility_off', size: 24, color: '#999999' },
-            ],
-          },
-        ],
-      },
-      {
-        type: 'Frame', width: 'fill', height: 48, cornerRadius: 24, fill: '#4F46E5',
-        autoLayout: { direction: 'row', align: 'center' },
-        children: [{ type: 'Text', text: '登录', fontSize: 16, fill: '#FFFFFF', fontWeight: 600, textAlign: 'center' }],
-      },
-      { type: 'Text', text: '忘记密码？', fontSize: 14, fill: '#4F46E5', textAlign: 'center' },
-    ],
-  },
-  music: {
-    type: 'Frame',
-    width: 375,
-    fill: '#121212',
-    autoLayout: { direction: 'column', gap: 16, padding: 24 },
-    children: [
-      {
-        type: 'Frame', autoLayout: { direction: 'row', gap: 12, align: 'center' },
-        children: [{ type: 'Text', text: '发现音乐', fontSize: 24, fontWeight: 700, fill: '#FFFFFF' }],
-      },
-      {
-        type: 'Frame', autoLayout: { direction: 'row', gap: 12, align: 'center' },
-        fill: '#2A2A2A', cornerRadius: 12,
-        children: [
-          { type: 'Icon', name: 'search', size: 20, color: '#999999' },
-          { type: 'Text', text: '搜索歌曲、歌手...', fontSize: 14, fill: '#999999' },
-        ],
-      },
-      { type: 'Text', text: '为你推荐', fontSize: 18, fontWeight: 600, fill: '#FFFFFF' },
-      {
-        type: 'Frame', autoLayout: { direction: 'row', gap: 12 },
-        children: [
-          {
-            type: 'Frame', autoLayout: { direction: 'column', gap: 8, align: 'center' },
-            children: [
-              { type: 'Ellipse', width: 60, height: 60, fill: '#818CF8' },
-              { type: 'Text', text: '每日推荐', fontSize: 12, fill: '#E0E0E0' },
-            ],
-          },
-          {
-            type: 'Frame', autoLayout: { direction: 'column', gap: 8, align: 'center' },
-            children: [
-              { type: 'Ellipse', width: 60, height: 60, fill: '#34D399' },
-              { type: 'Text', text: '热门歌曲', fontSize: 12, fill: '#E0E0E0' },
-            ],
-          },
-          {
-            type: 'Frame', autoLayout: { direction: 'column', gap: 8, align: 'center' },
-            children: [
-              { type: 'Ellipse', width: 60, height: 60, fill: '#F59E0B' },
-              { type: 'Text', text: '新歌速递', fontSize: 12, fill: '#E0E0E0' },
-            ],
-          },
-          {
-            type: 'Frame', autoLayout: { direction: 'column', gap: 8, align: 'center' },
-            children: [
-              { type: 'Ellipse', width: 60, height: 60, fill: '#EF4444' },
-              { type: 'Text', text: '排行榜', fontSize: 12, fill: '#E0E0E0' },
-            ],
-          },
-        ],
-      },
-      {
-        type: 'Frame', autoLayout: { direction: 'column', gap: 8 },
-        children: [
-          {
-            type: 'Frame', autoLayout: { direction: 'row', gap: 12, align: 'center' },
-            fill: '#2A2A2A', cornerRadius: 8,
-            children: [
-              { type: 'Icon', name: 'music_note', size: 24, color: '#818CF8' },
-              { type: 'Text', text: '晴天 - 周杰伦', fontSize: 14, fill: '#E0E0E0' },
-            ],
-          },
-          {
-            type: 'Frame', autoLayout: { direction: 'row', gap: 12, align: 'center' },
-            fill: '#2A2A2A', cornerRadius: 8,
-            children: [
-              { type: 'Icon', name: 'music_note', size: 24, color: '#818CF8' },
-              { type: 'Text', text: '稻香 - 周杰伦', fontSize: 14, fill: '#E0E0E0' },
-            ],
-          },
-        ],
-      },
-    ],
-  },
-}
+const LOGIN_HTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=block" rel="stylesheet"><style>*,::after,::before{box-sizing:border-box;margin:0;padding:0}body{width:375px;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#fff}</style></head>
+<body><div style="display:flex;flex-direction:column;gap:24px;padding:32px"><div style="text-align:center"><span class="material-symbols-outlined" style="font-size:64px;color:#4F46E5">account_circle</span><h1 style="font-size:28px;font-weight:700;color:#1A1A1A;margin:8px 0 0">欢迎回来</h1></div><div style="display:flex;flex-direction:column;gap:12px"><div style="display:flex;align-items:center;gap:12px;padding:16px;background:#F5F5F5;border-radius:12px"><span class="material-symbols-outlined" style="color:#666">email</span><span style="color:#999;font-size:14px">请输入邮箱</span></div><div style="display:flex;align-items:center;gap:12px;padding:16px;background:#F5F5F5;border-radius:12px"><span class="material-symbols-outlined" style="color:#666">lock</span><span style="color:#999;font-size:14px">请输入密码</span><span class="material-symbols-outlined" style="color:#999">visibility_off</span></div></div><button style="width:100%;height:48px;background:#4F46E5;color:#fff;border:none;border-radius:24px;font-size:16px;font-weight:600;cursor:pointer">登录</button><p style="text-align:center;color:#4F46E5;font-size:14px">忘记密码？</p></div></body></html>`
 
-export function matchMock(userText: string): ElementTree {
+export function matchMock(userText: string): string {
   const lower = userText.toLowerCase()
-  if (lower.includes('登录') || lower.includes('login')) return MOCK_TREES.login
-  if (lower.includes('音乐') || lower.includes('music')) return MOCK_TREES.music
-  return MOCK_TREES.button
+  if (lower.includes('登录') || lower.includes('login')) return LOGIN_HTML
+  if (lower.includes('按钮') || lower.includes('button')) return BUTTON_HTML
+  return LOGIN_HTML
 }
