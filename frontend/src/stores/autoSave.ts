@@ -2,17 +2,15 @@ import { watch } from 'vue'
 import { useCanvasStore } from './canvasStore'
 import { useChatStore } from './chatStore'
 import type { ProjectFile } from '../types/project'
-import { autoSave, getAutoSave, clearAutoSave as doClear } from '../services/projectBridge'
+import { writeFile } from '../services/projectBridge'
 
 export function setupAutoSave() {
   const canvas = useCanvasStore()
   const chat = useChatStore()
   let timer: ReturnType<typeof setTimeout> | null = null
 
-  async function doAutoSave() {
-    if (!canvas.cards.length && chat.sessions.length === 0) return
-
-    const data: ProjectFile = {
+  function buildData(): ProjectFile {
+    return {
       formatVersion: 2,
       meta: {
         name: canvas.projectName,
@@ -28,37 +26,53 @@ export function setupAutoSave() {
       },
       sessions: chat.sessions,
     }
+  }
 
+  async function doAutoSave() {
+    if (!canvas.cards.length && chat.sessions.length === 0) return
+
+    const data = buildData()
+    const json = JSON.stringify(data, null, 2)
+
+    if (canvas.currentFilePath) {
+      try {
+        await writeFile(canvas.currentFilePath, json)
+      } catch (e) {
+        console.error('AutoSave failed:', e)
+      }
+    } else {
+      const path = await chooseSavePath()
+      if (path) {
+        canvas.setCurrentFilePath(path)
+        try {
+          await writeFile(path, json)
+        } catch (e) {
+          console.error('AutoSave failed:', e)
+        }
+      }
+    }
+  }
+
+  async function chooseSavePath(): Promise<string | null> {
     try {
-      await autoSave(JSON.stringify(data))
-    } catch (e) {
-      console.error('AutoSave failed:', e)
+      const { Dialogs } = await import('@wailsio/runtime')
+      const path = await Dialogs.SaveFile({
+        Title: '保存项目',
+        Filters: [
+          { DisplayName: 'MindDesign 项目', Pattern: '*.mind' },
+        ],
+      } as any)
+      return (path as string) || null
+    } catch {
+      return null
     }
   }
 
   function schedule() {
     if (timer) clearTimeout(timer)
-    timer = setTimeout(doAutoSave, 5000)
+    timer = setTimeout(doAutoSave, 3000)
   }
 
   watch(() => canvas.cards, schedule, { deep: true })
   watch(() => chat.sessions, schedule, { deep: true })
-}
-
-export async function checkAutoSave(): Promise<ProjectFile | null> {
-  try {
-    const data = await getAutoSave()
-    if (!data) return null
-    return JSON.parse(data) as ProjectFile
-  } catch {
-    return null
-  }
-}
-
-export async function clearAutoSave() {
-  try {
-    await doClear()
-  } catch (e) {
-    console.error('ClearAutoSave failed:', e)
-  }
 }

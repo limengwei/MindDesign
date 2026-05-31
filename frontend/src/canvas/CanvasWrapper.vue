@@ -7,6 +7,10 @@ import html2canvas from 'html2canvas'
 import { DotGrid } from './dotGrid'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
 
+const emit = defineEmits<{
+  exportCard: [cardId: string]
+}>()
+
 const props = defineProps({
   pageWidth: { type: Number, default: 375 },
   pageHeight: { type: Number, default: 812 },
@@ -322,6 +326,16 @@ function createActionBtns(cardId: string, group: Box) {
     width: w, height: BTN_H,
   })
 
+  const exportBtn = new Rect({
+    x: w - btnW * 3 - BTN_GAP * 2, y: 0,
+    width: btnW, height: BTN_H,
+    fill: 'rgba(16,185,129,0.85)', cornerRadius: 6,
+    hittable: true, hitSelf: true,
+  })
+  exportBtn.add(new Text({ text: '导出', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  exportBtn.id = `__btn_export__${cardId}`
+  exportBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('exportCard', cardId) })
+
   const refreshBtn = new Rect({
     x: w - btnW * 2 - BTN_GAP, y: 0,
     width: btnW, height: BTN_H,
@@ -342,6 +356,7 @@ function createActionBtns(cardId: string, group: Box) {
   deleteBtn.id = `__btn_delete__${cardId}`
   deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; canvasStore.removeCard(cardId) })
 
+  btnGroup.add(exportBtn as any)
   btnGroup.add(refreshBtn as any)
   btnGroup.add(deleteBtn as any)
   treeLayer!.add(btnGroup as any)

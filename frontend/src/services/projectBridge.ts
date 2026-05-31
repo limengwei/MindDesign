@@ -116,3 +116,25 @@ export async function showOpenDialog(): Promise<string> {
     return ''
   }
 }
+
+export interface RecentProject {
+  path: string
+  name: string
+  updatedAt: string
+}
+
+export async function getRecentProjects(): Promise<RecentProject[]> {
+  await ensureLoaded()
+  if (ProjectService) {
+    const json = await ProjectService.GetRecentProjects()
+    return JSON.parse(json) as RecentProject[]
+  }
+  return []
+}
+
+export async function clearCurrentPath(): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await ProjectService.ClearCurrentPath()
+  }
+}

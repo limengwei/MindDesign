@@ -20,7 +20,8 @@
     "html2canvas": "^1.4.1",
     "leafer-ui": "^2.1.2",
     "pinia": "^3.0.4",
-    "vue": "^3.2.45"
+    "vue": "^3.2.45",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
