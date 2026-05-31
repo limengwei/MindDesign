@@ -6,6 +6,7 @@ import '@leafer-in/view'
 import html2canvas from 'html2canvas'
 import { DotGrid } from './dotGrid'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
+import { saveProject } from '../stores/autoSave'
 
 const emit = defineEmits<{
   exportCard: [cardId: string]
@@ -380,7 +381,7 @@ function createActionBtns(cardId: string, group: Box) {
   })
   deleteBtn.add(new Text({ text: '删除', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
   deleteBtn.id = `__btn_delete__${cardId}`
-  deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; canvasStore.removeCard(cardId) })
+  deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; canvasStore.removeCard(cardId) ; saveProject() })
 
   btnGroup.add(exportBtn as any)
   btnGroup.add(refreshBtn as any)
@@ -399,6 +400,7 @@ async function refreshCard(cardId: string) {
   if (!card || !card.html) return
   card.screenshot = ''
   await renderCard(card, true, false)
+  await saveProject()
 }
 
 function handleZoomIn() { treeLayer?.zoom('in') }
