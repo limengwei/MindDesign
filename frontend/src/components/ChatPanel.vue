@@ -95,14 +95,20 @@ async function doGenerate(text: string) {
     } else if (result.critique) {
       activeCritique.value = result.critique
       showCritique.value = true
-      chatStore.addAssistantMessage(result.content, result.html || undefined)
       if (result.html) {
+        chatStore.addAssistantMessage(result.content, result.html)
         canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
+      } else {
+        chatStore.addAssistantMessage(result.content || 'AI 未能生成设计稿，请重试。')
+        canvasStore.removeCard(card.id)
       }
     } else {
-      chatStore.addAssistantMessage(result.content, result.html || undefined)
       if (result.html) {
+        chatStore.addAssistantMessage(result.content, result.html)
         canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
+      } else {
+        chatStore.addAssistantMessage(result.content || 'AI 未能生成设计稿，请重试。')
+        canvasStore.removeCard(card.id)
       }
     }
 
@@ -139,9 +145,12 @@ async function handlePreflightSubmit() {
       activeCritique.value = result.critique
       showCritique.value = true
     }
-    chatStore.addAssistantMessage(result.content, result.html || undefined)
     if (result.html) {
+      chatStore.addAssistantMessage(result.content, result.html)
       canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
+    } else {
+      chatStore.addAssistantMessage(result.content || 'AI 未能生成设计稿，请重试。')
+      canvasStore.removeCard(card.id)
     }
     if (result.blueprintUpdate) {
       canvasStore.updateProductBlueprint(result.blueprintUpdate)
