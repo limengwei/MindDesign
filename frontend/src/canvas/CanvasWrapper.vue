@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { App, Leafer, Box, Image, Text, Rect } from 'leafer-ui'
+import { App, Leafer, Box, Image, Text, Rect, PointerEvent } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
 import html2canvas from 'html2canvas'
@@ -34,6 +34,13 @@ onMounted(() => {
   })
 
   treeLayer = app.tree as Leafer
+
+  app.on(PointerEvent.TAP, (e: PointerEvent) => {
+    const target = e.target as any
+    if (!target?.id || !cardGroups.has(target.id)) {
+      canvasStore.selectCard(null)
+    }
+  })
 
   dotGrid = new DotGrid(containerRef.value, app, {
     dotColor: 'rgba(255,255,255,0.1)',
