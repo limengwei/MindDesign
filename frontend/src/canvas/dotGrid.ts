@@ -77,7 +77,7 @@ export class DotGrid {
   }
 
   private onMouseMove(e: MouseEvent) {
-    const rect = this.app.view.getBoundingClientRect()
+    const rect = (this.app.view as HTMLElement).getBoundingClientRect()
     this.mouseX = e.clientX - rect.left
     this.mouseY = e.clientY - rect.top
     if (!this.mouseInside) {
