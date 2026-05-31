@@ -1,15 +1,43 @@
 import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
 import type { DesignSpecId } from '../prompts/designSpecs'
+import type { DesignSkill } from '../prompts/skills'
 import { buildSystemPrompt } from '../prompts/system'
 import { searchIcons, searchIconsToolDefinition } from './tools'
 import { callOpenAICompatible, type ChatMessage, type ToolDefinition } from './llmClient'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
 
+export interface DesignCritique {
+  scores: {
+    consistency: number
+    hierarchy: number
+    usability: number
+    brand: number
+    completeness: number
+  }
+  summary: string
+  suggestions: string[]
+}
+
+export interface PreflightQuestion {
+  key: string
+  label: string
+  type: 'select' | 'multiselect'
+  options: Array<{ value: string; label: string }>
+}
+
+export interface PreflightData {
+  type: 'preflight'
+  brief_summary: string
+  questions: PreflightQuestion[]
+}
+
 export interface LLMResult {
   content: string
   html: string | null
   screenshot: string
+  critique?: DesignCritique | null
+  preflight?: PreflightData | null
 }
 
 const TOOLS: ToolDefinition[] = [
@@ -38,20 +66,43 @@ async function executeToolCall(name: string, args: string): Promise<string> {
 
 /** 从 LLM 输出的文本中提取完整的 HTML 文档 */
 function extractHTML(text: string): string | null {
-  // 移除 markdown 包裹
-  let cleaned = text
+  let cleaned = text.replace(/<!-- DESIGN_CRITIQUE[\s\S]*?DESIGN_CRITIQUE -->/g, '')
+  cleaned = cleaned.replace(/<!-- PREFLIGHT[\s\S]*?PREFLIGHT -->/g, '')
   const md = cleaned.match(/```html?\s*([\s\S]*?)```/)
   if (md) cleaned = md[1]
   const md2 = cleaned.match(/```\s*([\s\S]*?)```/)
   if (md2) cleaned = md2[1]
 
-  // 尝试找到 <!DOCTYPE html> 或 <html> 标签
   const doctype = cleaned.indexOf('<!DOCTYPE html>')
   const htmlTag = cleaned.indexOf('<html')
   if (doctype !== -1) return cleaned.substring(doctype).trim()
   if (htmlTag !== -1) return '<!DOCTYPE html>\n' + cleaned.substring(htmlTag).trim()
 
   return null
+}
+
+function extractCritique(text: string): DesignCritique | null {
+  const match = text.match(/<!-- DESIGN_CRITIQUE\s*([\s\S]*?)\s*DESIGN_CRITIQUE -->/)
+  if (!match) return null
+  try {
+    return JSON.parse(match[1].trim()) as DesignCritique
+  } catch {
+    return null
+  }
+}
+
+function extractPreflight(text: string): PreflightData | null {
+  const match = text.match(/<!-- PREFLIGHT\s*([\s\S]*?)\s*PREFLIGHT -->/)
+  if (!match) return null
+  try {
+    const data = JSON.parse(match[1].trim())
+    if (data.type === 'preflight' && Array.isArray(data.questions)) {
+      return data as PreflightData
+    }
+    return null
+  } catch {
+    return null
+  }
 }
 
 function parseDSMLToolCalls(text: string): { name: string; args: string }[] | null {
@@ -83,6 +134,8 @@ export interface SendMessageOptions {
   history: Array<{ role: string; content: string }>
   selectedHtml?: string
   onStreamingHTML?: (html: string) => void
+  skill?: DesignSkill | null
+  isFirstMessage?: boolean
 }
 
 const MAX_TOOL_ROUNDS = 8
@@ -91,7 +144,7 @@ const MAX_TOOL_CALLS = 2
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
-  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme, options.designSpecId, options.customDesignContent)
+  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme, options.designSpecId, options.customDesignContent, options.skill, options.isFirstMessage)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -167,16 +220,20 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     }
 
     const html = extractHTML(finalContent)
-    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html)
+    const critique = extractCritique(finalContent)
+    const preflight = extractPreflight(finalContent)
+    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html, 'critique:', !!critique, 'preflight:', !!preflight)
     if (!html && finalContent) {
       console.log('[LLM] raw content (first 500):', finalContent.slice(0, 500))
     }
-    return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '' }
+    return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight }
   }
 
   const html = extractHTML(fullContent)
+  const critique = extractCritique(fullContent)
+  const preflight = extractPreflight(fullContent)
   console.log('[LLM] max rounds reached, fullContent length:', fullContent.length, 'html extracted:', !!html)
-  return { content: html ? '已为你生成了设计稿。' : fullContent, html, screenshot: '' }
+  return { content: html ? '已为你生成了设计稿。' : fullContent, html, screenshot: '', critique, preflight }
 }
 
 export async function sendMessageToLLM(
@@ -188,8 +245,8 @@ export async function sendMessageToLLM(
   if (configStore.isConfigured) {
     try {
       const result = await callRealLLM(userText, options)
-      if (result.html) return result
-      return { content: result.content || 'AI 已回复，但未能生成设计稿，请重试。', html: null, screenshot: '' }
+      if (result.html || result.preflight) return result
+      return { content: result.content || 'AI 已回复，但未能生成设计稿，请重试。', html: null, screenshot: '', critique: result.critique, preflight: result.preflight }
     } catch (err) {
       const msg = (err as Error).message || String(err)
       return { content: `❌ API 错误: ${msg}`, html: null, screenshot: '' }

@@ -1,13 +1,78 @@
 import type { PageType } from './page-types'
 import type { ColorScheme } from './colors'
 import type { DesignSpecId } from './designSpecs'
+import type { DesignSkill } from './skills'
+import { PREFLIGHT_SYSTEM_ADDON } from './preflight'
 import { PAGE_TYPE_CONSTRAINTS } from './page-types'
 import { ICON_CONSTRAINTS } from './icons'
 import { COLOR_CONSTRAINTS } from './colors'
 import { buildDesignSpecPrompt } from './designSpecs'
 
-export function buildSystemPrompt(pageType: PageType, colorScheme: ColorScheme, designSpecId: DesignSpecId = 'none', customDesignContent?: string): string {
+const DESIGN_CONSTRAINTS = `
+## 设计硬约束（必须严格遵守）
+
+### 间距系统
+- 基础单位 4px
+- 允许使用的间距值：4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 80, 96
+- 禁止使用非标准间距值（如 23px、17px、13px）
+
+### 字号层级
+- H1: 32-48px
+- H2: 24-28px
+- H3: 18-22px
+- 正文: 14-16px
+- 辅助: 12-13px
+- 禁止使用非标准字号（如 15.5px）
+
+### 安全区域
+- 移动端：触控目标最小 44×44px
+- 顶部状态栏 44px，底部 Home Indicator 34px
+- 内容区左右边距至少 16px
+`
+
+const CRITIQUE_PROTOCOL = `
+## 设计质量自评协议
+
+你生成 HTML 后，必须在 HTML 代码之后紧接着输出一段设计质量自评，格式如下：
+
+<!-- DESIGN_CRITIQUE
+{
+  "scores": {
+    "consistency": 0,
+    "hierarchy": 0,
+    "usability": 0,
+    "brand": 0,
+    "completeness": 0
+  },
+  "summary": "一句话总结整体设计质量",
+  "suggestions": ["具体改进建议1", "具体改进建议2"]
+}
+DESIGN_CRITIQUE -->
+
+自评维度说明：
+1. consistency（视觉一致性）1-5分：颜色、间距、字号是否遵循上述设计硬约束
+2. hierarchy（信息层级）1-5分：标题、正文、辅助信息的层次是否清晰
+3. usability（可用性）1-5分：交互元素大小、间距是否合理（触控目标 >= 44px）
+4. brand（品牌契合度）1-5分：是否符合所选设计规范的品牌调性
+5. completeness（完整度）1-5分：页面各区域是否完整，有无遗漏
+
+注意：
+- 打分要诚实客观，不要全部给 5 分
+- suggestions 必须给出具体可操作的改进建议
+- 如果某个维度得分低于 3 分，必须在 suggestions 中说明原因和改进方法
+`
+
+export function buildSystemPrompt(
+  pageType: PageType,
+  colorScheme: ColorScheme,
+  designSpecId: DesignSpecId = 'none',
+  customDesignContent?: string,
+  skill?: DesignSkill | null,
+  isFirstMessage?: boolean,
+): string {
   const designSpecSection = buildDesignSpecPrompt(designSpecId, customDesignContent)
+  const skillSection = skill?.systemPromptAddons ? `\n${skill.systemPromptAddons}\n` : ''
+  const preflightSection = (skill?.preflightEnabled && isFirstMessage) ? `\n${PREFLIGHT_SYSTEM_ADDON}\n` : ''
 
   return `你是 MindDesign 的 AI 设计师助手。你通过自然语言对话为用户生成 UI 设计稿。
 
@@ -48,7 +113,8 @@ ${PAGE_TYPE_CONSTRAINTS[pageType]}
 ## 配色方案
 
 ${COLOR_CONSTRAINTS[colorScheme]}
-${designSpecSection ? '\n' + designSpecSection + '\n' : ''}
+${designSpecSection ? '\n' + designSpecSection + '\n' : ''}${skillSection}
+${DESIGN_CONSTRAINTS}
 ## 技术规范
 
 - body 宽度固定为 ${pageType === 'app' ? '375px' : pageType === 'web' ? '1440px' : '1280px'}
@@ -57,6 +123,8 @@ ${designSpecSection ? '\n' + designSpecSection + '\n' : ''}
 - 所有样式内联或写在 <style> 标签中
 - 确保 HTML 完整可渲染，别省略闭合标签
 
+${preflightSection}
+${CRITIQUE_PROTOCOL}
 ## 示例输出
 
 用户："设计一个登录页面"

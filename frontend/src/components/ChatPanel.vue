@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useChatStore, type Session } from '../stores/chatStore'
 import { useCanvasStore } from '../stores/canvasStore'
-import { sendMessageToLLM } from '../ai/chat'
+import { sendMessageToLLM, type DesignCritique, type PreflightData } from '../ai/chat'
+import { BUILT_IN_SKILLS, getSkillById, type DesignSkill } from '../prompts/skills'
+import { buildPreflightFollowUpPrompt } from '../prompts/preflight'
 import { saveProject } from '../stores/autoSave'
 
 const props = defineProps<{
@@ -18,8 +20,27 @@ const canvasStore = useCanvasStore()
 
 const inputText = ref('')
 const showSessionList = ref(false)
+const activeCritique = ref<DesignCritique | null>(null)
+const showCritique = ref(false)
+const activePreflight = ref<PreflightData | null>(null)
+const preflightAnswers = ref<Record<string, string | string[]>>({})
+const showSkillBar = ref(true)
 
-function buildCallOptions(selectedHtml?: string) {
+const activeSkill = computed<DesignSkill | null>(() => {
+  const id = canvasStore.activeSkillId
+  return id ? getSkillById(id) ?? null : null
+})
+
+function selectSkill(skill: DesignSkill) {
+  if (canvasStore.activeSkillId === skill.id) {
+    canvasStore.setActiveSkillId(null)
+  } else {
+    canvasStore.setActiveSkillId(skill.id)
+    canvasStore.setPageType(skill.defaultPageType)
+  }
+}
+
+function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
   return {
     pageType: canvasStore.pageType,
     colorScheme: canvasStore.colorScheme,
@@ -27,6 +48,8 @@ function buildCallOptions(selectedHtml?: string) {
     customDesignContent: canvasStore.customDesignContent,
     history: [] as Array<{ role: string; content: string }>,
     selectedHtml,
+    skill: activeSkill.value,
+    isFirstMessage,
     onStreamingHTML: (html: string) => {
       const genId = canvasStore.generatingCardId
       if (genId) {
@@ -44,6 +67,7 @@ watch(() => chatStore.pendingSend, async (text) => {
 })
 
 async function doGenerate(text: string) {
+  const isFirstMessage = !chatStore.activeSession || chatStore.messages.length === 0
   const session = chatStore.createSession(text)
   chatStore.addUserMessage(text)
   chatStore.setStreaming(true)
@@ -57,7 +81,56 @@ async function doGenerate(text: string) {
   canvasStore.setGeneratingCardId(card.id)
 
   try {
-    const result = await sendMessageToLLM(text, buildCallOptions(selectedCard?.html))
+    const result = await sendMessageToLLM(text, buildCallOptions(selectedCard?.html, isFirstMessage))
+
+    if (result.preflight) {
+      activePreflight.value = result.preflight
+      preflightAnswers.value = {}
+      chatStore.addAssistantMessage(`🎯 AI 理解了你的需求：${result.preflight.brief_summary}`)
+      canvasStore.setGeneratingCardId(null)
+    } else if (result.critique) {
+      activeCritique.value = result.critique
+      showCritique.value = true
+      chatStore.addAssistantMessage(result.content, result.html || undefined)
+      if (result.html) {
+        canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
+      }
+    } else {
+      chatStore.addAssistantMessage(result.content, result.html || undefined)
+      if (result.html) {
+        canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
+      }
+    }
+  } catch (err) {
+    chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
+    console.error('LLM error:', err)
+  } finally {
+    canvasStore.setGeneratingCardId(null)
+    chatStore.setStreaming(false)
+    await new Promise(r => setTimeout(r, 1500))
+    await saveProject()
+  }
+}
+
+async function handlePreflightSubmit() {
+  if (!activePreflight.value) return
+  const followUp = buildPreflightFollowUpPrompt(preflightAnswers.value)
+  activePreflight.value = null
+  chatStore.setStreaming(true)
+  chatStore.addUserMessage('已确认需求，开始设计')
+
+  const selectedId = canvasStore.selectedCardId
+  const selectedCard = selectedId ? canvasStore.cards.find(c => c.id === selectedId) : null
+  const card = canvasStore.addCard('', '', undefined, chatStore.activeSessionId ?? undefined, selectedCard?.id)
+  chatStore.addCardToSession(card.id)
+  canvasStore.setGeneratingCardId(card.id)
+
+  try {
+    const result = await sendMessageToLLM(followUp, buildCallOptions(selectedCard?.html, false))
+    if (result.critique) {
+      activeCritique.value = result.critique
+      showCritique.value = true
+    }
     chatStore.addAssistantMessage(result.content, result.html || undefined)
     if (result.html) {
       canvasStore.updateCardContent(card.id, result.html, result.screenshot || '')
@@ -71,6 +144,42 @@ async function doGenerate(text: string) {
     await new Promise(r => setTimeout(r, 1500))
     await saveProject()
   }
+}
+
+function setPreflightAnswer(key: string, value: string, isMulti: boolean) {
+  if (isMulti) {
+    const current = (preflightAnswers.value[key] as string[]) || []
+    const idx = current.indexOf(value)
+    if (idx >= 0) {
+      current.splice(idx, 1)
+    } else {
+      current.push(value)
+    }
+    preflightAnswers.value[key] = [...current]
+  } else {
+    preflightAnswers.value[key] = value
+  }
+}
+
+function isPreflightOptionSelected(key: string, value: string, isMulti: boolean): boolean {
+  if (isMulti) {
+    return ((preflightAnswers.value[key] as string[]) || []).includes(value)
+  }
+  return preflightAnswers.value[key] === value
+}
+
+function handleCritiqueOptimize() {
+  if (!activeCritique.value) return
+  const suggestions = activeCritique.value.suggestions.join('；')
+  activeCritique.value = null
+  showCritique.value = false
+  chatStore.pendingSend = `根据设计评审建议进行优化：${suggestions}`
+}
+
+function critiqueScoreColor(score: number): string {
+  if (score >= 4) return '#22c55e'
+  if (score >= 3) return '#f59e0b'
+  return '#ef4444'
 }
 
 async function handleSend() {
@@ -115,6 +224,14 @@ function formatTime(iso: string) {
         <button
           v-if="!collapsed"
           class="toggle-btn"
+          title="场景选择"
+          @click="showSkillBar = !showSkillBar"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+        </button>
+        <button
+          v-if="!collapsed"
+          class="toggle-btn"
           title="会话列表"
           @click="showSessionList = !showSessionList"
         >
@@ -123,6 +240,21 @@ function formatTime(iso: string) {
         <button class="toggle-btn" @click="emit('toggle')" :title="collapsed ? '展开' : '收起'">
           <svg v-if="collapsed" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
           <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div v-if="!collapsed && showSkillBar && !showSessionList" class="skill-bar">
+      <div class="skill-scroll">
+        <button
+          v-for="skill in BUILT_IN_SKILLS"
+          :key="skill.id"
+          :class="['skill-tag', { active: canvasStore.activeSkillId === skill.id }]"
+          @click="selectSkill(skill)"
+          :title="skill.description"
+        >
+          <span class="material-symbols-outlined skill-icon">{{ skill.icon }}</span>
+          <span class="skill-name">{{ skill.name }}</span>
         </button>
       </div>
     </div>
@@ -150,7 +282,7 @@ function formatTime(iso: string) {
       <div v-if="!chatStore.activeSession" class="chat-empty">
         <div class="empty-icon">✨</div>
         <p>描述你想要的界面</p>
-        <p class="empty-hint">AI 将为你生成设计稿</p>
+        <p class="empty-hint">{{ activeSkill ? `当前场景：${activeSkill.name}` : 'AI 将为你生成设计稿' }}</p>
       </div>
 
       <template v-if="chatStore.activeSession">
@@ -168,6 +300,59 @@ function formatTime(iso: string) {
         </div>
       </template>
 
+      <div v-if="activePreflight" class="preflight-form">
+        <div class="preflight-header">
+          <span>🎯</span>
+          <span class="preflight-title">请确认几个关键信息</span>
+        </div>
+        <div
+          v-for="q in activePreflight.questions"
+          :key="q.key"
+          class="preflight-question"
+        >
+          <div class="preflight-question-label">{{ q.label }}</div>
+          <div class="preflight-options">
+            <button
+              v-for="opt in q.options"
+              :key="opt.value"
+              :class="['preflight-option', { selected: isPreflightOptionSelected(q.key, opt.value, q.type === 'multiselect') }]"
+              @click="setPreflightAnswer(q.key, opt.value, q.type === 'multiselect')"
+            >
+              {{ opt.label }}
+            </button>
+          </div>
+        </div>
+        <button class="preflight-submit" @click="handlePreflightSubmit">
+          开始设计 →
+        </button>
+      </div>
+
+      <div v-if="showCritique && activeCritique" class="critique-card">
+        <div class="critique-header" @click="showCritique = !showCritique">
+          <span>📊 设计质量评估</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+        </div>
+        <div v-if="showCritique" class="critique-body">
+          <div class="critique-scores">
+            <div v-for="(label, key) in { consistency: '视觉一致性', hierarchy: '信息层级', usability: '可用性', brand: '品牌契合度', completeness: '完整度' }" :key="key" class="critique-score-row">
+              <span class="critique-score-label">{{ label }}</span>
+              <div class="critique-score-bar-bg">
+                <div
+                  class="critique-score-bar"
+                  :style="{ width: ((activeCritique.scores as any)[key] / 5) * 100 + '%', background: critiqueScoreColor((activeCritique.scores as any)[key]) }"
+                ></div>
+              </div>
+              <span class="critique-score-value" :style="{ color: critiqueScoreColor((activeCritique.scores as any)[key]) }">{{ (activeCritique.scores as any)[key] }}</span>
+            </div>
+          </div>
+          <div class="critique-summary">{{ activeCritique.summary }}</div>
+          <div v-if="activeCritique.suggestions.length" class="critique-suggestions">
+            <div v-for="(s, i) in activeCritique.suggestions" :key="i" class="critique-suggestion">• {{ s }}</div>
+          </div>
+          <button class="critique-optimize-btn" @click="handleCritiqueOptimize">根据建议优化</button>
+        </div>
+      </div>
+
       <div v-if="chatStore.isStreaming" class="message assistant">
         <div class="message-avatar">🤖</div>
         <div class="message-content streaming">
@@ -180,11 +365,16 @@ function formatTime(iso: string) {
   </div>
 
   <div class="chat-input-float">
+    <div v-if="activeSkill" class="active-skill-badge">
+      <span class="material-symbols-outlined" style="font-size:14px">{{ activeSkill.icon }}</span>
+      <span>{{ activeSkill.name }}</span>
+      <button class="skill-badge-close" @click="canvasStore.setActiveSkillId(null)">✕</button>
+    </div>
     <div class="input-wrapper">
       <textarea
         v-model="inputText"
         class="chat-input"
-        placeholder="描述你想要的界面..."
+        :placeholder="activeSkill ? activeSkill.examplePrompt : '描述你想要的界面...'"
         rows="1"
         :disabled="chatStore.isStreaming"
         @keydown="handleKeydown"
@@ -212,6 +402,16 @@ function formatTime(iso: string) {
 .toggle-btn { width: 24px; height: 24px; border: none; background: none; color: var(--text-secondary); cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .collapsed .toggle-btn { margin: 0 auto; }
 .toggle-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.skill-bar { flex-shrink: 0; border-bottom: 1px solid var(--border-subtle); padding: 8px 0; }
+.skill-scroll { display: flex; gap: 6px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; }
+.skill-scroll::-webkit-scrollbar { display: none; }
+.skill-tag { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 16px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); cursor: pointer; white-space: nowrap; font-size: 12px; transition: all 0.15s ease; font-family: inherit; }
+.skill-tag:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-hover); }
+.skill-tag.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.skill-icon { font-size: 14px; }
+.skill-name { font-size: 12px; }
+
 .session-list { flex: 1; overflow-y: auto; padding: 8px; }
 .session-item { padding: 10px 12px; border-radius: var(--radius-md); cursor: pointer; transition: background var(--transition-fast); margin-bottom: 4px; }
 .session-item:hover { background: var(--bg-hover); }
@@ -236,8 +436,42 @@ function formatTime(iso: string) {
 .dot:nth-child(2) { animation-delay: 0.2s; }
 .dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
-.chat-input-float { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: var(--z-input); width: 560px; max-width: calc(100vw - 40px); }
-.input-wrapper { display: flex; gap: 8px; padding: 10px 14px; background: rgba(30, 30, 54, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md); }
+
+.preflight-form { background: rgba(22, 33, 62, 0.9); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+.preflight-header { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.preflight-title { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.preflight-question { margin-bottom: 12px; }
+.preflight-question-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+.preflight-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.preflight-option { padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); cursor: pointer; font-size: 12px; transition: all 0.15s ease; font-family: inherit; }
+.preflight-option:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.preflight-option.selected { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.preflight-submit { width: 100%; padding: 10px; border-radius: 10px; border: none; background: var(--color-primary); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s ease; font-family: inherit; }
+.preflight-submit:hover { background: var(--color-primary-hover); }
+
+.critique-card { background: rgba(22, 33, 62, 0.9); border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+.critique-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.critique-header:hover { background: rgba(255,255,255,0.03); }
+.critique-body { padding: 0 14px 14px; }
+.critique-scores { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.critique-score-row { display: flex; align-items: center; gap: 8px; }
+.critique-score-label { font-size: 11px; color: var(--text-secondary); width: 64px; flex-shrink: 0; }
+.critique-score-bar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.critique-score-bar { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+.critique-score-value { font-size: 12px; font-weight: 600; width: 16px; text-align: right; }
+.critique-summary { font-size: 12px; color: var(--text-primary); line-height: 1.5; margin-bottom: 8px; }
+.critique-suggestions { margin-bottom: 10px; }
+.critique-suggestion { font-size: 11px; color: var(--text-secondary); line-height: 1.5; padding-left: 4px; }
+.critique-optimize-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
+.critique-optimize-btn:hover { background: var(--color-primary); color: #fff; }
+
+.active-skill-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--color-primary); color: #fff; border-radius: 10px 10px 0 0; font-size: 12px; }
+.skill-badge-close { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 10px; padding: 0 2px; }
+.skill-badge-close:hover { color: #fff; }
+
+.chat-input-float { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: var(--z-input); width: 560px; max-width: calc(100vw - 40px); display: flex; flex-direction: column; align-items: center; }
+.input-wrapper { display: flex; gap: 8px; padding: 10px 14px; background: rgba(30, 30, 54, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md); width: 100%; }
+.active-skill-badge + .input-wrapper { border-radius: 0 0 14px 14px; }
 .chat-input { flex: 1; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--radius-md); font-size: var(--font-md); font-family: inherit; outline: none; resize: none; transition: border-color var(--transition-normal); background: rgba(22, 33, 62, 0.6); color: var(--text-primary); }
 .chat-input::placeholder { color: var(--text-muted); }
 .chat-input:focus { border-color: var(--border-hover); }

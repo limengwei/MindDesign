@@ -3,9 +3,11 @@ import { ref } from 'vue'
 import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
 import type { DesignSpecId } from '../prompts/designSpecs'
+import type { SkillCategory } from '../prompts/skills'
 
 export type { PageType, ColorScheme }
 export type { DesignSpecId }
+export type { SkillCategory }
 
 export interface CanvasCard {
   id: string
@@ -41,6 +43,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const createdAt = ref('')
   const designSpecId = ref<DesignSpecId>('none')
   const customDesignContent = ref('')
+  const activeSkillId = ref<string | null>(null)
 
   function addCard(html: string, screenshot: string, label?: string, sessionId?: string, parentId?: string): CanvasCard {
     _cardCounter++
@@ -106,6 +109,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   function setCreatedAt(date: string) { createdAt.value = date }
   function setDesignSpecId(id: DesignSpecId) { designSpecId.value = id }
   function setCustomDesignContent(content: string) { customDesignContent.value = content }
+  function setActiveSkillId(id: string | null) { activeSkillId.value = id }
 
   function reset() {
     cards.value = []
@@ -120,13 +124,14 @@ export const useCanvasStore = defineStore('canvas', () => {
     createdAt.value = ''
     designSpecId.value = 'none'
     customDesignContent.value = ''
+    activeSkillId.value = null
   }
 
   return {
     cards, selectedCardId,
-    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt, designSpecId, customDesignContent,
+    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt, designSpecId, customDesignContent, activeSkillId,
     addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
-    setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, reset,
+    setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, setActiveSkillId, reset,
   }
 })
