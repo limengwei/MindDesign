@@ -67,11 +67,12 @@ async function fetchIconSvg(name: string): Promise<string> {
   if (iconCache.has(name)) return iconCache.get(name)!
   try {
     const resp = await fetch(`/icons/${name}.svg`)
-    if (!resp.ok) return ''
+    if (!resp.ok) { iconCache.set(name, ''); return '' }
     const svg = await resp.text()
     iconCache.set(name, svg)
     return svg
   } catch {
+    iconCache.set(name, '')
     return ''
   }
 }
@@ -79,20 +80,25 @@ async function fetchIconSvg(name: string): Promise<string> {
 async function replaceIcons(html: string): Promise<string> {
   let processed = html.replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/gi, '')
 
-  const iconPattern = /<span\s+[^>]*class\s*=\s*["']material-symbols-outlined["'][^>]*>([^<]*)<\/span>/gi
-  const matches = [...html.matchAll(iconPattern)]
-  const iconNames = [...new Set(matches.map(m => m[1].trim()).filter(Boolean))]
-  await Promise.all(iconNames.map(name => fetchIconSvg(name)))
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(processed, 'text/html')
+  const spans = doc.querySelectorAll('span.material-symbols-outlined')
 
-  processed = processed.replace(iconPattern, (_match, icon: string) => {
-    const name = icon.trim()
-    if (!name) return ''
+  const iconNames = new Set<string>()
+  spans.forEach(el => {
+    const name = (el.textContent || '').trim()
+    if (name) iconNames.add(name)
+  })
+  await Promise.all([...iconNames].map(name => fetchIconSvg(name)))
+
+  spans.forEach(el => {
+    const name = (el.textContent || '').trim()
+    if (!name) return
     const svg = iconCache.get(name)
-    if (!svg) return `<span style="display:inline-block;width:24px;height:24px;"></span>`
+    if (!svg) return
 
-    const styleMatch = _match.match(/style\s*=\s*"([^"]*)"/i)
-    const styleStr = styleMatch ? styleMatch[1] : ''
-    const sizeMatch = styleStr.match(/font-size\s*:\s*(\d+(?:\.\d+)?)(px|em|rem)?/i)
+    const elStyle = el.getAttribute('style') || ''
+    const sizeMatch = elStyle.match(/font-size\s*:\s*(\d+(?:\.\d+)?)(px|em|rem)?/i)
     let size = 24
     if (sizeMatch) {
       size = parseFloat(sizeMatch[1])
@@ -100,8 +106,9 @@ async function replaceIcons(html: string): Promise<string> {
       else if (sizeMatch[2] === 'rem') size *= 16
     }
 
-    const colorMatch = styleStr.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i)
+    const colorMatch = elStyle.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i)
     const color = colorMatch ? colorMatch[1].trim() : ''
+
     let styledSvg = svg
       .replace(/width="[^"]*"/, `width="${size}"`)
       .replace(/height="[^"]*"/, `height="${size}"`)
@@ -110,10 +117,17 @@ async function replaceIcons(html: string): Promise<string> {
       styledSvg = `<span style="color:${color};display:inline-flex;vertical-align:middle;">${styledSvg}</span>`
     }
 
-    return styledSvg
+    const wrapper = doc.createElement('div')
+    wrapper.innerHTML = styledSvg
+    const newNodes = [...wrapper.childNodes]
+    const parent = el.parentNode
+    if (parent) {
+      newNodes.forEach(n => parent.insertBefore(n, el))
+      parent.removeChild(el)
+    }
   })
 
-  return processed
+  return doc.body.innerHTML
 }
 
 async function htmlToScreenshot(html: string): Promise<string> {
