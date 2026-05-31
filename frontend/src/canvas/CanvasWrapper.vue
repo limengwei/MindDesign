@@ -158,7 +158,7 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 <style scoped>
 .canvas-wrapper { position: absolute; inset: 0; background: #0f0f23; overflow: hidden; }
 .canvas-container { position: relative; width: 100%; height: 100%; }
-.canvas-info { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: 11px; color: #6b7280; border-radius: 6px; pointer-events: none; }
+.canvas-info { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: 11px; color: #6b7280; border-radius: 6px; pointer-events: none; z-index: 10; }
 .canvas-loading-overlay { position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15,15,35,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .loading-content { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .loading-spinner { position: relative; width: 64px; height: 64px; }
