@@ -122,14 +122,14 @@ export class DotGrid {
 
   private redraw() {
     this.dirty = false
-    const ctx = this.layer.canvas?.context
+    const canvas = this.layer.canvas
+    const ctx = canvas?.context
     if (!ctx) return
 
-    const w = this.layer.canvas.view.width as number
-    const h = this.layer.canvas.view.height as number
+    const w = canvas.width
+    const h = canvas.height
     if (!w || !h) return
 
-    // 重置变换矩阵
     this.layer.canvas.setWorld({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 })
     ctx.clearRect(0, 0, w, h)
     ctx.fillStyle = this.config.bgColor
@@ -141,28 +141,27 @@ export class DotGrid {
     const scale = zoomLayer.scaleX ?? 1
     const offsetX = zoomLayer.x ?? 0
     const offsetY = zoomLayer.y ?? 0
-    const dpr = window.devicePixelRatio || 1
 
     const baseGap = this.config.gridGap
-    const dotSize = this.config.dotSize * dpr
+    const dotSize = this.config.dotSize
 
-    let gap = baseGap * scale * dpr
+    let gap = baseGap * scale
     while (gap < 10) gap *= 5
     while (gap > 120) gap /= 5
 
     const dotAlpha = Math.min(1, Math.max(0.15, (gap / 40) * 0.6))
     const actualDotSize = Math.max(0.5, dotSize * Math.min(1.5, gap / 30))
 
-    const startX = ((offsetX * dpr) % gap + gap) % gap
-    const startY = ((offsetY * dpr) % gap + gap) % gap
+    const startX = ((offsetX) % gap + gap) % gap
+    const startY = ((offsetY) % gap + gap) % gap
 
-    const hoverR = this.config.hoverRadius * dpr
+    const hoverR = this.config.hoverRadius
     const hoverR2 = hoverR * hoverR
     const hoverDotScale = this.config.hoverDotScale
     const hoverColor = this.config.hoverColor
 
-    const mx = this.smoothMouseX * dpr
-    const my = this.smoothMouseY * dpr
+    const mx = this.smoothMouseX
+    const my = this.smoothMouseY
     const hasHover = mx > -999 && my > -999
 
     const hoverMargin = hasHover ? hoverR + gap : 0
