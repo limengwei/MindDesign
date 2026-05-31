@@ -78,11 +78,28 @@ const emit = defineEmits<{
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
 .settings-panel { width: 440px; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-default); }
 .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-default); }
-.panel-header h3 { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); }
+.panel-header h3 { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); margin: 0; }
+.close-btn { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); font-size: 18px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); }
+.close-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .panel-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: var(--font-sm); font-weight: 500; color: var(--text-secondary); }
+.form-group input,
+.form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border-default); border-radius: var(--radius-md); font-size: var(--font-md); font-family: var(--font-family); outline: none; transition: border-color var(--transition-fast); background: var(--bg-surface); color: var(--text-primary); }
+.form-group input::placeholder { color: var(--text-placeholder); }
+.form-group input:focus,
+.form-group select:focus { border-color: var(--border-hover); }
+.form-group select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='%239ca3af' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+.form-group select option { background: var(--bg-elevated); color: var(--text-primary); }
+.hint { font-size: var(--font-xs); color: var(--text-muted); }
 .status-bar { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: var(--radius-md); font-size: var(--font-sm); background: #422006; color: #fbbf24; }
 .status-bar.configured { background: #064e3b; color: #34d399; }
 .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-warning); flex-shrink: 0; }
 .status-bar.configured .status-dot { background: #10b981; }
 .panel-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border-default); }
+.btn { padding: 7px 16px; border-radius: var(--radius-md); font-size: var(--font-md); font-family: var(--font-family); font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all var(--transition-fast); }
+.btn-secondary { background: transparent; color: var(--text-secondary); border-color: var(--border-default); }
+.btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-hover); }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); }
 </style>

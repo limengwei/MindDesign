@@ -54,6 +54,8 @@ const showSettingsPanel = ref(false)
 .toolbar-left { display: flex; align-items: center; gap: 8px; --wails-draggable: no-drag; }
 .toolbar-center { flex: 1; }
 .toolbar-right { display: flex; align-items: center; gap: 8px; --wails-draggable: no-drag; }
+.toolbar-btn { border: none; background: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.toolbar-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
 .back-btn { color: var(--text-secondary); }
 .app-name { font-size: var(--font-base); font-weight: 600; color: var(--color-primary-light); }
 .separator { color: #3a3a5c; font-size: var(--font-base); }

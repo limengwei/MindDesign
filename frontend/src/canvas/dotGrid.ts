@@ -88,7 +88,15 @@ export class DotGrid {
     this.startHoverAnimation()
   }
 
-  private onMouseEnter() { this.mouseInside = true }
+  private onMouseEnter(e: MouseEvent) {
+    this.mouseInside = true
+    const rect = (this.app.view as HTMLElement).getBoundingClientRect()
+    this.mouseX = e.clientX - rect.left
+    this.mouseY = e.clientY - rect.top
+    this.smoothMouseX = this.mouseX
+    this.smoothMouseY = this.mouseY
+    this.startHoverAnimation()
+  }
   private onMouseLeave() { this.mouseInside = false; this.startHoverAnimation() }
 
   private startHoverAnimation() {

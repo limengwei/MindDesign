@@ -474,7 +474,7 @@ function formatTime(iso: string) {
         />
         <div class="input-actions">
           <button class="input-action-btn" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10a2.5 2.5 0 002.5-2.5c0-.61-.23-1.2-.64-1.67a.528.528 0 01-.13-.33c0-.29.24-.5.5-.5H16c3.31 0 6-2.69 6-6 0-4.96-4.49-9-10-9zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 8 6.5 8 8 8.67 8 9.5 7.33 11 6.5 11zm3-4C8.67 7 8 6.33 8 5.5S8.67 4 9.5 4s1.5.67 1.5 1.5S10.33 7 9.5 7zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 4 14.5 4s1.5.67 1.5 1.5S15.33 7 14.5 7zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 8 17.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
           </button>
           <button
             class="send-btn"
@@ -572,9 +572,8 @@ function formatTime(iso: string) {
 
 .input-wrapper { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; background: rgba(30, 30, 54, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid var(--border-subtle); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
 .skill-selector + .input-wrapper { border-radius: 0 0 14px 14px; border-top: none; }
-.chat-input { width: 100%; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--radius-md); font-size: 15px; font-family: inherit; outline: none; resize: none; transition: border-color var(--transition-normal); background: rgba(22, 33, 62, 0.6); color: var(--text-primary); line-height: 1.5; min-height: 24px; max-height: 160px; }
+.chat-input { width: 100%; padding: 8px 12px; border: none; border-radius: var(--radius-md); font-size: 15px; font-family: inherit; outline: none; resize: none; background: transparent; color: var(--text-primary); line-height: 1.5; min-height: 24px; max-height: 160px; }
 .chat-input::placeholder { color: var(--text-muted); }
-.chat-input:focus { border-color: var(--border-hover); }
 .chat-input:disabled { color: var(--text-placeholder); }
 .input-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
 .input-action-btn { width: 34px; height: 34px; border: none; border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; }
