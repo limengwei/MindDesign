@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { type DesignSpecId } from '../prompts/designSpecs'
+import DesignSpecSelector from './DesignSpecSelector.vue'
 
 const emit = defineEmits(['create', 'close'])
 
 const projectName = ref('')
 const pageType = ref('app')
-const colorScheme = ref('auto')
 const description = ref('')
+const designSpecId = ref<DesignSpecId>('none')
 
 const pageTypes = [
   { value: 'app', label: '📱 移动 App', width: '375px' },
@@ -14,18 +16,11 @@ const pageTypes = [
   { value: 'desktop', label: '🖥 桌面应用', width: '1280px' },
 ]
 
-const colorSchemes = [
-  { value: 'auto', label: '🎨 自动' },
-  { value: 'light', label: '☀️ 浅色' },
-  { value: 'dark', label: '🌙 深色' },
-  { value: 'brand', label: '🏷️ 品牌' },
-]
-
 function handleCreate() {
   emit('create', {
     name: projectName.value || '未命名项目',
     pageType: pageType.value,
-    colorScheme: colorScheme.value,
+    designSpecId: designSpecId.value,
     description: description.value,
   })
 }
@@ -33,7 +28,7 @@ function handleCreate() {
 
 <template>
   <div class="dialog-overlay" @click.self="$emit('close')">
-    <div class="dialog">
+    <div class="dialog dialog-create">
       <h2 class="dialog-title">新建项目</h2>
 
       <div class="form-group">
@@ -63,17 +58,8 @@ function handleCreate() {
       </div>
 
       <div class="form-group">
-        <label>配色方案</label>
-        <div class="option-grid">
-          <button
-            v-for="cs in colorSchemes"
-            :key="cs.value"
-            :class="['option-card small', { active: colorScheme === cs.value }]"
-            @click="colorScheme = cs.value"
-          >
-            {{ cs.label }}
-          </button>
-        </div>
+        <label>设计规范</label>
+        <DesignSpecSelector v-model="designSpecId" />
       </div>
 
       <div class="form-group">
@@ -111,10 +97,14 @@ function handleCreate() {
   padding: 32px;
   width: 480px;
   max-width: 90vw;
-  max-height: 85vh;
-  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   border: 1px solid #2a2a4a;
+}
+
+.dialog-create {
+  width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
 }
 
 .dialog-title {

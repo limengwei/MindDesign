@@ -30,6 +30,8 @@ function loadProjectData(data: ProjectFile) {
   if (data.meta.createdAt) canvasStore.setCreatedAt(data.meta.createdAt)
   if (data.canvas.pageType) canvasStore.setPageType(data.canvas.pageType)
   if (data.canvas.colorScheme) canvasStore.setColorScheme(data.canvas.colorScheme)
+  if (data.canvas.designSpecId) canvasStore.setDesignSpecId(data.canvas.designSpecId)
+  if (data.canvas.customDesignContent) canvasStore.setCustomDesignContent(data.canvas.customDesignContent)
   if (data.canvas.cards) canvasStore.cards = data.canvas.cards
   if (data.canvas.viewport) {
     canvasStore.setViewport(data.canvas.viewport.zoom, data.canvas.viewport.scrollX, data.canvas.viewport.scrollY)

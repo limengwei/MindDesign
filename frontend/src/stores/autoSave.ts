@@ -19,6 +19,8 @@ export function buildProjectData(): ProjectFile {
       cards: canvas.cards,
       pageType: canvas.pageType,
       colorScheme: canvas.colorScheme,
+      designSpecId: canvas.designSpecId,
+      customDesignContent: canvas.customDesignContent,
       viewport: canvas.viewport,
     },
     sessions: chat.sessions,

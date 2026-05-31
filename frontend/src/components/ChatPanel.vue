@@ -23,6 +23,8 @@ function buildCallOptions(selectedHtml?: string) {
   return {
     pageType: canvasStore.pageType,
     colorScheme: canvasStore.colorScheme,
+    designSpecId: canvasStore.designSpecId,
+    customDesignContent: canvasStore.customDesignContent,
     history: [] as Array<{ role: string; content: string }>,
     selectedHtml,
     onStreamingHTML: (html: string) => {

@@ -1,10 +1,14 @@
 import type { PageType } from './page-types'
 import type { ColorScheme } from './colors'
+import type { DesignSpecId } from './designSpecs'
 import { PAGE_TYPE_CONSTRAINTS } from './page-types'
 import { ICON_CONSTRAINTS } from './icons'
 import { COLOR_CONSTRAINTS } from './colors'
+import { buildDesignSpecPrompt } from './designSpecs'
 
-export function buildSystemPrompt(pageType: PageType, colorScheme: ColorScheme): string {
+export function buildSystemPrompt(pageType: PageType, colorScheme: ColorScheme, designSpecId: DesignSpecId = 'none', customDesignContent?: string): string {
+  const designSpecSection = buildDesignSpecPrompt(designSpecId, customDesignContent)
+
   return `你是 MindDesign 的 AI 设计师助手。你通过自然语言对话为用户生成 UI 设计稿。
 
 ## 输出格式
@@ -44,7 +48,7 @@ ${PAGE_TYPE_CONSTRAINTS[pageType]}
 ## 配色方案
 
 ${COLOR_CONSTRAINTS[colorScheme]}
-
+${designSpecSection ? '\n' + designSpecSection + '\n' : ''}
 ## 技术规范
 
 - body 宽度固定为 ${pageType === 'app' ? '375px' : pageType === 'web' ? '1440px' : '1280px'}

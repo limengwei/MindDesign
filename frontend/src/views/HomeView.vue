@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getRecentProjects, createProject, type RecentProject } from '../services/projectBridge'
+import { getRecentProjects, createProject, writeFile, readFile, type RecentProject } from '../services/projectBridge'
 import WindowControls from '../components/WindowControls.vue'
+import DesignSpecSelector from '../components/DesignSpecSelector.vue'
+import {
+  type DesignSpecId,
+} from '../prompts/designSpecs'
 
 const router = useRouter()
 const projects = ref<RecentProject[]>([])
@@ -10,7 +14,12 @@ const loading = ref(true)
 const showCreateForm = ref(false)
 const projectName = ref('')
 const pageType = ref('app')
-const colorScheme = ref('auto')
+const designSpecId = ref<DesignSpecId>('none')
+const customSpecName = ref('')
+const customSpecContent = ref('')
+const showCustomImport = ref(false)
+const savedCustomSpecs = ref<{ name: string; content: string }[]>([])
+const selectedCustomSpecIndex = ref(-1)
 
 const pageTypes = [
   { value: 'app', label: '📱 移动 App', width: '375px' },
@@ -18,12 +27,48 @@ const pageTypes = [
   { value: 'desktop', label: '🖥 桌面应用', width: '1280px' },
 ]
 
-const colorSchemes = [
-  { value: 'auto', label: '🎨 自动' },
-  { value: 'light', label: '☀️ 浅色' },
-  { value: 'dark', label: '🌙 深色' },
-  { value: 'brand', label: '🏷️ 品牌' },
-]
+async function loadCustomSpecs() {
+  try {
+    const raw = await readFile('design-specs/custom-specs.json')
+    savedCustomSpecs.value = JSON.parse(raw)
+  } catch {
+    savedCustomSpecs.value = []
+  }
+}
+
+async function saveCustomSpec() {
+  const name = customSpecName.value.trim()
+  const content = customSpecContent.value.trim()
+  if (!name || !content) return
+  savedCustomSpecs.value.push({ name, content })
+  try {
+    await writeFile('design-specs/custom-specs.json', JSON.stringify(savedCustomSpecs.value))
+  } catch (e) {
+    console.error('Failed to save custom spec:', e)
+  }
+  customSpecName.value = ''
+  customSpecContent.value = ''
+  showCustomImport.value = false
+}
+
+function selectCustomSpec(index: number) {
+  selectedCustomSpecIndex.value = index
+}
+
+function deleteCustomSpec(index: number) {
+  savedCustomSpecs.value.splice(index, 1)
+  if (selectedCustomSpecIndex.value === index) selectedCustomSpecIndex.value = -1
+  else if (selectedCustomSpecIndex.value > index) selectedCustomSpecIndex.value--
+  writeFile('design-specs/custom-specs.json', JSON.stringify(savedCustomSpecs.value)).catch(() => {})
+}
+
+function getCustomContent(): string {
+  if (designSpecId.value !== 'custom') return ''
+  if (selectedCustomSpecIndex.value >= 0 && savedCustomSpecs.value[selectedCustomSpecIndex.value]) {
+    return savedCustomSpecs.value[selectedCustomSpecIndex.value].content
+  }
+  return customSpecContent.value
+}
 
 async function loadProjects() {
   loading.value = true
@@ -58,7 +103,8 @@ async function handleCreate() {
       canvas: {
         cards: [],
         pageType: pageType.value,
-        colorScheme: colorScheme.value,
+        designSpecId: designSpecId.value,
+        customDesignContent: getCustomContent(),
         viewport: { zoom: 1, scrollX: 0, scrollY: 0 },
       },
       sessions: [],
@@ -188,6 +234,7 @@ function drawDots() {
 
 onMounted(() => {
   loadProjects()
+  loadCustomSpecs()
   initDotGrid()
 })
 
@@ -238,7 +285,7 @@ onUnmounted(() => {
     <div v-if="loading" class="loading">加载中...</div>
 
     <div v-if="showCreateForm" class="dialog-overlay" @click.self="showCreateForm = false">
-      <div class="dialog">
+      <div class="dialog dialog-create">
         <h2 class="dialog-title">新建项目</h2>
 
         <div class="form-group">
@@ -268,16 +315,54 @@ onUnmounted(() => {
         </div>
 
         <div class="form-group">
-          <label>配色方案</label>
-          <div class="option-grid">
-            <button
-              v-for="cs in colorSchemes"
-              :key="cs.value"
-              :class="['option-card small', { active: colorScheme === cs.value }]"
-              @click="colorScheme = cs.value"
-            >
-              {{ cs.label }}
-            </button>
+          <label>设计规范</label>
+          <DesignSpecSelector v-model="designSpecId" />
+
+          <div v-if="designSpecId === 'custom'" class="custom-spec-area">
+            <div v-if="savedCustomSpecs.length > 0" class="saved-specs-list">
+              <div class="saved-specs-title">已保存的设计规范</div>
+              <div
+                v-for="(spec, idx) in savedCustomSpecs"
+                :key="idx"
+                :class="['saved-spec-item', { active: selectedCustomSpecIndex === idx }]"
+                @click="selectCustomSpec(idx)"
+              >
+                <span class="saved-spec-name">{{ spec.name }}</span>
+                <button class="delete-spec-btn" @click.stop="deleteCustomSpec(idx)">✕</button>
+              </div>
+            </div>
+            <div class="import-actions">
+              <button class="btn btn-link" @click="showCustomImport = !showCustomImport">
+                {{ showCustomImport ? '收起' : '+ 导入新的设计规范' }}
+              </button>
+              <a href="https://getdesign.md/" target="_blank" class="spec-link">获取更多设计规范 →</a>
+            </div>
+            <div v-if="showCustomImport" class="custom-import-form">
+              <input
+                v-model="customSpecName"
+                type="text"
+                placeholder="设计规范名称（如：My Brand）"
+                class="input"
+              />
+              <textarea
+                v-model="customSpecContent"
+                placeholder="粘贴 DESIGN.md 内容..."
+                class="input textarea"
+                rows="6"
+              ></textarea>
+              <div class="import-hint">
+                将设计规范内容粘贴到上方文本框中。你可以从
+                <a href="https://github.com/VoltAgent/awesome-design-md" target="_blank">awesome-design-md</a>
+                获取 DESIGN.md 文件，或按照
+                <a href="https://stitch.withgoogle.com/docs/design-md/specification/" target="_blank">DESIGN.md 规范</a>
+                自行编写。
+              </div>
+              <button
+                class="btn btn-secondary"
+                :disabled="!customSpecName.trim() || !customSpecContent.trim()"
+                @click="saveCustomSpec"
+              >保存设计规范</button>
+            </div>
           </div>
         </div>
 
@@ -558,4 +643,92 @@ onUnmounted(() => {
 .btn-secondary:hover { background: #3a3a5c; }
 .btn-primary { background: #4f46e5; color: #fff; }
 .btn-primary:hover { background: #6366f1; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-link { background: none; color: #818cf8; padding: 4px 8px; font-size: 13px; }
+.btn-link:hover { background: none; color: #a5b4fc; }
+
+.dialog-create {
+  width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.custom-spec-area {
+  margin-top: 12px;
+  padding: 12px;
+  background: #16213e;
+  border-radius: 8px;
+  border: 1px solid #2a2a4a;
+}
+
+.saved-specs-list {
+  margin-bottom: 12px;
+}
+
+.saved-specs-title {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 6px;
+}
+
+.saved-spec-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 4px;
+  background: #1e1e36;
+  border: 1px solid transparent;
+}
+.saved-spec-item:hover { border-color: #3a3a5c; }
+.saved-spec-item.active { border-color: #818cf8; background: #1e1b4b; }
+
+.saved-spec-name {
+  font-size: 13px;
+  color: #e5e7eb;
+}
+
+.delete-spec-btn {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.delete-spec-btn:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+.import-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.custom-import-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.import-hint {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+.import-hint a { color: #818cf8; text-decoration: none; }
+.import-hint a:hover { text-decoration: underline; }
+
+.textarea {
+  resize: vertical;
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
 </style>

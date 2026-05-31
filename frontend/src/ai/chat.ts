@@ -1,5 +1,6 @@
 import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
+import type { DesignSpecId } from '../prompts/designSpecs'
 import { buildSystemPrompt } from '../prompts/system'
 import { searchIcons, searchIconsToolDefinition } from './tools'
 import { callOpenAICompatible, type ChatMessage, type ToolDefinition } from './llmClient'
@@ -77,6 +78,8 @@ function parseDSMLToolCalls(text: string): { name: string; args: string }[] | nu
 export interface SendMessageOptions {
   pageType: PageType
   colorScheme: ColorScheme
+  designSpecId?: DesignSpecId
+  customDesignContent?: string
   history: Array<{ role: string; content: string }>
   selectedHtml?: string
   onStreamingHTML?: (html: string) => void
@@ -88,7 +91,7 @@ const MAX_TOOL_CALLS = 2
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
-  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme)
+  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme, options.designSpecId, options.customDesignContent)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },

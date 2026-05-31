@@ -1,4 +1,4 @@
-import type { CanvasCard, PageType, ColorScheme } from '../stores/canvasStore'
+import type { CanvasCard, PageType, ColorScheme, DesignSpecId } from '../stores/canvasStore'
 import type { Session } from '../stores/chatStore'
 
 export interface ProjectFile {
@@ -13,6 +13,8 @@ export interface ProjectFile {
     cards: CanvasCard[]
     pageType: PageType
     colorScheme: ColorScheme
+    designSpecId?: DesignSpecId
+    customDesignContent?: string
     viewport: {
       zoom: number
       scrollX: number

@@ -2,8 +2,10 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
+import type { DesignSpecId } from '../prompts/designSpecs'
 
 export type { PageType, ColorScheme }
+export type { DesignSpecId }
 
 export interface CanvasCard {
   id: string
@@ -37,6 +39,8 @@ export const useCanvasStore = defineStore('canvas', () => {
   const generatingCardId = ref<string | null>(null)
   const currentFilePath = ref('')
   const createdAt = ref('')
+  const designSpecId = ref<DesignSpecId>('none')
+  const customDesignContent = ref('')
 
   function addCard(html: string, screenshot: string, label?: string, sessionId?: string, parentId?: string): CanvasCard {
     _cardCounter++
@@ -100,6 +104,8 @@ export const useCanvasStore = defineStore('canvas', () => {
   function setGenerating(val: boolean) { isGenerating.value = val }
   function setCurrentFilePath(path: string) { currentFilePath.value = path }
   function setCreatedAt(date: string) { createdAt.value = date }
+  function setDesignSpecId(id: DesignSpecId) { designSpecId.value = id }
+  function setCustomDesignContent(content: string) { customDesignContent.value = content }
 
   function reset() {
     cards.value = []
@@ -112,13 +118,15 @@ export const useCanvasStore = defineStore('canvas', () => {
     generatingCardId.value = null
     currentFilePath.value = ''
     createdAt.value = ''
+    designSpecId.value = 'none'
+    customDesignContent.value = ''
   }
 
   return {
     cards, selectedCardId,
-    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt,
+    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt, designSpecId, customDesignContent,
     addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
-    setCurrentFilePath, setCreatedAt, reset,
+    setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, reset,
   }
 })
