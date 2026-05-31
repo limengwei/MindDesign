@@ -66,6 +66,7 @@ onUnmounted(() => {
   resizeObserver?.disconnect(); resizeObserver = null
   app?.destroy(); app = null; treeLayer = null
   cardGroups.clear()
+  actionBtnGroups.clear()
 })
 
 const iconCache = new Map<string, string>()
@@ -200,6 +201,8 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
 async function renderAll(shouldZoom = false) {
   if (!treeLayer) return
   const v = ++renderVersion
+  for (const g of actionBtnGroups.values()) g.remove()
+  actionBtnGroups.clear()
   for (const g of cardGroups.values()) g.remove()
   cardGroups.clear()
   const genId = canvasStore.generatingCardId
@@ -208,6 +211,11 @@ async function renderAll(shouldZoom = false) {
     await renderCard(card, card.id === canvasStore.selectedCardId, card.id === genId)
   }
   if (genId) startBreathAnimation()
+  const selId = canvasStore.selectedCardId
+  if (selId) {
+    const selGroup = cardGroups.get(selId)
+    if (selGroup) createActionBtns(selId, selGroup)
+  }
   if (shouldZoom && cardGroups.size > 0) {
     setTimeout(() => { if (renderVersion === v) treeLayer?.zoom('fit', 40) }, 600)
   }
@@ -255,13 +263,81 @@ watch(
   },
 )
 
-watch(() => canvasStore.selectedCardId, () => {
-  for (const [id, group] of cardGroups) {
-    const sel = id === canvasStore.selectedCardId
-    ;(group as any).strokeWidth = sel ? 3 : 1
-    ;(group as any).stroke = sel ? '#818cf8' : '#2a2a4a'
+watch(() => canvasStore.selectedCardId, (newId, oldId) => {
+  if (oldId) {
+    removeActionBtns(oldId)
+    const oldGroup = cardGroups.get(oldId)
+    if (oldGroup) {
+      ;(oldGroup as any).strokeWidth = 1
+      ;(oldGroup as any).stroke = '#2a2a4a'
+    }
+  }
+  if (newId) {
+    const group = cardGroups.get(newId)
+    if (group) {
+      ;(group as any).strokeWidth = 3
+      ;(group as any).stroke = '#818cf8'
+      createActionBtns(newId, group)
+    }
   }
 })
+
+const BTN_H = 28
+const BTN_GAP = 8
+const BTN_AREA_H = BTN_H + 6
+const actionBtnGroups = new Map<string, Box>()
+
+function createActionBtns(cardId: string, group: Box) {
+  const existing = actionBtnGroups.get(cardId)
+  if (existing) return
+
+  const w = group.width ?? 0
+  const gx = group.x ?? 0
+  const gy = group.y ?? 0
+  const btnW = 56
+
+  const btnGroup = new Box({
+    x: gx, y: gy - BTN_AREA_H,
+    width: w, height: BTN_H,
+  })
+
+  const refreshBtn = new Rect({
+    x: w - btnW * 2 - BTN_GAP, y: 0,
+    width: btnW, height: BTN_H,
+    fill: 'rgba(79,70,229,0.85)', cornerRadius: 6,
+    hittable: true, hitSelf: true,
+  })
+  refreshBtn.add(new Text({ text: '刷新', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  refreshBtn.id = `__btn_refresh__${cardId}`
+  refreshBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; refreshCard(cardId) })
+
+  const deleteBtn = new Rect({
+    x: w - btnW, y: 0,
+    width: btnW, height: BTN_H,
+    fill: 'rgba(239,68,68,0.85)', cornerRadius: 6,
+    hittable: true, hitSelf: true,
+  })
+  deleteBtn.add(new Text({ text: '删除', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  deleteBtn.id = `__btn_delete__${cardId}`
+  deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; canvasStore.removeCard(cardId) })
+
+  btnGroup.add(refreshBtn as any)
+  btnGroup.add(deleteBtn as any)
+  treeLayer!.add(btnGroup as any)
+  actionBtnGroups.set(cardId, btnGroup)
+}
+
+function removeActionBtns(cardId: string) {
+  const btnGroup = actionBtnGroups.get(cardId)
+  if (btnGroup) { btnGroup.remove(); actionBtnGroups.delete(cardId) }
+}
+
+async function refreshCard(cardId: string) {
+  const card = canvasStore.cards.find(c => c.id === cardId)
+  if (!card || !card.html) return
+  card.screenshot = ''
+  await renderCard(card, true, false)
+}
 
 function handleZoomIn() { treeLayer?.zoom('in') }
 function handleZoomOut() { treeLayer?.zoom('out') }

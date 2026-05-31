@@ -84,6 +84,11 @@ export const useCanvasStore = defineStore('canvas', () => {
     selectedCardId.value = id
   }
 
+  function removeCard(id: string) {
+    cards.value = cards.value.filter(c => c.id !== id)
+    if (selectedCardId.value === id) selectedCardId.value = null
+  }
+
   function setPageType(type: PageType) { pageType.value = type }
   function setColorScheme(scheme: ColorScheme) { colorScheme.value = scheme }
   function setProjectName(name: string) { projectName.value = name }
@@ -108,7 +113,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   return {
     cards, selectedCardId,
     pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt,
-    addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, selectCard,
+    addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
     setCurrentFilePath, setCreatedAt, reset,
   }
