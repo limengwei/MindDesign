@@ -149,24 +149,30 @@ async function replaceIcons(html: string): Promise<string> {
   return `<!DOCTYPE html><html><head>${headHtml}</head><body>${bodyContent}</body></html>`
 }
 
-async function htmlToScreenshot(html: string): Promise<string> {
-  if (!html) return ''
+async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; contentHeight: number }> {
+  if (!html) return { dataUrl: '', contentHeight: props.pageHeight }
 
   const processed = await replaceIcons(html)
 
   const iframe = document.createElement('iframe')
-  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + props.pageWidth + 'px;height:' + props.pageHeight + 'px;border:none;overflow:hidden'
+  iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + props.pageWidth + 'px;border:none;'
   document.body.appendChild(iframe)
   const doc = iframe.contentDocument!
   doc.open(); doc.write(processed); doc.close()
   await new Promise(r => setTimeout(r, 600))
   try {
-    const c = await html2canvas(doc.body, { width: props.pageWidth, height: props.pageHeight, scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+    doc.documentElement.style.height = 'auto'
+    doc.documentElement.style.overflow = 'visible'
+    doc.body.style.height = 'auto'
+    doc.body.style.overflow = 'visible'
+    const contentHeight = Math.ceil(Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, props.pageHeight))
+    iframe.style.height = contentHeight + 'px'
+    const c = await html2canvas(doc.body, { width: props.pageWidth, height: contentHeight, scale: 2, useCORS: true, backgroundColor: '#ffffff' })
     document.body.removeChild(iframe)
-    return c.toDataURL('image/png')
+    return { dataUrl: c.toDataURL('image/png'), contentHeight }
   } catch (e) {
     document.body.removeChild(iframe)
-    return ''
+    return { dataUrl: '', contentHeight: props.pageHeight }
   }
 }
 
@@ -177,7 +183,11 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
   if (existing) existing.remove()
 
   if (!isGenerating && !card.screenshot && card.html) {
-    card.screenshot = await htmlToScreenshot(card.html)
+    const result = await htmlToScreenshot(card.html)
+    card.screenshot = result.dataUrl
+    if (result.contentHeight !== card.height) {
+      card.height = result.contentHeight
+    }
   }
 
   const w = card.width || props.pageWidth
