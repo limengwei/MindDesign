@@ -443,8 +443,8 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
           <span class="confirm-text">{{ confirmState.message }}</span>
         </div>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-cancel" @click="cancelDelete">取消</button>
-          <button class="confirm-btn confirm-danger" @click="confirmDelete">删除</button>
+          <button class="btn btn-secondary" @click="cancelDelete">取消</button>
+          <button class="btn btn-danger" @click="confirmDelete">删除</button>
         </div>
       </div>
     </div>
@@ -452,18 +452,13 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 </template>
 
 <style scoped>
-.canvas-wrapper { position: absolute; inset: 0; background: #0f0f23; overflow: hidden; }
+.canvas-wrapper { position: absolute; inset: 0; background: var(--bg-canvas); overflow: hidden; }
 .canvas-container { position: relative; width: 100%; height: 100%; }
-.canvas-info { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: 11px; color: #6b7280; border-radius: 6px; pointer-events: none; z-index: 10; }
-.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.confirm-dialog { background: #16213e; border-radius: 12px; padding: 20px 24px; min-width: 280px; box-shadow: 0 16px 48px rgba(0,0,0,0.4); border: 1px solid #2a2a4a; }
+.canvas-info { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: var(--font-xs); color: var(--text-muted); border-radius: var(--radius-sm); pointer-events: none; z-index: var(--z-canvas); }
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
+.confirm-dialog { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 20px 24px; min-width: 280px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-default); }
 .confirm-body { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .confirm-icon { font-size: 20px; }
-.confirm-text { font-size: 14px; color: #e5e7eb; }
+.confirm-text { font-size: var(--font-md); color: var(--text-primary); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.confirm-btn { padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
-.confirm-cancel { background: #2a2a4a; color: #9ca3af; }
-.confirm-cancel:hover { background: #3a3a5c; color: #e5e7eb; }
-.confirm-danger { background: #dc2626; color: #fff; }
-.confirm-danger:hover { background: #ef4444; }
 </style>

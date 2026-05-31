@@ -50,88 +50,14 @@ const showSettingsPanel = ref(false)
 </template>
 
 <style scoped>
-.toolbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  height: 44px;
-  background: rgba(22, 33, 62, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(42, 42, 74, 0.6);
-  flex-shrink: 0;
-  --wails-draggable: drag;
-}
-
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  --wails-draggable: no-drag;
-}
-
-.toolbar-center {
-  flex: 1;
-}
-
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  --wails-draggable: no-drag;
-}
-
-.back-btn {
-  color: #9ca3af;
-}
-
-.app-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #818cf8;
-}
-
-.separator {
-  color: #3a3a5c;
-  font-size: 13px;
-}
-
-.project-name {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.toolbar-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: none;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #9ca3af;
-  transition: all 0.15s;
-}
-
-.toolbar-btn:hover {
-  background: rgba(42, 42, 74, 0.6);
-  color: #e5e7eb;
-}
-
-.toolbar-btn.active {
-  color: #34d399;
-}
-
-.size-info {
-  font-size: 11px;
-  color: #6b7280;
-}
+.toolbar { position: absolute; top: 0; left: 0; right: 0; z-index: var(--z-toolbar); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 44px; background: rgba(22, 33, 62, 0.75); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-subtle); flex-shrink: 0; --wails-draggable: drag; }
+.toolbar-left { display: flex; align-items: center; gap: 8px; --wails-draggable: no-drag; }
+.toolbar-center { flex: 1; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; --wails-draggable: no-drag; }
+.back-btn { color: var(--text-secondary); }
+.app-name { font-size: var(--font-base); font-weight: 600; color: var(--color-primary-light); }
+.separator { color: #3a3a5c; font-size: var(--font-base); }
+.project-name { font-size: var(--font-sm); color: var(--text-muted); }
+.size-info { font-size: var(--font-xs); color: var(--text-muted); }
+.toolbar-btn.active { color: #34d399; }
 </style>

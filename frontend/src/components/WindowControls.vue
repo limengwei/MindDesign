@@ -68,33 +68,8 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.window-controls {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  --wails-draggable: no-drag;
-}
-
-.ctrl-btn {
-  width: 46px;
-  height: 32px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #9ca3af;
-  transition: background 0.15s, color 0.15s;
-}
-
-.ctrl-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #e5e7eb;
-}
-
-.close-btn:hover {
-  background: #e81123;
-  color: #fff;
-}
+.window-controls { display: flex; align-items: center; height: 100%; --wails-draggable: no-drag; }
+.ctrl-btn { width: 46px; height: 32px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: background var(--transition-fast), color var(--transition-fast); }
+.ctrl-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--text-primary); }
+.close-btn:hover { background: #e81123; color: #fff; }
 </style>

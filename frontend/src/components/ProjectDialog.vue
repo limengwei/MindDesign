@@ -81,155 +81,16 @@ function handleCreate() {
 </template>
 
 <style scoped>
-.dialog-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.dialog {
-  background: #1e1e36;
-  border-radius: 16px;
-  padding: 32px;
-  width: 480px;
-  max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-  border: 1px solid #2a2a4a;
-}
-
-.dialog-create {
-  width: 560px;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.dialog-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin: 0 0 24px;
-  color: #e5e7eb;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #9ca3af;
-  margin-bottom: 8px;
-}
-
-.input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #2a2a4a;
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-  background: #16213e;
-  color: #e5e7eb;
-}
-
-.input::placeholder {
-  color: #4b5563;
-}
-
-.input:focus {
-  border-color: #818cf8;
-}
-
-.textarea {
-  resize: vertical;
-  font-family: inherit;
-}
-
-.option-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.option-card {
-  flex: 1 1 0;
-  min-width: 100px;
-  padding: 12px 8px;
-  border: 2px solid #2a2a4a;
-  border-radius: 10px;
-  background: #16213e;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s;
-  color: #e5e7eb;
-}
-
-.option-card:hover {
-  border-color: #3a3a5c;
-}
-
-.option-card.active {
-  border-color: #818cf8;
-  background: #1e1b4b;
-}
-
-.option-card.small {
-  flex: 0 1 auto;
-  min-width: 80px;
-  padding: 8px 12px;
-  white-space: nowrap;
-}
-
-.option-label {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.option-hint {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 24px;
-}
-
-.btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-.btn-secondary {
-  background: #2a2a4a;
-  color: #9ca3af;
-}
-
-.btn-secondary:hover {
-  background: #3a3a5c;
-}
-
-.btn-primary {
-  background: #4f46e5;
-  color: #fff;
-}
-
-.btn-primary:hover {
-  background: #6366f1;
-}
+.dialog-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
+.dialog { background: var(--bg-elevated); border-radius: var(--radius-xl); padding: 32px; width: 480px; max-width: 90vw; box-shadow: var(--shadow-lg); border: 1px solid var(--border-default); }
+.dialog-create { width: 560px; max-height: 85vh; overflow-y: auto; }
+.dialog-title { font-size: var(--font-2xl); font-weight: 600; margin: 0 0 24px; color: var(--text-primary); }
+.option-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.option-card { flex: 1 1 0; min-width: 100px; padding: 12px 8px; border: 2px solid var(--border-default); border-radius: 10px; background: var(--bg-surface); cursor: pointer; text-align: center; transition: all var(--transition-normal); color: var(--text-primary); }
+.option-card:hover { border-color: #3a3a5c; }
+.option-card.active { border-color: var(--color-primary-light); background: #1e1b4b; }
+.option-card.small { flex: 0 1 auto; min-width: 80px; padding: 8px 12px; white-space: nowrap; }
+.option-label { font-size: var(--font-md); font-weight: 500; }
+.option-hint { font-size: var(--font-sm); color: var(--text-muted); margin-top: 4px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
 </style>
