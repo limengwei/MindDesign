@@ -5,6 +5,7 @@ export type SkillCategory = 'design' | 'marketing' | 'operation' | 'engineering'
 export interface DesignSkill {
   id: string
   name: string
+  emoji: string
   icon: string
   category: SkillCategory
   description: string
@@ -26,6 +27,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'web-prototype',
     name: '网页原型',
+    emoji: '🌐',
     icon: 'language',
     category: 'design',
     description: '快速生成网页原型设计',
@@ -51,6 +53,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'mobile-app',
     name: '移动端 App',
+    emoji: '📱',
     icon: 'smartphone',
     category: 'design',
     description: '设计移动端 App 界面',
@@ -84,6 +87,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'dashboard',
     name: '数据仪表盘',
+    emoji: '📊',
     icon: 'dashboard',
     category: 'design',
     description: '设计数据仪表盘界面',
@@ -113,6 +117,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'landing-page',
     name: '落地页',
+    emoji: '🚀',
     icon: 'web',
     category: 'design',
     description: '设计产品落地页',
@@ -139,6 +144,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'wireframe',
     name: '线框图',
+    emoji: '📐',
     icon: 'grain',
     category: 'design',
     description: '设计低保真线框图',
@@ -164,6 +170,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'design-critique',
     name: '设计评审',
+    emoji: '🎨',
     icon: 'palette',
     category: 'design',
     description: '对现有设计进行专业评审',
@@ -190,6 +197,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'social-carousel',
     name: '社交媒体轮播图',
+    emoji: '🖼️',
     icon: 'photo_library',
     category: 'marketing',
     description: '设计社交媒体轮播图',
@@ -214,6 +222,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'email-template',
     name: '邮件模板',
+    emoji: '✉️',
     icon: 'email',
     category: 'marketing',
     description: '设计邮件营销模板',
@@ -239,6 +248,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'poster',
     name: '海报/宣传图',
+    emoji: '🎭',
     icon: 'brush',
     category: 'marketing',
     description: '设计海报或宣传图',
@@ -263,6 +273,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'kanban-board',
     name: '看板',
+    emoji: '📋',
     icon: 'view_kanban',
     category: 'operation',
     description: '设计任务看板界面',
@@ -286,6 +297,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'data-report',
     name: '数据报告',
+    emoji: '📈',
     icon: 'bar_chart',
     category: 'operation',
     description: '设计数据报告页面',
@@ -312,6 +324,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'invoice',
     name: '发票/收据',
+    emoji: '🧾',
     icon: 'receipt',
     category: 'operation',
     description: '设计发票或收据模板',
@@ -336,6 +349,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'prd-document',
     name: '产品需求文档',
+    emoji: '📝',
     icon: 'description',
     category: 'product',
     description: '设计产品需求文档页面',
@@ -363,6 +377,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'user-flow',
     name: '用户流程图',
+    emoji: '🔀',
     icon: 'account_tree',
     category: 'product',
     description: '设计用户流程图',
@@ -388,6 +403,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'competitor-analysis',
     name: '竞品分析看板',
+    emoji: '🔍',
     icon: 'compare',
     category: 'product',
     description: '设计竞品分析看板',
@@ -412,6 +428,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'api-docs',
     name: 'API 文档页',
+    emoji: '⚡',
     icon: 'code',
     category: 'engineering',
     description: '设计 API 文档页面',
@@ -436,6 +453,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'status-page',
     name: '系统状态页',
+    emoji: '💚',
     icon: 'monitor_heart',
     category: 'engineering',
     description: '设计系统状态页面',
@@ -462,6 +480,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'changelog',
     name: '更新日志页',
+    emoji: '🔄',
     icon: 'update',
     category: 'engineering',
     description: '设计产品更新日志页面',
@@ -491,6 +510,7 @@ export const BUILT_IN_SKILLS: DesignSkill[] = [
   {
     id: 'magazine-page',
     name: '杂志排版页',
+    emoji: '📖',
     icon: 'auto_stories',
     category: 'marketing',
     description: '设计杂志风格排版页',

@@ -3,10 +3,12 @@ import { ref, computed, watch } from 'vue'
 import { useChatStore, type Session } from '../stores/chatStore'
 import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM, type DesignCritique, type PreflightData } from '../ai/chat'
-import { BUILT_IN_SKILLS, getSkillById, type DesignSkill } from '../prompts/skills'
+import { BUILT_IN_SKILLS, getSkillById, SKILL_CATEGORIES, type DesignSkill } from '../prompts/skills'
 import { buildPreflightFollowUpPrompt } from '../prompts/preflight'
 import { isBlueprintEmpty, type ProductBlueprint } from '../prompts/blueprint'
 import { saveProject } from '../stores/autoSave'
+import { DESIGN_SPEC_LABELS, getDesignSpecById } from '../prompts/designSpecs'
+import DesignSpecEditor from './DesignSpecEditor.vue'
 
 const props = defineProps<{
   collapsed: boolean
@@ -28,11 +30,21 @@ const preflightAnswers = ref<Record<string, string | string[]>>({})
 const showBlueprintPanel = ref(false)
 const isRebuildingBlueprint = ref(false)
 const showSkillSelector = ref(false)
+const showSpecEditor = ref(false)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
 const activeSkill = computed<DesignSkill | null>(() => {
   const id = canvasStore.activeSkillId
   return id ? getSkillById(id) ?? null : null
+})
+
+const currentSpecLabel = computed(() => {
+  const spec = getDesignSpecById(canvasStore.designSpecId)
+  return spec ? spec.name : (canvasStore.designSpecId === 'none' ? '未使用规范' : '自定义')
+})
+
+const currentSpecColors = computed(() => {
+  return getDesignSpecById(canvasStore.designSpecId)?.colors ?? null
 })
 
 function selectSkill(skill: DesignSkill) {
@@ -442,26 +454,7 @@ function formatTime(iso: string) {
 
   <div class="chat-input-float">
     <div class="input-container">
-      <div v-if="showSkillSelector" class="skill-selector">
-        <div class="skill-selector-scroll">
-          <button
-            v-for="skill in BUILT_IN_SKILLS"
-            :key="skill.id"
-            :class="['skill-tag', { active: canvasStore.activeSkillId === skill.id }]"
-            @click="selectSkill(skill)"
-            :title="skill.description"
-          >
-            <span class="material-symbols-outlined skill-icon">{{ skill.icon }}</span>
-            <span class="skill-name">{{ skill.name }}</span>
-          </button>
-        </div>
-      </div>
       <div class="input-wrapper">
-        <div v-if="activeSkill" class="active-skill-badge">
-          <span class="material-symbols-outlined" style="font-size:14px">{{ activeSkill.icon }}</span>
-          <span>{{ activeSkill.name }}</span>
-          <button class="skill-badge-close" @click="canvasStore.setActiveSkillId(null)">✕</button>
-        </div>
         <textarea
           ref="textareaRef"
           v-model="inputText"
@@ -473,22 +466,72 @@ function formatTime(iso: string) {
           @keydown="handleKeydown"
         />
         <div class="input-actions">
-          <button class="input-action-btn" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10a2.5 2.5 0 002.5-2.5c0-.61-.23-1.2-.64-1.67a.528.528 0 01-.13-.33c0-.29.24-.5.5-.5H16c3.31 0 6-2.69 6-6 0-4.96-4.49-9-10-9zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 8 6.5 8 8 8.67 8 9.5 7.33 11 6.5 11zm3-4C8.67 7 8 6.33 8 5.5S8.67 4 9.5 4s1.5.67 1.5 1.5S10.33 7 9.5 7zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 4 14.5 4s1.5.67 1.5 1.5S15.33 7 14.5 7zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 8 17.5 8s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-          </button>
-          <button
-            class="send-btn"
-            :disabled="!inputText.trim() || chatStore.isStreaming"
-            @click="handleSend"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
-            </svg>
-          </button>
+          <div class="spec-trigger" :class="{ 'has-spec': canvasStore.designSpecId !== 'none' }" title="修改设计规范" @click="showSpecEditor = true">
+            <span class="spec-label">{{ currentSpecLabel }}</span>
+            <div v-if="currentSpecColors" class="spec-colors">
+              <span class="spec-cdot" :style="{ backgroundColor: currentSpecColors.primary }"></span>
+              <span class="spec-cdot" :style="{ backgroundColor: currentSpecColors.background }"></span>
+              <span class="spec-cdot" :style="{ backgroundColor: currentSpecColors.surface }"></span>
+              <span class="spec-cdot" :style="{ backgroundColor: currentSpecColors.accent }"></span>
+            </div>
+          </div>
+          <div class="input-actions-right">
+            <div v-if="activeSkill" class="active-skill-chip">
+              <span class="skill-chip-emoji">{{ activeSkill.emoji }}</span>
+              <span>{{ activeSkill.name }}</span>
+              <button class="skill-chip-close" @click="canvasStore.setActiveSkillId(null)">&times;</button>
+            </div>
+            <button class="input-action-btn" :class="{ active: !!activeSkill }" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+            </button>
+            <button
+              class="send-btn"
+              :disabled="!inputText.trim() || chatStore.isStreaming"
+              @click="handleSend"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <Teleport to="body">
+    <Transition name="fade">
+      <div v-if="showSkillSelector" class="skill-modal-overlay" @click.self="showSkillSelector = false">
+        <div class="skill-modal">
+          <div class="skill-modal-header">
+            <h3>选择设计场景</h3>
+            <button class="skill-modal-close" @click="showSkillSelector = false">&times;</button>
+          </div>
+          <div class="skill-modal-body">
+            <div class="skill-grid">
+              <button
+                v-for="skill in BUILT_IN_SKILLS"
+                :key="skill.id"
+                :class="['skill-card', { active: canvasStore.activeSkillId === skill.id }]"
+                @click="selectSkill(skill)"
+              >
+                <div class="skill-card-emoji">{{ skill.emoji }}</div>
+                <div class="skill-card-name">{{ skill.name }}</div>
+                <div class="skill-card-cat">{{ SKILL_CATEGORIES[skill.category] }}</div>
+                <div class="skill-card-desc">{{ skill.description }}</div>
+                <div v-if="canvasStore.activeSkillId === skill.id" class="skill-card-check">✓</div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <DesignSpecEditor
+    v-if="showSpecEditor"
+    @close="showSpecEditor = false"
+  />
 </template>
 
 <style scoped>
@@ -555,30 +598,49 @@ function formatTime(iso: string) {
 .critique-optimize-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
 .critique-optimize-btn:hover { background: var(--color-primary); color: #fff; }
 
-.active-skill-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(79, 70, 229, 0.2); color: var(--color-primary-light); border-radius: 6px; font-size: 12px; flex-shrink: 0; }
-.skill-badge-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 10px; padding: 0 2px; }
-.skill-badge-close:hover { color: var(--text-primary); }
+.active-skill-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(79, 70, 229, 0.2); color: var(--color-primary-light); border-radius: 6px; font-size: 12px; }
+.skill-chip-emoji { font-size: 14px; line-height: 1; }
+.skill-chip-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
+.skill-chip-close:hover { color: var(--text-primary); }
 
 .chat-input-float { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: var(--z-input); width: 720px; max-width: calc(100vw - 40px); }
 .input-container { display: flex; flex-direction: column; gap: 0; }
 
-.skill-selector { background: rgba(30, 30, 54, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px 14px 0 0; border: 1px solid var(--border-subtle); border-bottom: none; padding: 10px 14px 8px; }
-.skill-selector-scroll { display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
-.skill-tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 16px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); cursor: pointer; white-space: nowrap; font-size: 12px; transition: all 0.15s ease; font-family: inherit; }
-.skill-tag:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-hover); }
-.skill-tag.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-.skill-icon { font-size: 14px; }
-.skill-name { font-size: 12px; }
+.skill-modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: var(--z-modal); }
+.skill-modal { width: 620px; max-width: 92vw; max-height: 85vh; background: var(--bg-elevated); border-radius: var(--radius-xl); box-shadow: var(--shadow-xl); border: 1px solid var(--border-default); display: flex; flex-direction: column; overflow: hidden; }
+.skill-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
+.skill-modal-header h3 { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); margin: 0; }
+.skill-modal-close { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); font-size: 18px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+.skill-modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.skill-modal-body { padding: 16px; overflow-y: auto; flex: 1; }
+.skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.skill-card { position: relative; display: flex; flex-direction: column; align-items: center; padding: 16px 10px 12px; border-radius: 10px; border: 1px solid var(--border-default); background: var(--bg-surface); cursor: pointer; text-align: center; transition: all 0.15s ease; font-family: inherit; }
+.skill-card:hover { border-color: #3a3a5c; background: #1a1a3e; }
+.skill-card.active { border-color: var(--color-primary-light); background: #1e1b4b; }
+.skill-card-emoji { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+.skill-card-name { font-size: var(--font-sm); font-weight: 600; color: var(--text-primary); }
+.skill-card-cat { display: inline-block; font-size: 10px; font-weight: 500; color: var(--color-primary-light); background: rgba(129,140,248,0.12); padding: 2px 6px; border-radius: 4px; margin-top: 4px; }
+.skill-card-desc { font-size: 10px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.skill-card-check { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; border-radius: 50%; background: var(--color-primary-light); color: #fff; font-size: 10px; display: flex; align-items: center; justify-content: center; }
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 
 .input-wrapper { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; background: rgba(30, 30, 54, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid var(--border-subtle); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.skill-selector + .input-wrapper { border-radius: 0 0 14px 14px; border-top: none; }
 .chat-input { width: 100%; padding: 8px 12px; border: none; border-radius: var(--radius-md); font-size: 15px; font-family: inherit; outline: none; resize: none; background: transparent; color: var(--text-primary); line-height: 1.5; min-height: 24px; max-height: 160px; }
 .chat-input::placeholder { color: var(--text-muted); }
 .chat-input:disabled { color: var(--text-placeholder); }
-.input-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+.input-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.input-actions-right { display: flex; align-items: center; gap: 6px; }
+.spec-trigger { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: var(--radius-md); background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.15s ease; user-select: none; }
+.spec-trigger:hover { background: var(--bg-hover); color: var(--text-primary); }
+.spec-trigger.has-spec { color: var(--color-primary-light); }
+.spec-trigger.has-spec:hover { background: rgba(129,140,248,0.12); }
+.spec-label { font-size: 12px; white-space: nowrap; }
+.spec-colors { display: flex; gap: 3px; margin-left: 2px; }
+.spec-cdot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
 .input-action-btn { width: 34px; height: 34px; border: none; border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; }
 .input-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.input-action-btn.active { color: var(--color-primary); }
+.input-action-btn.active { color: var(--color-primary-light); }
 .send-btn { width: 36px; height: 36px; border: none; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--transition-normal); flex-shrink: 0; }
 .send-btn:hover:not(:disabled) { background: var(--color-primary-hover); }
 .send-btn:disabled { background: #3a3a5c; cursor: not-allowed; }
