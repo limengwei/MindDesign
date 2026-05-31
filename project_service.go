@@ -83,6 +83,32 @@ func (s *ProjectService) ClearCurrentPath() {
 	s.currentPath = ""
 }
 
+func (s *ProjectService) CreateProject(name string, data string) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	projectsDir := filepath.Join(s.appDir, "projects")
+	if err := os.MkdirAll(projectsDir, 0755); err != nil {
+		return "", err
+	}
+
+	safeName := name
+	if safeName == "" {
+		safeName = "未命名项目"
+	}
+	filename := safeName + ".mind"
+	path := filepath.Join(projectsDir, filename)
+
+	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
+		return "", err
+	}
+
+	s.currentPath = path
+	s.addRecentProject(path, name)
+
+	return path, nil
+}
+
 func (s *ProjectService) AutoSave(data string) error {
 	autoPath := filepath.Join(s.appDir, "autosave.mind")
 	return os.WriteFile(autoPath, []byte(data), 0644)
