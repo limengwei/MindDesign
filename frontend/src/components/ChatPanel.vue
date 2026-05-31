@@ -25,9 +25,10 @@ const activeCritique = ref<DesignCritique | null>(null)
 const showCritique = ref(false)
 const activePreflight = ref<PreflightData | null>(null)
 const preflightAnswers = ref<Record<string, string | string[]>>({})
-const showSkillBar = ref(true)
 const showBlueprintPanel = ref(false)
 const isRebuildingBlueprint = ref(false)
+const showSkillSelector = ref(false)
+const textareaRef = ref<HTMLTextAreaElement | null>(null)
 
 const activeSkill = computed<DesignSkill | null>(() => {
   const id = canvasStore.activeSkillId
@@ -41,6 +42,7 @@ function selectSkill(skill: DesignSkill) {
     canvasStore.setActiveSkillId(skill.id)
     canvasStore.setPageType(skill.defaultPageType)
   }
+  showSkillSelector.value = false
 }
 
 function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
@@ -233,6 +235,7 @@ async function handleSend() {
   const text = inputText.value.trim()
   if (!text || chatStore.isStreaming) return
   inputText.value = ''
+  if (textareaRef.value) textareaRef.value.style.height = 'auto'
   await doGenerate(text)
 }
 
@@ -241,6 +244,13 @@ function handleKeydown(e: KeyboardEvent) {
     e.preventDefault()
     handleSend()
   }
+}
+
+function autoResize() {
+  const el = textareaRef.value
+  if (!el) return
+  el.style.height = 'auto'
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px'
 }
 
 function handleSessionClick(session: Session) {
@@ -268,14 +278,7 @@ function formatTime(iso: string) {
     <div class="chat-history-header">
       <span class="chat-history-title">{{ chatStore.activeSession ? chatStore.activeSession.title : '对话记录' }}</span>
       <div class="header-btns">
-        <button
-          v-if="!collapsed"
-          class="toggle-btn"
-          title="场景选择"
-          @click="showSkillBar = !showSkillBar"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
-        </button>
+
         <button
           v-if="!collapsed"
           class="toggle-btn"
@@ -287,21 +290,6 @@ function formatTime(iso: string) {
         <button class="toggle-btn" @click="emit('toggle')" :title="collapsed ? '展开' : '收起'">
           <svg v-if="collapsed" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
           <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-        </button>
-      </div>
-    </div>
-
-    <div v-if="!collapsed && showSkillBar && !showSessionList" class="skill-bar">
-      <div class="skill-scroll">
-        <button
-          v-for="skill in BUILT_IN_SKILLS"
-          :key="skill.id"
-          :class="['skill-tag', { active: canvasStore.activeSkillId === skill.id }]"
-          @click="selectSkill(skill)"
-          :title="skill.description"
-        >
-          <span class="material-symbols-outlined skill-icon">{{ skill.icon }}</span>
-          <span class="skill-name">{{ skill.name }}</span>
         </button>
       </div>
     </div>
@@ -453,29 +441,52 @@ function formatTime(iso: string) {
   </div>
 
   <div class="chat-input-float">
-    <div v-if="activeSkill" class="active-skill-badge">
-      <span class="material-symbols-outlined" style="font-size:14px">{{ activeSkill.icon }}</span>
-      <span>{{ activeSkill.name }}</span>
-      <button class="skill-badge-close" @click="canvasStore.setActiveSkillId(null)">✕</button>
-    </div>
-    <div class="input-wrapper">
-      <textarea
-        v-model="inputText"
-        class="chat-input"
-        :placeholder="activeSkill ? activeSkill.examplePrompt : '描述你想要的界面...'"
-        rows="1"
-        :disabled="chatStore.isStreaming"
-        @keydown="handleKeydown"
-      />
-      <button
-        class="send-btn"
-        :disabled="!inputText.trim() || chatStore.isStreaming"
-        @click="handleSend"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
-        </svg>
-      </button>
+    <div class="input-container">
+      <div v-if="showSkillSelector" class="skill-selector">
+        <div class="skill-selector-scroll">
+          <button
+            v-for="skill in BUILT_IN_SKILLS"
+            :key="skill.id"
+            :class="['skill-tag', { active: canvasStore.activeSkillId === skill.id }]"
+            @click="selectSkill(skill)"
+            :title="skill.description"
+          >
+            <span class="material-symbols-outlined skill-icon">{{ skill.icon }}</span>
+            <span class="skill-name">{{ skill.name }}</span>
+          </button>
+        </div>
+      </div>
+      <div class="input-wrapper">
+        <div v-if="activeSkill" class="active-skill-badge">
+          <span class="material-symbols-outlined" style="font-size:14px">{{ activeSkill.icon }}</span>
+          <span>{{ activeSkill.name }}</span>
+          <button class="skill-badge-close" @click="canvasStore.setActiveSkillId(null)">✕</button>
+        </div>
+        <textarea
+          ref="textareaRef"
+          v-model="inputText"
+          class="chat-input"
+          :placeholder="activeSkill ? activeSkill.examplePrompt : '描述你想要的界面...'"
+          rows="3"
+          :disabled="chatStore.isStreaming"
+          @input="autoResize"
+          @keydown="handleKeydown"
+        />
+        <div class="input-actions">
+          <button class="input-action-btn" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4v4zm6 12h4v-4h-4v4zm-6 0h4v-4H4v4zm0-6h4v-4H4v4zm6 0h4v-4h-4v4zm6-10v4h4V4h-4zm-6 4h4V4h-4v4zm6 6h4v-4h-4v4zm0 6h4v-4h-4v4z"/></svg>
+          </button>
+          <button
+            class="send-btn"
+            :disabled="!inputText.trim() || chatStore.isStreaming"
+            @click="handleSend"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -490,15 +501,6 @@ function formatTime(iso: string) {
 .toggle-btn { width: 24px; height: 24px; border: none; background: none; color: var(--text-secondary); cursor: pointer; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .collapsed .toggle-btn { margin: 0 auto; }
 .toggle-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-
-.skill-bar { flex-shrink: 0; border-bottom: 1px solid var(--border-subtle); padding: 8px 0; }
-.skill-scroll { display: flex; gap: 6px; padding: 0 10px; overflow-x: auto; scrollbar-width: none; }
-.skill-scroll::-webkit-scrollbar { display: none; }
-.skill-tag { display: flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 16px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); cursor: pointer; white-space: nowrap; font-size: 12px; transition: all 0.15s ease; font-family: inherit; }
-.skill-tag:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-hover); }
-.skill-tag.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
-.skill-icon { font-size: 14px; }
-.skill-name { font-size: 12px; }
 
 .session-list { flex: 1; overflow-y: auto; padding: 8px; }
 .session-item { padding: 10px 12px; border-radius: var(--radius-md); cursor: pointer; transition: background var(--transition-fast); margin-bottom: 4px; }
@@ -553,17 +555,31 @@ function formatTime(iso: string) {
 .critique-optimize-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
 .critique-optimize-btn:hover { background: var(--color-primary); color: #fff; }
 
-.active-skill-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--color-primary); color: #fff; border-radius: 10px 10px 0 0; font-size: 12px; }
-.skill-badge-close { background: none; border: none; color: rgba(255,255,255,0.7); cursor: pointer; font-size: 10px; padding: 0 2px; }
-.skill-badge-close:hover { color: #fff; }
+.active-skill-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(79, 70, 229, 0.2); color: var(--color-primary-light); border-radius: 6px; font-size: 12px; flex-shrink: 0; }
+.skill-badge-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 10px; padding: 0 2px; }
+.skill-badge-close:hover { color: var(--text-primary); }
 
-.chat-input-float { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: var(--z-input); width: 560px; max-width: calc(100vw - 40px); display: flex; flex-direction: column; align-items: center; }
-.input-wrapper { display: flex; gap: 8px; padding: 10px 14px; background: rgba(30, 30, 54, 0.9); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-md); width: 100%; }
-.active-skill-badge + .input-wrapper { border-radius: 0 0 14px 14px; }
-.chat-input { flex: 1; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--radius-md); font-size: var(--font-md); font-family: inherit; outline: none; resize: none; transition: border-color var(--transition-normal); background: rgba(22, 33, 62, 0.6); color: var(--text-primary); }
+.chat-input-float { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: var(--z-input); width: 720px; max-width: calc(100vw - 40px); }
+.input-container { display: flex; flex-direction: column; gap: 0; }
+
+.skill-selector { background: rgba(30, 30, 54, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px 14px 0 0; border: 1px solid var(--border-subtle); border-bottom: none; padding: 10px 14px 8px; }
+.skill-selector-scroll { display: flex; flex-wrap: wrap; gap: 6px; max-height: 120px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent; }
+.skill-tag { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 16px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); cursor: pointer; white-space: nowrap; font-size: 12px; transition: all 0.15s ease; font-family: inherit; }
+.skill-tag:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-hover); }
+.skill-tag.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.skill-icon { font-size: 14px; }
+.skill-name { font-size: 12px; }
+
+.input-wrapper { display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; background: rgba(30, 30, 54, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid var(--border-subtle); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+.skill-selector + .input-wrapper { border-radius: 0 0 14px 14px; border-top: none; }
+.chat-input { width: 100%; padding: 8px 12px; border: 1px solid transparent; border-radius: var(--radius-md); font-size: 15px; font-family: inherit; outline: none; resize: none; transition: border-color var(--transition-normal); background: rgba(22, 33, 62, 0.6); color: var(--text-primary); line-height: 1.5; min-height: 24px; max-height: 160px; }
 .chat-input::placeholder { color: var(--text-muted); }
 .chat-input:focus { border-color: var(--border-hover); }
 .chat-input:disabled { color: var(--text-placeholder); }
+.input-actions { display: flex; justify-content: flex-end; align-items: center; gap: 6px; }
+.input-action-btn { width: 34px; height: 34px; border: none; border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease; }
+.input-action-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.input-action-btn.active { color: var(--color-primary); }
 .send-btn { width: 36px; height: 36px; border: none; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background var(--transition-normal); flex-shrink: 0; }
 .send-btn:hover:not(:disabled) { background: var(--color-primary-hover); }
 .send-btn:disabled { background: #3a3a5c; cursor: not-allowed; }
