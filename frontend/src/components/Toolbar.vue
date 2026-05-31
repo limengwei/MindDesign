@@ -5,7 +5,7 @@ import { useChatStore } from '../stores/chatStore'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
 import ExportDialog from './ExportDialog.vue'
 import SettingsPanel from './SettingsPanel.vue'
-import { autoSave } from '../services/projectBridge'
+import { autoSave, writeFile, showSaveDialog, showOpenDialog, readFile } from '../services/projectBridge'
 import type { ProjectFile } from '../types/project'
 
 const canvasStore = useCanvasStore()
@@ -15,25 +15,100 @@ const llmConfigStore = useLLMConfigStore()
 const showExportDialog = ref(false)
 const showSettingsPanel = ref(false)
 
-function handleExport() {
-  showExportDialog.value = true
+function buildProjectData(): ProjectFile {
+  return {
+    formatVersion: 1,
+    meta: {
+      name: canvasStore.projectName,
+      createdAt: canvasStore.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      appVersion: '1.0.0',
+    },
+    canvas: {
+      cards: canvasStore.cards,
+      pageType: canvasStore.pageType,
+      colorScheme: canvasStore.colorScheme,
+      viewport: canvasStore.viewport,
+    },
+    chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
+  }
 }
 
 async function handleSave() {
   if (!canvasStore.cards.length && chatStore.messages.length === 0) return
-  const data: ProjectFile = {
-    formatVersion: 1,
-    meta: { name: canvasStore.projectName, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), appVersion: '1.0.0' },
-    canvas: { cards: canvasStore.cards, pageType: canvasStore.pageType, colorScheme: canvasStore.colorScheme, viewport: canvasStore.viewport },
-    chat: chatStore.messages.map(m => ({ role: m.role, content: m.content, timestamp: m.timestamp })),
+
+  const data = buildProjectData()
+  const json = JSON.stringify(data, null, 2)
+
+  if (canvasStore.currentFilePath) {
+    try {
+      await writeFile(canvasStore.currentFilePath, json)
+      await autoSave(json)
+    } catch (e) {
+      console.error('Save failed:', e)
+      alert('保存失败，请检查应用权限')
+    }
+    return
   }
+
+  await handleSaveAs()
+}
+
+async function handleSaveAs() {
+  if (!canvasStore.cards.length && chatStore.messages.length === 0) return
+
+  const path = await showSaveDialog(canvasStore.projectName + '.mind')
+  if (!path) return
+
+  const data = buildProjectData()
+  const json = JSON.stringify(data, null, 2)
+
   try {
-    await autoSave(JSON.stringify(data))
-    alert('已保存到 MindDesign 项目数据目录')
+    await writeFile(path, json)
+    await autoSave(json)
+    canvasStore.setCurrentFilePath(path)
+    if (!canvasStore.createdAt) {
+      canvasStore.setCreatedAt(data.meta.createdAt)
+    }
   } catch (e) {
-    console.error('Save failed:', e)
+    console.error('SaveAs failed:', e)
     alert('保存失败，请检查应用权限')
   }
+}
+
+async function handleOpen() {
+  const path = await showOpenDialog()
+  if (!path) return
+
+  try {
+    const json = await readFile(path)
+    const data = JSON.parse(json) as ProjectFile
+
+    canvasStore.reset()
+    chatStore.reset()
+
+    if (data.meta.name) canvasStore.setProjectName(data.meta.name)
+    if (data.meta.createdAt) canvasStore.setCreatedAt(data.meta.createdAt)
+    if (data.canvas.pageType) canvasStore.setPageType(data.canvas.pageType)
+    if (data.canvas.colorScheme) canvasStore.setColorScheme(data.canvas.colorScheme)
+    if (data.canvas.cards) canvasStore.cards = data.canvas.cards
+    if (data.canvas.viewport) {
+      canvasStore.setViewport(data.canvas.viewport.zoom, data.canvas.viewport.scrollX, data.canvas.viewport.scrollY)
+    }
+    if (data.chat) {
+      for (const msg of data.chat) {
+        chatStore.messages.push(msg as any)
+      }
+    }
+    canvasStore.setCurrentFilePath(path)
+  } catch (e) {
+    console.error('Open failed:', e)
+    alert('打开文件失败：' + (e as Error).message)
+  }
+}
+
+function handleExport() {
+  showExportDialog.value = true
 }
 
 function handleNewProject() {
@@ -44,7 +119,7 @@ function handleNewProject() {
   chatStore.reset()
 }
 
-defineExpose({ handleExport, handleNewProject })
+defineExpose({ handleExport, handleNewProject, handleSave, handleSaveAs, handleOpen })
 </script>
 
 <template>
@@ -54,14 +129,21 @@ defineExpose({ handleExport, handleNewProject })
       <span class="project-name" v-if="canvasStore.projectName">
         — {{ canvasStore.projectName }}
       </span>
+      <span class="file-saved" v-if="canvasStore.currentFilePath" title="已保存">✓</span>
     </div>
 
     <div class="toolbar-center">
       <button class="toolbar-btn" title="新建 (Ctrl+N)" @click="handleNewProject">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h3v-3h2v3h3v2h-3v3h-2v-3H8v-2z"/></svg>
       </button>
+      <button class="toolbar-btn" title="打开 (Ctrl+O)" @click="handleOpen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+      </button>
       <button class="toolbar-btn" title="保存 (Ctrl+S)" @click="handleSave">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+      </button>
+      <button class="toolbar-btn" title="另存为 (Ctrl+Shift+S)" @click="handleSaveAs">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2v9.67z"/></svg>
       </button>
       <button class="toolbar-btn" title="导出 HTML" @click="handleExport">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
@@ -130,6 +212,11 @@ defineExpose({ handleExport, handleNewProject })
 .project-name {
   font-size: 12px;
   color: #6b7280;
+}
+
+.file-saved {
+  font-size: 12px;
+  color: #34d399;
 }
 
 .toolbar-center {

@@ -16,7 +16,7 @@ export function setupAutoSave() {
       formatVersion: 1,
       meta: {
         name: canvas.projectName,
-        createdAt: new Date().toISOString(),
+        createdAt: canvas.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         appVersion: '1.0.0',
       },

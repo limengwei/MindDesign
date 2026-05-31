@@ -18,7 +18,9 @@ function autoLayoutToCSS(layout: ElementTree['autoLayout']): string {
   if (layout.padding) {
     if (typeof layout.padding === 'number') {
       parts.push(`padding:${layout.padding}px`)
-    } else {
+    } else if (typeof layout.padding === 'string') {
+      parts.push(`padding:${layout.padding}`)
+    } else if (Array.isArray(layout.padding)) {
       parts.push(`padding:${layout.padding.map(v => `${v}px`).join(' ')}`)
     }
   }
@@ -56,7 +58,9 @@ function commonStyleCSS(node: ElementTree): string {
   if (node.cornerRadius) {
     if (typeof node.cornerRadius === 'number') {
       parts.push(`border-radius:${node.cornerRadius}px`)
-    } else {
+    } else if (typeof node.cornerRadius === 'string') {
+      parts.push(`border-radius:${node.cornerRadius}`)
+    } else if (Array.isArray(node.cornerRadius)) {
       parts.push(`border-radius:${node.cornerRadius.map(v => `${v}px`).join(' ')}`)
     }
   }

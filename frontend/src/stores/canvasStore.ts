@@ -32,6 +32,8 @@ export const useCanvasStore = defineStore('canvas', () => {
   const projectName = ref('未命名项目')
   const viewport = ref({ zoom: 1, scrollX: 0, scrollY: 0 })
   const isGenerating = ref(false)
+  const currentFilePath = ref('')
+  const createdAt = ref('')
 
   /** 添加一张新卡片，自动排在已有卡片右侧 */
   function addCard(tree: ElementTree, label?: string): CanvasCard {
@@ -91,6 +93,14 @@ export const useCanvasStore = defineStore('canvas', () => {
     isGenerating.value = val
   }
 
+  function setCurrentFilePath(path: string) {
+    currentFilePath.value = path
+  }
+
+  function setCreatedAt(date: string) {
+    createdAt.value = date
+  }
+
   function reset() {
     cards.value = []
     selectedCardId.value = null
@@ -99,6 +109,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     projectName.value = '未命名项目'
     viewport.value = { zoom: 1, scrollX: 0, scrollY: 0 }
     isGenerating.value = false
+    currentFilePath.value = ''
+    createdAt.value = ''
   }
 
   return {
@@ -110,6 +122,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     projectName,
     viewport,
     isGenerating,
+    currentFilePath,
+    createdAt,
     addCard,
     selectCard,
     setPageType,
@@ -117,6 +131,8 @@ export const useCanvasStore = defineStore('canvas', () => {
     setProjectName,
     setViewport,
     setGenerating,
+    setCurrentFilePath,
+    setCreatedAt,
     updateSelectedCardTree,
     reset,
   }

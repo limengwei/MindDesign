@@ -12,6 +12,7 @@ const canvasStore = useCanvasStore()
 const chatStore = useChatStore()
 const showProjectDialog = ref(true)
 const chatCollapsed = ref(false)
+const toolbarRef = ref<InstanceType<typeof Toolbar> | null>(null)
 
 const pageDimensions = computed(() => PAGE_DIMENSIONS[canvasStore.pageType])
 
@@ -20,12 +21,11 @@ function handleProjectCreate(config: { name: string; pageType: string; colorSche
   canvasStore.setProjectName(config.name)
   canvasStore.setPageType(config.pageType as any)
   canvasStore.setColorScheme(config.colorScheme as any)
+  canvasStore.setCreatedAt(new Date().toISOString())
   showProjectDialog.value = false
 
-  // 如果用户填了描述，将其作为首条对话发送
   if (config.description.trim()) {
     chatStore.addUserMessage(config.description)
-    // ChatPanel 监听此字段自动发送
     chatStore.pendingSend = config.description
   }
 }
@@ -34,15 +34,15 @@ function handleKeydown(e: KeyboardEvent) {
   const mod = e.ctrlKey || e.metaKey
   if (mod && e.key === 's' && !e.shiftKey) {
     e.preventDefault()
-    document.querySelector<HTMLButtonElement>('.toolbar-btn[title="保存 (Ctrl+S)"]')?.click()
+    toolbarRef.value?.handleSave()
+  }
+  if (mod && e.key === 'S' && e.shiftKey) {
+    e.preventDefault()
+    toolbarRef.value?.handleSaveAs()
   }
   if (mod && e.key === 'o') {
     e.preventDefault()
-    if (chatStore.messages.length > 0) {
-      if (!confirm('当前项目未保存，是否确认新建？')) return
-    }
-    canvasStore.reset()
-    chatStore.reset()
+    toolbarRef.value?.handleOpen()
   }
   if (mod && e.key === 'n') {
     e.preventDefault()
@@ -59,6 +59,12 @@ onMounted(async () => {
   if (autoSaveData) {
     const shouldRecover = confirm('检测到上次未正常关闭的项目，是否恢复？')
     if (shouldRecover) {
+      if (autoSaveData.meta.name) {
+        canvasStore.setProjectName(autoSaveData.meta.name)
+      }
+      if (autoSaveData.meta.createdAt) {
+        canvasStore.setCreatedAt(autoSaveData.meta.createdAt)
+      }
       if (autoSaveData.canvas.pageType) {
         canvasStore.setPageType(autoSaveData.canvas.pageType)
       }
@@ -74,9 +80,6 @@ onMounted(async () => {
           autoSaveData.canvas.viewport.scrollX,
           autoSaveData.canvas.viewport.scrollY,
         )
-      }
-      if (autoSaveData.meta.name) {
-        canvasStore.setProjectName(autoSaveData.meta.name)
       }
       if (autoSaveData.chat) {
         for (const msg of autoSaveData.chat) {
@@ -102,7 +105,7 @@ onUnmounted(() => {
       :page-height="pageDimensions.height"
     />
 
-    <Toolbar />
+    <Toolbar ref="toolbarRef" />
 
     <ChatPanel
       :collapsed="chatCollapsed"
