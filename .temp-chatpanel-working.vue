@@ -22,12 +22,13 @@ function buildCallOptions() {
     pageType: canvasStore.pageType,
     colorScheme: canvasStore.colorScheme,
     history: chatStore.messages.map(m => ({ role: m.role, content: m.content })),
-    onStreamingHTML: (html: string) => {
+    currentTree: canvasStore.currentTree,
+    onStreamingTree: (tree: Parameters<typeof canvasStore.addCard>[0]) => {
       const cards = canvasStore.cards
       if (cards.length > 0) {
-        cards[cards.length - 1].html = html
+        cards[cards.length - 1].tree = tree
       } else {
-        canvasStore.addCard(html, '')
+        canvasStore.addCard(tree)
       }
     },
   }
@@ -40,8 +41,8 @@ watch(() => chatStore.pendingSend, async (text) => {
   canvasStore.setGenerating(true)
   try {
     const result = await sendMessageToLLM(text, buildCallOptions())
-    chatStore.addAssistantMessage(result.content, result.html)
-    if (result.html) canvasStore.addCard(result.html, result.screenshot || '')
+    chatStore.addAssistantMessage(result.content, result.tree || undefined)
+    if (result.tree) canvasStore.addCard(result.tree)
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
     console.error('LLM error:', err)
@@ -62,9 +63,9 @@ async function handleSend() {
 
   try {
     const result = await sendMessageToLLM(text, buildCallOptions())
-    chatStore.addAssistantMessage(result.content, result.html)
-    if (result.html) {
-      canvasStore.addCard(result.html, result.screenshot || '')
+    chatStore.addAssistantMessage(result.content, result.tree || undefined)
+    if (result.tree) {
+      canvasStore.addCard(result.tree)
     }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
@@ -84,8 +85,8 @@ function handleKeydown(e: KeyboardEvent) {
 
 function handleRevert(idx: number) {
   const msg = chatStore.messages[idx]
-  if (msg?.role === 'assistant' && msg.html) {
-    canvasStore.addCard(msg.html, '', '回溯设计稿')
+  if (msg?.role === 'assistant' && msg.tree) {
+    canvasStore.addCard(msg.tree, '回溯设计稿')
     chatStore.messages = chatStore.messages.slice(0, idx + 1)
   }
 }
@@ -119,7 +120,7 @@ function handleRevert(idx: number) {
         <div class="message-content">
           {{ msg.content }}
           <button
-            v-if="msg.role === 'assistant' && msg.html"
+            v-if="msg.role === 'assistant' && msg.tree"
             class="revert-btn"
             title="回退到此版本"
             @click="handleRevert(idx)"
