@@ -41,8 +41,8 @@ func main() {
 		URL:              "/",
 		Width:            1280,
 		Height:           800,
-		MinWidth:         900,
-		MinHeight:        600,
+		MinWidth:         1280,
+		MinHeight:        800,
 	})
 
 	err := app.Run()

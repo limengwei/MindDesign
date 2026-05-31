@@ -210,6 +210,7 @@ onUnmounted(() => {
       </div>
     </div>
     <div class="home-header">
+      <img src="/logo.png" alt="MindDesign" class="app-logo" />
       <h1 class="app-title">MindDesign</h1>
       <p class="app-subtitle">AI 对话式 UI 设计工具</p>
     </div>
@@ -338,7 +339,7 @@ onUnmounted(() => {
   --wails-draggable: no-drag;
 }
 
-.home > *:not(.titlebar) {
+.home > *:not(.titlebar):not(.dialog-overlay) {
   position: relative;
   z-index: 1;
 }
@@ -347,6 +348,13 @@ onUnmounted(() => {
   text-align: center;
   margin-bottom: 48px;
   padding-top: 48px;
+}
+
+.app-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  margin-bottom: 16px;
 }
 
 .app-title {
