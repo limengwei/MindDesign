@@ -191,10 +191,15 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
   await new Promise<void>((resolve) => {
     iframe.onload = () => resolve()
   })
-  await new Promise(r => setTimeout(r, 500))
+  await new Promise(r => setTimeout(r, 100))
 
   try {
     const doc = iframe.contentDocument!
+    const freezeStyle = doc.createElement('style')
+    freezeStyle.textContent = '*, *::before, *::after { animation-delay: -999999s !important; animation-duration: 0.001s !important; transition-duration: 0.001s !important; }'
+    doc.head.appendChild(freezeStyle)
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+
     doc.documentElement.style.height = 'auto'
     doc.documentElement.style.overflow = 'visible'
     doc.body.style.height = 'auto'
