@@ -12,6 +12,24 @@ const emit = defineEmits<{
   exportCard: [cardId: string]
 }>()
 
+const confirmState = ref<{ show: boolean; cardId: string; message: string }>({
+  show: false, cardId: '', message: '',
+})
+
+function showConfirm(cardId: string) {
+  confirmState.value = { show: true, cardId, message: '确定删除这张设计稿吗？' }
+}
+
+function confirmDelete() {
+  canvasStore.removeCard(confirmState.value.cardId)
+  saveProject()
+  confirmState.value.show = false
+}
+
+function cancelDelete() {
+  confirmState.value.show = false
+}
+
 const props = defineProps({
   pageWidth: { type: Number, default: 375 },
   pageHeight: { type: Number, default: 812 },
@@ -353,35 +371,35 @@ function createActionBtns(cardId: string, group: Box) {
     width: w, height: BTN_H,
   })
 
-  const exportBtn = new Rect({
+  const exportBtn = new Box({
     x: w - btnW * 3 - BTN_GAP * 2, y: 0,
     width: btnW, height: BTN_H,
     fill: 'rgba(16,185,129,0.85)', cornerRadius: 6,
-    hittable: true, hitSelf: true,
+    hitSelf: true,
   })
   exportBtn.add(new Text({ text: '导出', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
   exportBtn.id = `__btn_export__${cardId}`
   exportBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('exportCard', cardId) })
 
-  const refreshBtn = new Rect({
+  const refreshBtn = new Box({
     x: w - btnW * 2 - BTN_GAP, y: 0,
     width: btnW, height: BTN_H,
     fill: 'rgba(79,70,229,0.85)', cornerRadius: 6,
-    hittable: true, hitSelf: true,
+    hitSelf: true,
   })
   refreshBtn.add(new Text({ text: '刷新', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
   refreshBtn.id = `__btn_refresh__${cardId}`
   refreshBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; refreshCard(cardId) })
 
-  const deleteBtn = new Rect({
+  const deleteBtn = new Box({
     x: w - btnW, y: 0,
     width: btnW, height: BTN_H,
     fill: 'rgba(239,68,68,0.85)', cornerRadius: 6,
-    hittable: true, hitSelf: true,
+    hitSelf: true,
   })
   deleteBtn.add(new Text({ text: '删除', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
   deleteBtn.id = `__btn_delete__${cardId}`
-  deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; canvasStore.removeCard(cardId) ; saveProject() })
+  deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; showConfirm(cardId) })
 
   btnGroup.add(exportBtn as any)
   btnGroup.add(refreshBtn as any)
@@ -417,6 +435,19 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
     <div class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
     </div>
+
+    <div v-if="confirmState.show" class="confirm-overlay" @click.self="cancelDelete">
+      <div class="confirm-dialog">
+        <div class="confirm-body">
+          <span class="confirm-icon">⚠️</span>
+          <span class="confirm-text">{{ confirmState.message }}</span>
+        </div>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-cancel" @click="cancelDelete">取消</button>
+          <button class="confirm-btn confirm-danger" @click="confirmDelete">删除</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -424,4 +455,15 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 .canvas-wrapper { position: absolute; inset: 0; background: #0f0f23; overflow: hidden; }
 .canvas-container { position: relative; width: 100%; height: 100%; }
 .canvas-info { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: 11px; color: #6b7280; border-radius: 6px; pointer-events: none; z-index: 10; }
+.confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.confirm-dialog { background: #16213e; border-radius: 12px; padding: 20px 24px; min-width: 280px; box-shadow: 0 16px 48px rgba(0,0,0,0.4); border: 1px solid #2a2a4a; }
+.confirm-body { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.confirm-icon { font-size: 20px; }
+.confirm-text { font-size: 14px; color: #e5e7eb; }
+.confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.confirm-btn { padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; }
+.confirm-cancel { background: #2a2a4a; color: #9ca3af; }
+.confirm-cancel:hover { background: #3a3a5c; color: #e5e7eb; }
+.confirm-danger { background: #dc2626; color: #fff; }
+.confirm-danger:hover { background: #ef4444; }
 </style>
