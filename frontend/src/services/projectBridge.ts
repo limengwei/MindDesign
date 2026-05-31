@@ -122,6 +122,9 @@ export async function showOpenDialog(): Promise<string> {
 export interface RecentProject {
   path: string
   name: string
+  pageType: string
+  designSpecId: string
+  colorScheme: string
   updatedAt: string
 }
 
@@ -149,4 +152,17 @@ export async function createProject(name: string, data: string): Promise<string>
   const key = STORAGE_KEY + ':project:' + name
   localStorage.setItem(key, data)
   return key
+}
+
+export async function updateProjectMeta(
+  path: string,
+  name: string,
+  pageType: string,
+  designSpecId: string,
+  colorScheme: string
+): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).UpdateProjectMeta(path, name, pageType, designSpecId, colorScheme)
+  }
 }

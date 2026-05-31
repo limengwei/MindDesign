@@ -76,6 +76,18 @@ export function SetCurrentPath(path) {
 
 /**
  * @param {string} path
+ * @param {string} name
+ * @param {string} pageType
+ * @param {string} designSpecId
+ * @param {string} colorScheme
+ * @returns {$CancellablePromise<void>}
+ */
+export function UpdateProjectMeta(path, name, pageType, designSpecId, colorScheme) {
+    return $Call.ByID(3987179855, path, name, pageType, designSpecId, colorScheme);
+}
+
+/**
+ * @param {string} path
  * @param {string} data
  * @returns {$CancellablePromise<void>}
  */

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getRecentProjects, createProject, writeFile, readFile, type RecentProject } from '../services/projectBridge'
+import { getRecentProjects, createProject, writeFile, readFile, updateProjectMeta, type RecentProject } from '../services/projectBridge'
 import WindowControls from '../components/WindowControls.vue'
 import DesignSpecSelector from '../components/DesignSpecSelector.vue'
 import {
   type DesignSpecId,
+  DESIGN_SPEC_LABELS,
+  getDesignSpecById,
 } from '../prompts/designSpecs'
 
 const router = useRouter()
@@ -83,6 +85,62 @@ async function loadProjects() {
 
 function openProject(project: RecentProject) {
   router.push({ name: 'design', query: { path: project.path } })
+}
+
+const showEditForm = ref(false)
+const editingProject = ref<RecentProject | null>(null)
+const editName = ref('')
+const editPageType = ref('app')
+const editDesignSpecId = ref<DesignSpecId>('none')
+const editColorScheme = ref('auto')
+const saving = ref(false)
+
+function startEdit(project: RecentProject) {
+  editingProject.value = project
+  editName.value = project.name
+  editPageType.value = project.pageType || 'app'
+  editDesignSpecId.value = (project.designSpecId || 'none') as DesignSpecId
+  editColorScheme.value = project.colorScheme || 'auto'
+  showEditForm.value = true
+}
+
+async function handleSaveEdit() {
+  if (saving.value || !editingProject.value) return
+  saving.value = true
+  try {
+    await updateProjectMeta(
+      editingProject.value.path,
+      editName.value,
+      editPageType.value,
+      editDesignSpecId.value,
+      editColorScheme.value
+    )
+    showEditForm.value = false
+    await loadProjects()
+  } catch (e) {
+    console.error('Update project failed:', e)
+    alert('更新项目失败：' + (e as Error).message)
+  } finally {
+    saving.value = false
+  }
+}
+
+const pageTypeLabels: Record<string, string> = {
+  app: '📱 移动App',
+  web: '🌐 网页',
+  desktop: '🖥 桌面',
+}
+
+function getDesignSpecLabel(id: string): string {
+  if (!id || id === 'none') return ''
+  return DESIGN_SPEC_LABELS[id as DesignSpecId] || id
+}
+
+function getDesignSpecColors(id: string): string[] {
+  if (!id || id === 'none' || id === 'custom') return []
+  const spec = getDesignSpecById(id as DesignSpecId)
+  if (!spec) return []
+  return [spec.colors.primary, spec.colors.accent, spec.colors.background]
 }
 
 const creating = ref(false)
@@ -269,10 +327,23 @@ onUnmounted(() => {
         class="project-card"
         @click="openProject(project)"
       >
-        <div class="card-icon">📄</div>
-        <div class="card-info">
-          <div class="card-name">{{ project.name }}</div>
-          <div class="card-path">{{ project.path }}</div>
+        <div class="card-header">
+          <div class="card-icon">📄</div>
+          <button class="card-edit-btn" @click.stop="startEdit(project)" title="编辑项目">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+          </button>
+        </div>
+        <div class="card-name">{{ project.name }}</div>
+        <div class="card-footer">
+          <span v-if="project.pageType" class="card-tag-type">{{ pageTypeLabels[project.pageType] || project.pageType }}</span>
+          <div v-if="getDesignSpecColors(project.designSpecId).length" class="card-colors">
+            <span
+              v-for="(color, idx) in getDesignSpecColors(project.designSpecId)"
+              :key="idx"
+              class="color-dot"
+              :style="{ background: color }"
+            ></span>
+          </div>
         </div>
       </div>
 
@@ -283,6 +354,49 @@ onUnmounted(() => {
     </div>
 
     <div v-if="loading" class="loading">加载中...</div>
+
+    <div v-if="showEditForm" class="dialog-overlay" @click.self="showEditForm = false">
+      <div class="dialog dialog-create">
+        <h2 class="dialog-title">编辑项目</h2>
+
+        <div class="form-group">
+          <label>项目名称</label>
+          <input
+            v-model="editName"
+            type="text"
+            placeholder="输入项目名称..."
+            class="input"
+            maxlength="20"
+            @keyup.enter="handleSaveEdit"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>页面类型</label>
+          <div class="option-grid">
+            <button
+              v-for="pt in pageTypes"
+              :key="pt.value"
+              :class="['option-card', { active: editPageType === pt.value }]"
+              @click="editPageType = pt.value"
+            >
+              <div class="option-label">{{ pt.label }}</div>
+              <div class="option-hint">{{ pt.width }}</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>设计规范</label>
+          <DesignSpecSelector v-model="editDesignSpecId" />
+        </div>
+
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" @click="showEditForm = false">取消</button>
+          <button class="btn btn-primary" :disabled="saving" @click="handleSaveEdit">{{ saving ? '保存中...' : '保存' }}</button>
+        </div>
+      </div>
+    </div>
 
     <div v-if="showCreateForm" class="dialog-overlay" @click.self="showCreateForm = false">
       <div class="dialog dialog-create">
@@ -388,12 +502,18 @@ onUnmounted(() => {
 .app-title { font-size: var(--font-3xl); font-weight: 800; color: var(--text-primary); letter-spacing: -1px; margin: 0; }
 .app-subtitle { font-size: 16px; color: var(--text-muted); margin-top: 8px; }
 .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; width: 100%; max-width: 960px; padding: 0 40px 40px; }
-.project-card { background: var(--bg-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; cursor: pointer; transition: all var(--transition-normal); display: flex; align-items: center; gap: 14px; }
+.project-card { background: var(--bg-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; cursor: pointer; transition: all var(--transition-normal); display: flex; flex-direction: column; gap: 10px; position: relative; }
 .project-card:hover { background: var(--bg-hover); border-color: var(--color-primary-light); transform: translateY(-2px); }
+.card-header { display: flex; align-items: flex-start; justify-content: space-between; }
 .card-icon { font-size: 28px; flex-shrink: 0; }
-.card-info { overflow: hidden; }
+.card-edit-btn { flex-shrink: 0; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 6px; opacity: 0; transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast); }
+.project-card:hover .card-edit-btn { opacity: 1; }
+.card-edit-btn:hover { background: rgba(255,255,255,0.1); color: var(--color-primary-light); }
 .card-name { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-path { font-size: var(--font-xs); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+.card-tag-type { font-size: var(--font-xs); color: var(--text-muted); background: rgba(129,140,248,0.1); border: 1px solid rgba(129,140,248,0.2); border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+.card-colors { display: flex; align-items: center; gap: 4px; }
+.color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); flex-shrink: 0; }
 .create-card { justify-content: center; flex-direction: column; border-style: dashed; min-height: 90px; }
 .create-icon { font-size: 32px; color: var(--color-primary-light); line-height: 1; }
 .create-text { font-size: var(--font-md); color: var(--color-primary-light); margin-top: 8px; }

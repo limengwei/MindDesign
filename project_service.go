@@ -10,10 +10,13 @@ import (
 )
 
 type RecentProject struct {
-	Path      string    `json:"path"`
-	Name      string    `json:"name"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	Path         string    `json:"path"`
+	Name         string    `json:"name"`
+	PageType     string    `json:"pageType"`
+	DesignSpecId string    `json:"designSpecId"`
+	ColorScheme  string    `json:"colorScheme"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type ProjectService struct {
@@ -47,13 +50,18 @@ func (s *ProjectService) WriteFile(path string, data string) error {
 			Name      string `json:"name"`
 			CreatedAt string `json:"createdAt"`
 		} `json:"meta"`
+		Canvas struct {
+			PageType     string `json:"pageType"`
+			DesignSpecId string `json:"designSpecId"`
+			ColorScheme  string `json:"colorScheme"`
+		} `json:"canvas"`
 	}
 	json.Unmarshal([]byte(data), &parsed)
 	var createdAt time.Time
 	if parsed.Meta.CreatedAt != "" {
 		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
 	}
-	s.addRecentProject(path, parsed.Meta.Name, createdAt)
+	s.addRecentProject(path, parsed.Meta.Name, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
 
 	return nil
 }
@@ -74,13 +82,18 @@ func (s *ProjectService) ReadFile(path string) (string, error) {
 			Name      string `json:"name"`
 			CreatedAt string `json:"createdAt"`
 		} `json:"meta"`
+		Canvas struct {
+			PageType     string `json:"pageType"`
+			DesignSpecId string `json:"designSpecId"`
+			ColorScheme  string `json:"colorScheme"`
+		} `json:"canvas"`
 	}
 	json.Unmarshal(data, &parsed)
 	var createdAt time.Time
 	if parsed.Meta.CreatedAt != "" {
 		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
 	}
-	s.addRecentProject(path, parsed.Meta.Name, createdAt)
+	s.addRecentProject(path, parsed.Meta.Name, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
 
 	return string(data), nil
 }
@@ -117,8 +130,30 @@ func (s *ProjectService) CreateProject(name string, data string) (string, error)
 		return "", err
 	}
 
+	var parsed struct {
+		Meta struct {
+			Name      string `json:"name"`
+			CreatedAt string `json:"createdAt"`
+		} `json:"meta"`
+		Canvas struct {
+			PageType     string `json:"pageType"`
+			DesignSpecId string `json:"designSpecId"`
+			ColorScheme  string `json:"colorScheme"`
+		} `json:"canvas"`
+	}
+	json.Unmarshal([]byte(data), &parsed)
+
+	parsedName := parsed.Meta.Name
+	if parsedName == "" {
+		parsedName = "未命名项目"
+	}
+	var createdAt time.Time
+	if parsed.Meta.CreatedAt != "" {
+		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
+	}
+
 	s.currentPath = path
-	s.addRecentProject(path, name, time.Now())
+	s.addRecentProject(path, parsedName, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
 
 	return path, nil
 }
@@ -147,6 +182,55 @@ func (s *ProjectService) ClearAutoSave() error {
 		return nil
 	}
 	return err
+}
+
+func (s *ProjectService) UpdateProjectMeta(path string, name string, pageType string, designSpecId string, colorScheme string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	var project map[string]interface{}
+	if err := json.Unmarshal(data, &project); err != nil {
+		return err
+	}
+
+	if meta, ok := project["meta"].(map[string]interface{}); ok {
+		meta["name"] = name
+		meta["updatedAt"] = time.Now().Format(time.RFC3339)
+	}
+	if canvas, ok := project["canvas"].(map[string]interface{}); ok {
+		canvas["pageType"] = pageType
+		canvas["designSpecId"] = designSpecId
+		canvas["colorScheme"] = colorScheme
+	}
+
+	updated, err := json.MarshalIndent(project, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(path, updated, 0644); err != nil {
+		return err
+	}
+
+	var parsed struct {
+		Meta struct {
+			Name      string `json:"name"`
+			CreatedAt string `json:"createdAt"`
+		} `json:"meta"`
+	}
+	json.Unmarshal(data, &parsed)
+	var createdAt time.Time
+	if parsed.Meta.CreatedAt != "" {
+		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
+	}
+	s.addRecentProject(path, name, pageType, designSpecId, colorScheme, createdAt)
+
+	return nil
 }
 
 func (s *ProjectService) GetRecentProjects() (string, error) {
@@ -179,7 +263,7 @@ func (s *ProjectService) GetRecentProjects() (string, error) {
 	return string(result), nil
 }
 
-func (s *ProjectService) addRecentProject(path, name string, createdAt time.Time) {
+func (s *ProjectService) addRecentProject(path, name, pageType, designSpecId, colorScheme string, createdAt time.Time) {
 	recentPath := filepath.Join(s.appDir, "recent.json")
 
 	data, _ := os.ReadFile(recentPath)
@@ -187,9 +271,13 @@ func (s *ProjectService) addRecentProject(path, name string, createdAt time.Time
 	json.Unmarshal(data, &projects)
 
 	var existingCreatedAt time.Time
+	var existingPageType, existingDesignSpecId, existingColorScheme string
 	for i, p := range projects {
 		if p.Path == path {
 			existingCreatedAt = p.CreatedAt
+			existingPageType = p.PageType
+			existingDesignSpecId = p.DesignSpecId
+			existingColorScheme = p.ColorScheme
 			projects = append(projects[:i], projects[i+1:]...)
 			break
 		}
@@ -201,8 +289,20 @@ func (s *ProjectService) addRecentProject(path, name string, createdAt time.Time
 	if createdAt.IsZero() && !existingCreatedAt.IsZero() {
 		createdAt = existingCreatedAt
 	}
+	if createdAt.IsZero() {
+		createdAt = time.Now()
+	}
+	if pageType == "" {
+		pageType = existingPageType
+	}
+	if designSpecId == "" {
+		designSpecId = existingDesignSpecId
+	}
+	if colorScheme == "" {
+		colorScheme = existingColorScheme
+	}
 
-	projects = append([]RecentProject{{Path: path, Name: name, CreatedAt: createdAt, UpdatedAt: time.Now()}}, projects...)
+	projects = append([]RecentProject{{Path: path, Name: name, PageType: pageType, DesignSpecId: designSpecId, ColorScheme: colorScheme, CreatedAt: createdAt, UpdatedAt: time.Now()}}, projects...)
 
 	if len(projects) > 10 {
 		projects = projects[:10]
