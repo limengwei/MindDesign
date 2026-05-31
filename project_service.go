@@ -12,6 +12,7 @@ import (
 type RecentProject struct {
 	Path      string    `json:"path"`
 	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
@@ -43,11 +44,16 @@ func (s *ProjectService) WriteFile(path string, data string) error {
 
 	var parsed struct {
 		Meta struct {
-			Name string `json:"name"`
+			Name      string `json:"name"`
+			CreatedAt string `json:"createdAt"`
 		} `json:"meta"`
 	}
 	json.Unmarshal([]byte(data), &parsed)
-	s.addRecentProject(path, parsed.Meta.Name)
+	var createdAt time.Time
+	if parsed.Meta.CreatedAt != "" {
+		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
+	}
+	s.addRecentProject(path, parsed.Meta.Name, createdAt)
 
 	return nil
 }
@@ -62,11 +68,16 @@ func (s *ProjectService) ReadFile(path string) (string, error) {
 
 	var parsed struct {
 		Meta struct {
-			Name string `json:"name"`
+			Name      string `json:"name"`
+			CreatedAt string `json:"createdAt"`
 		} `json:"meta"`
 	}
 	json.Unmarshal(data, &parsed)
-	s.addRecentProject(path, parsed.Meta.Name)
+	var createdAt time.Time
+	if parsed.Meta.CreatedAt != "" {
+		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
+	}
+	s.addRecentProject(path, parsed.Meta.Name, createdAt)
 
 	return string(data), nil
 }
@@ -104,7 +115,7 @@ func (s *ProjectService) CreateProject(name string, data string) (string, error)
 	}
 
 	s.currentPath = path
-	s.addRecentProject(path, name)
+	s.addRecentProject(path, name, time.Now())
 
 	return path, nil
 }
@@ -157,19 +168,25 @@ func (s *ProjectService) GetRecentProjects() (string, error) {
 		}
 	}
 
+	sort.Slice(valid, func(i, j int) bool {
+		return valid[i].CreatedAt.After(valid[j].CreatedAt)
+	})
+
 	result, _ := json.Marshal(valid)
 	return string(result), nil
 }
 
-func (s *ProjectService) addRecentProject(path, name string) {
+func (s *ProjectService) addRecentProject(path, name string, createdAt time.Time) {
 	recentPath := filepath.Join(s.appDir, "recent.json")
 
 	data, _ := os.ReadFile(recentPath)
 	var projects []RecentProject
 	json.Unmarshal(data, &projects)
 
+	var existingCreatedAt time.Time
 	for i, p := range projects {
 		if p.Path == path {
+			existingCreatedAt = p.CreatedAt
 			projects = append(projects[:i], projects[i+1:]...)
 			break
 		}
@@ -178,16 +195,15 @@ func (s *ProjectService) addRecentProject(path, name string) {
 	if name == "" {
 		name = filepath.Base(path)
 	}
+	if createdAt.IsZero() && !existingCreatedAt.IsZero() {
+		createdAt = existingCreatedAt
+	}
 
-	projects = append([]RecentProject{{Path: path, Name: name, UpdatedAt: time.Now()}}, projects...)
+	projects = append([]RecentProject{{Path: path, Name: name, CreatedAt: createdAt, UpdatedAt: time.Now()}}, projects...)
 
 	if len(projects) > 10 {
 		projects = projects[:10]
 	}
-
-	sort.Slice(projects, func(i, j int) bool {
-		return projects[i].UpdatedAt.After(projects[j].UpdatedAt)
-	})
 
 	result, _ := json.MarshalIndent(projects, "", "  ")
 	os.WriteFile(recentPath, result, 0644)
