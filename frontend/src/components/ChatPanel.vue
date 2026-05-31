@@ -23,11 +23,10 @@ function buildCallOptions() {
     colorScheme: canvasStore.colorScheme,
     history: chatStore.messages.map(m => ({ role: m.role, content: m.content })),
     onStreamingHTML: (html: string) => {
-      const cards = canvasStore.cards
-      if (cards.length > 0) {
-        cards[cards.length - 1].html = html
-      } else {
-        canvasStore.addCard(html, '')
+      const genId = canvasStore.generatingCardId
+      if (genId) {
+        const card = canvasStore.cards.find(c => c.id === genId)
+        if (card) card.html = html
       }
     },
   }
@@ -36,45 +35,46 @@ function buildCallOptions() {
 watch(() => chatStore.pendingSend, async (text) => {
   if (!text) return
   chatStore.pendingSend = null
+  await doGenerate(text)
+})
+
+async function doGenerate(text: string) {
+  chatStore.addUserMessage(text)
   chatStore.setStreaming(true)
-  canvasStore.setGenerating(true)
+
+  let targetCardId: string
+  const selectedId = canvasStore.selectedCardId
+  const selectedCard = selectedId ? canvasStore.cards.find(c => c.id === selectedId) : null
+
+  if (selectedCard) {
+    targetCardId = selectedCard.id
+  } else {
+    const card = canvasStore.addCard('', '')
+    targetCardId = card.id
+  }
+
+  canvasStore.setGeneratingCardId(targetCardId)
+
   try {
     const result = await sendMessageToLLM(text, buildCallOptions())
     chatStore.addAssistantMessage(result.content, result.html)
     if (result.html) {
-      canvasStore.addCard(result.html, result.screenshot || '')
+      canvasStore.updateCardContent(targetCardId, result.html, result.screenshot || '')
     }
   } catch (err) {
     chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
     console.error('LLM error:', err)
   } finally {
+    canvasStore.setGeneratingCardId(null)
     chatStore.setStreaming(false)
-    canvasStore.setGenerating(false)
   }
-})
+}
 
 async function handleSend() {
   const text = inputText.value.trim()
   if (!text || chatStore.isStreaming) return
-
   inputText.value = ''
-  chatStore.addUserMessage(text)
-  chatStore.setStreaming(true)
-  canvasStore.setGenerating(true)
-
-  try {
-    const result = await sendMessageToLLM(text, buildCallOptions())
-    chatStore.addAssistantMessage(result.content, result.html)
-    if (result.html) {
-      canvasStore.addCard(result.html, result.screenshot || '')
-    }
-  } catch (err) {
-    chatStore.addAssistantMessage('抱歉，生成失败了，请重试。')
-    console.error('LLM error:', err)
-  } finally {
-    chatStore.setStreaming(false)
-    canvasStore.setGenerating(false)
-  }
+  await doGenerate(text)
 }
 
 function handleKeydown(e: KeyboardEvent) {

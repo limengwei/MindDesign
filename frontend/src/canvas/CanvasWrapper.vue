@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { App, Leafer, Box, Image, Text } from 'leafer-ui'
+import { App, Leafer, Box, Image, Text, Rect } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
 import html2canvas from 'html2canvas'
@@ -19,6 +19,9 @@ let treeLayer: Leafer | null = null
 let dotGrid: DotGrid | null = null
 let resizeObserver: ResizeObserver | null = null
 const cardGroups = new Map<string, Box>()
+let breathRafId = 0
+let breathPhase = 0
+let renderVersion = 0
 
 onMounted(() => {
   if (!containerRef.value) return
@@ -32,7 +35,6 @@ onMounted(() => {
 
   treeLayer = app.tree as Leafer
 
-  // 点阵背景（用 LeaferJS 内部 Leafer 实例，插入最底层，不会遮挡卡片）
   dotGrid = new DotGrid(containerRef.value, app, {
     dotColor: 'rgba(255,255,255,0.1)',
     dotSize: 1.2,
@@ -52,20 +54,79 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (breathRafId) { cancelAnimationFrame(breathRafId); breathRafId = 0 }
   dotGrid?.destroy(); dotGrid = null
   resizeObserver?.disconnect(); resizeObserver = null
   app?.destroy(); app = null; treeLayer = null
   cardGroups.clear()
 })
 
+const iconCache = new Map<string, string>()
+
+async function fetchIconSvg(name: string): Promise<string> {
+  if (iconCache.has(name)) return iconCache.get(name)!
+  try {
+    const resp = await fetch(`/icons/${name}.svg`)
+    if (!resp.ok) return ''
+    const svg = await resp.text()
+    iconCache.set(name, svg)
+    return svg
+  } catch {
+    return ''
+  }
+}
+
+async function replaceIcons(html: string): Promise<string> {
+  let processed = html.replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/gi, '')
+
+  const iconPattern = /<span\s+[^>]*class\s*=\s*["']material-symbols-outlined["'][^>]*>([^<]*)<\/span>/gi
+  const matches = [...html.matchAll(iconPattern)]
+  const iconNames = [...new Set(matches.map(m => m[1].trim()).filter(Boolean))]
+  await Promise.all(iconNames.map(name => fetchIconSvg(name)))
+
+  processed = processed.replace(iconPattern, (_match, icon: string) => {
+    const name = icon.trim()
+    if (!name) return ''
+    const svg = iconCache.get(name)
+    if (!svg) return `<span style="display:inline-block;width:24px;height:24px;"></span>`
+
+    const styleMatch = _match.match(/style\s*=\s*"([^"]*)"/i)
+    const styleStr = styleMatch ? styleMatch[1] : ''
+    const sizeMatch = styleStr.match(/font-size\s*:\s*(\d+(?:\.\d+)?)(px|em|rem)?/i)
+    let size = 24
+    if (sizeMatch) {
+      size = parseFloat(sizeMatch[1])
+      if (sizeMatch[2] === 'em') size *= 16
+      else if (sizeMatch[2] === 'rem') size *= 16
+    }
+
+    const colorMatch = styleStr.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i)
+    const color = colorMatch ? colorMatch[1].trim() : ''
+    let styledSvg = svg
+      .replace(/width="[^"]*"/, `width="${size}"`)
+      .replace(/height="[^"]*"/, `height="${size}"`)
+      .replace('<svg ', `<svg style="vertical-align:middle;display:inline-block;fill:currentColor;" `)
+    if (color) {
+      styledSvg = `<span style="color:${color};display:inline-flex;vertical-align:middle;">${styledSvg}</span>`
+    }
+
+    return styledSvg
+  })
+
+  return processed
+}
+
 async function htmlToScreenshot(html: string): Promise<string> {
   if (!html) return ''
+
+  const processed = await replaceIcons(html)
+
   const iframe = document.createElement('iframe')
   iframe.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + props.pageWidth + 'px;height:' + props.pageHeight + 'px;border:none;overflow:hidden'
   document.body.appendChild(iframe)
   const doc = iframe.contentDocument!
-  doc.open(); doc.write(html); doc.close()
-  await new Promise(r => setTimeout(r, 400))
+  doc.open(); doc.write(processed); doc.close()
+  await new Promise(r => setTimeout(r, 600))
   try {
     const c = await html2canvas(doc.body, { width: props.pageWidth, height: props.pageHeight, scale: 2, useCORS: true, backgroundColor: '#ffffff' })
     document.body.removeChild(iframe)
@@ -76,21 +137,36 @@ async function htmlToScreenshot(html: string): Promise<string> {
   }
 }
 
-async function renderCard(card: CanvasCard, selected: boolean) {
+async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boolean) {
   if (!treeLayer) return
-  if (!card.screenshot && card.html) {
+
+  const existing = cardGroups.get(card.id)
+  if (existing) existing.remove()
+
+  if (!isGenerating && !card.screenshot && card.html) {
     card.screenshot = await htmlToScreenshot(card.html)
   }
 
+  const w = card.width || props.pageWidth
+  const h = card.height || props.pageHeight
+
   const group = new Box({
     id: card.id, x: card.x, y: card.y,
-    width: card.width || props.pageWidth, height: card.height || props.pageHeight,
+    width: w, height: h,
     strokeWidth: selected ? 3 : 1, stroke: selected ? '#818cf8' : '#2a2a4a',
-    cornerRadius: 8, fill: '#16213e',
+    cornerRadius: 8, fill: isGenerating ? '#2a2a4a' : '#16213e',
+    overflow: 'hide',
   })
 
-  if (card.screenshot) {
-    group.add(new Image({ url: card.screenshot, width: card.width || props.pageWidth, height: card.height || props.pageHeight }) as any)
+  if (isGenerating) {
+    const overlay = new Rect({
+      width: w, height: h, cornerRadius: 8,
+      fill: '#2a2a4a',
+    })
+    overlay.id = '__gen_overlay__'
+    group.add(overlay as any)
+  } else if (card.screenshot) {
+    group.add(new Image({ url: card.screenshot, width: w, height: h }) as any)
   }
 
   group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }) as any)
@@ -100,22 +176,62 @@ async function renderCard(card: CanvasCard, selected: boolean) {
   cardGroups.set(card.id, group)
 }
 
-async function renderAll() {
+async function renderAll(shouldZoom = false) {
   if (!treeLayer) return
+  const v = ++renderVersion
   for (const g of cardGroups.values()) g.remove()
   cardGroups.clear()
+  const genId = canvasStore.generatingCardId
   for (const card of canvasStore.cards) {
-    await renderCard(card, card.id === canvasStore.selectedCardId)
+    if (renderVersion !== v) return
+    await renderCard(card, card.id === canvasStore.selectedCardId, card.id === genId)
   }
-  if (cardGroups.size > 0) {
-    setTimeout(() => { treeLayer?.zoom('fit', 40) }, 600)
+  if (genId) startBreathAnimation()
+  if (shouldZoom && cardGroups.size > 0) {
+    setTimeout(() => { if (renderVersion === v) treeLayer?.zoom('fit', 40) }, 600)
+  }
+}
+
+function startBreathAnimation() {
+  if (breathRafId) return
+  const tick = () => {
+    breathPhase += 0.03
+    const alpha = 0.4 + 0.3 * Math.sin(breathPhase)
+    const genId = canvasStore.generatingCardId
+    if (genId) {
+      const group = cardGroups.get(genId)
+      if (group) {
+        const overlay = group.children?.find(c => (c as any).id === '__gen_overlay__')
+        if (overlay) {
+          (overlay as any).opacity = alpha
+        }
+      }
+    }
+    breathRafId = requestAnimationFrame(tick)
+  }
+  breathRafId = requestAnimationFrame(tick)
+}
+
+function stopBreathAnimation() {
+  if (breathRafId) {
+    cancelAnimationFrame(breathRafId)
+    breathRafId = 0
+    breathPhase = 0
   }
 }
 
 watch(
-  () => canvasStore.cards.map(c => c.id),
-  () => renderAll(),
-  { deep: false }
+  () => {
+    const genId = canvasStore.generatingCardId
+    const cardsKey = canvasStore.cards.map(c => `${c.id}:${c.screenshot ? 'y' : 'n'}:${c.html ? 'h' : 'e'}`).join(',')
+    return `${cardsKey}|gen:${genId}`
+  },
+  (_new, _old) => {
+    const genId = canvasStore.generatingCardId
+    if (!genId) stopBreathAnimation()
+    const cardsChanged = _new.split('|')[0] !== _old.split('|')[0]
+    renderAll(cardsChanged)
+  },
 )
 
 watch(() => canvasStore.selectedCardId, () => {
@@ -137,18 +253,6 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
   <div class="canvas-wrapper">
     <div ref="containerRef" class="canvas-container"></div>
 
-    <Transition name="loading-fade">
-      <div v-if="canvasStore.isGenerating" class="canvas-loading-overlay">
-        <div class="loading-content">
-          <div class="loading-spinner">
-            <div class="spinner-ring"></div><div class="spinner-ring"></div><div class="spinner-ring"></div>
-          </div>
-          <div class="loading-text">AI 正在生成设计稿...</div>
-          <div class="loading-subtext">请稍候，这可能需要几秒钟</div>
-        </div>
-      </div>
-    </Transition>
-
     <div class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
     </div>
@@ -159,16 +263,4 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 .canvas-wrapper { position: absolute; inset: 0; background: #0f0f23; overflow: hidden; }
 .canvas-container { position: relative; width: 100%; height: 100%; }
 .canvas-info { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: 11px; color: #6b7280; border-radius: 6px; pointer-events: none; z-index: 10; }
-.canvas-loading-overlay { position: absolute; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; background: rgba(15,15,35,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.loading-content { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.loading-spinner { position: relative; width: 64px; height: 64px; }
-.spinner-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; }
-.spinner-ring:nth-child(1) { border-top-color: #818cf8; animation: spin 1.2s linear infinite; }
-.spinner-ring:nth-child(2) { inset: 6px; border-right-color: #6366f1; animation: spin 1.6s linear infinite reverse; }
-.spinner-ring:nth-child(3) { inset: 12px; border-bottom-color: #4f46e5; animation: spin 2s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 16px; font-weight: 500; color: #e5e7eb; letter-spacing: 0.5px; }
-.loading-subtext { font-size: 12px; color: #6b7280; }
-.loading-fade-enter-active, .loading-fade-leave-active { transition: opacity 0.4s ease; }
-.loading-fade-enter-from, .loading-fade-leave-to { opacity: 0; }
 </style>

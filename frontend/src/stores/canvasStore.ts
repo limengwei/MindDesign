@@ -32,6 +32,7 @@ export const useCanvasStore = defineStore('canvas', () => {
   const projectName = ref('未命名项目')
   const viewport = ref({ zoom: 1, scrollX: 0, scrollY: 0 })
   const isGenerating = ref(false)
+  const generatingCardId = ref<string | null>(null)
   const currentFilePath = ref('')
   const createdAt = ref('')
 
@@ -66,6 +67,19 @@ export const useCanvasStore = defineStore('canvas', () => {
     if (last) last.html = html
   }
 
+  function updateCardContent(id: string, html: string, screenshot: string) {
+    const card = cards.value.find(c => c.id === id)
+    if (card) {
+      card.html = html
+      card.screenshot = screenshot
+    }
+  }
+
+  function setGeneratingCardId(id: string | null) {
+    generatingCardId.value = id
+    isGenerating.value = id !== null
+  }
+
   function selectCard(id: string | null) {
     selectedCardId.value = id
   }
@@ -86,15 +100,16 @@ export const useCanvasStore = defineStore('canvas', () => {
     projectName.value = '未命名项目'
     viewport.value = { zoom: 1, scrollX: 0, scrollY: 0 }
     isGenerating.value = false
+    generatingCardId.value = null
     currentFilePath.value = ''
     createdAt.value = ''
   }
 
   return {
     cards, selectedCardId,
-    pageType, colorScheme, projectName, viewport, isGenerating, currentFilePath, createdAt,
-    addCard, updateLastCardScreenshot, updateLastCardHtml, selectCard,
-    setPageType, setColorScheme, setProjectName, setViewport, setGenerating,
+    pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt,
+    addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, selectCard,
+    setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
     setCurrentFilePath, setCreatedAt, reset,
   }
 })
