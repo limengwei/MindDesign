@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import { useChatStore, type Session } from '../stores/chatStore'
 import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM } from '../ai/chat'
+import { saveProject } from '../stores/autoSave'
 
 const props = defineProps<{
   collapsed: boolean
@@ -65,6 +66,8 @@ async function doGenerate(text: string) {
   } finally {
     canvasStore.setGeneratingCardId(null)
     chatStore.setStreaming(false)
+    await new Promise(r => setTimeout(r, 1500))
+    await saveProject()
   }
 }
 

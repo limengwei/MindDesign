@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCanvasStore, PAGE_DIMENSIONS } from '../stores/canvasStore'
 import { useChatStore } from '../stores/chatStore'
-import { setupAutoSave } from '../stores/autoSave'
-import { readFile, writeFile } from '../services/projectBridge'
+import { readFile } from '../services/projectBridge'
 import type { ProjectFile } from '../types/project'
 import Toolbar from '../components/Toolbar.vue'
 import ChatPanel from '../components/ChatPanel.vue'
@@ -44,27 +43,19 @@ function loadProjectData(data: ProjectFile) {
 }
 
 onMounted(async () => {
-  setupAutoSave()
-
-  const isNew = route.query.new === '1'
   const filePath = route.query.path as string | undefined
+  if (!filePath) {
+    router.replace({ name: 'home' })
+    return
+  }
 
-  if (isNew) {
-    canvasStore.reset()
-    chatStore.reset()
-    canvasStore.setProjectName((route.query.name as string) || '未命名项目')
-    canvasStore.setPageType((route.query.pageType as any) || 'app')
-    canvasStore.setColorScheme((route.query.colorScheme as any) || 'auto')
-    canvasStore.setCreatedAt(new Date().toISOString())
-  } else if (filePath) {
-    try {
-      const json = await readFile(filePath)
-      const data = JSON.parse(json) as ProjectFile
-      loadProjectData(data)
-      canvasStore.setCurrentFilePath(filePath)
-    } catch (e) {
-      console.error('Failed to load project:', e)
-    }
+  try {
+    const json = await readFile(filePath)
+    const data = JSON.parse(json) as ProjectFile
+    loadProjectData(data)
+    canvasStore.setCurrentFilePath(filePath)
+  } catch (e) {
+    console.error('Failed to load project:', e)
   }
 })
 

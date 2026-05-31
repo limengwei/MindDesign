@@ -107,10 +107,15 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
 
     const finalContent = response.content || fullContent
     const html = extractHTML(finalContent)
+    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html)
+    if (!html && finalContent) {
+      console.log('[LLM] raw content (first 500):', finalContent.slice(0, 500))
+    }
     return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '' }
   }
 
   const html = extractHTML(fullContent)
+  console.log('[LLM] max rounds reached, fullContent length:', fullContent.length, 'html extracted:', !!html)
   return { content: html ? '已为你生成了设计稿。' : fullContent, html, screenshot: '' }
 }
 

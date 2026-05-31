@@ -1,5 +1,6 @@
 const STORAGE_KEY = 'minddesign:autosave'
 
+// @ts-ignore
 type ProjectServiceType = typeof import('../../bindings/changeme/projectservice')
 
 let ProjectService: ProjectServiceType | null = null
@@ -7,6 +8,7 @@ let loadingPromise: Promise<void> | null = null
 
 async function loadWailsService() {
   try {
+    // @ts-ignore
     ProjectService = await import('../../bindings/changeme/projectservice')
   } catch {
     ProjectService = null
@@ -93,7 +95,7 @@ export async function showSaveDialog(defaultName?: string): Promise<string> {
         { DisplayName: 'MindDesign 项目', Pattern: '*.mind' },
         { DisplayName: '所有文件', Pattern: '*.*' },
       ],
-    })
+    } as any)
     return path || ''
   } catch {
     return ''
@@ -137,4 +139,14 @@ export async function clearCurrentPath(): Promise<void> {
   if (ProjectService) {
     await ProjectService.ClearCurrentPath()
   }
+}
+
+export async function createProject(name: string, data: string): Promise<string> {
+  await ensureLoaded()
+  if (ProjectService) {
+    return await (ProjectService as any).CreateProject(name, data)
+  }
+  const key = STORAGE_KEY + ':project:' + name
+  localStorage.setItem(key, data)
+  return key
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getRecentProjects, type RecentProject } from '../services/projectBridge'
+import { getRecentProjects, createProject, type RecentProject } from '../services/projectBridge'
 
 const router = useRouter()
 const projects = ref<RecentProject[]>([])
@@ -40,16 +40,38 @@ function openProject(project: RecentProject) {
   router.push({ name: 'design', query: { path: project.path } })
 }
 
-function handleCreate() {
-  router.push({
-    name: 'design',
-    query: {
-      new: '1',
-      name: projectName.value || '未命名项目',
-      pageType: pageType.value,
-      colorScheme: colorScheme.value,
-    },
-  })
+const creating = ref(false)
+
+async function handleCreate() {
+  if (creating.value) return
+  creating.value = true
+  try {
+    const name = projectName.value || '未命名项目'
+    const data = JSON.stringify({
+      formatVersion: 2,
+      meta: {
+        name,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        appVersion: '1.0.0',
+      },
+      canvas: {
+        cards: [],
+        pageType: pageType.value,
+        colorScheme: colorScheme.value,
+        viewport: { zoom: 1, scrollX: 0, scrollY: 0 },
+      },
+      sessions: [],
+    })
+
+    const path = await createProject(name, data)
+    router.push({ name: 'design', query: { path } })
+  } catch (e) {
+    console.error('Create project failed:', e)
+    alert('创建项目失败：' + (e as Error).message)
+  } finally {
+    creating.value = false
+  }
 }
 </script>
 
@@ -128,7 +150,7 @@ function handleCreate() {
 
         <div class="dialog-actions">
           <button class="btn btn-secondary" @click="showCreateForm = false">取消</button>
-          <button class="btn btn-primary" @click="handleCreate">开始设计</button>
+          <button class="btn btn-primary" :disabled="creating" @click="handleCreate">{{ creating ? '创建中...' : '开始设计' }}</button>
         </div>
       </div>
     </div>

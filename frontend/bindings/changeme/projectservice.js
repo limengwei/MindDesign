@@ -29,6 +29,15 @@ export function ClearCurrentPath() {
 }
 
 /**
+ * @param {string} name
+ * @param {string} data
+ * @returns {$CancellablePromise<string>}
+ */
+export function CreateProject(name, data) {
+    return $Call.ByID(3794430337, name, data);
+}
+
+/**
  * @returns {$CancellablePromise<string>}
  */
 export function GetAutoSave() {
