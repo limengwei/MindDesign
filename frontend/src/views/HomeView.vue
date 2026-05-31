@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRecentProjects, createProject, type RecentProject } from '../services/projectBridge'
 
@@ -34,7 +34,6 @@ async function loadProjects() {
   loading.value = false
 }
 
-onMounted(loadProjects)
 
 function openProject(project: RecentProject) {
   router.push({ name: 'design', query: { path: project.path } })
@@ -73,10 +72,122 @@ async function handleCreate() {
     creating.value = false
   }
 }
+
+const homeRef = ref<HTMLElement | null>(null)
+let dotCanvas: HTMLCanvasElement | null = null
+let dotCtx: CanvasRenderingContext2D | null = null
+let dotRaf = 0
+let mouseX = -9999
+let mouseY = -9999
+let smoothX = -9999
+let smoothY = -9999
+let mouseInside = false
+
+function initDotGrid() {
+  if (!homeRef.value) return
+  dotCanvas = document.createElement('canvas')
+  dotCanvas.style.cssText = 'position:fixed;inset:0;z-index:0;pointer-events:none;'
+  homeRef.value.insertBefore(dotCanvas, homeRef.value.firstChild)
+  dotCtx = dotCanvas.getContext('2d')!
+  resizeDotCanvas()
+  window.addEventListener('resize', resizeDotCanvas)
+  tickDotGrid()
+}
+
+function resizeDotCanvas() {
+  if (!dotCanvas) return
+  dotCanvas.width = window.innerWidth
+  dotCanvas.height = window.innerHeight
+}
+
+function handleMouseMove(e: MouseEvent) {
+  mouseX = e.clientX
+  mouseY = e.clientY
+  if (!mouseInside) {
+    mouseInside = true
+    smoothX = mouseX
+    smoothY = mouseY
+  }
+}
+
+function handleMouseEnter() { mouseInside = true }
+function handleMouseLeave() { mouseInside = false }
+
+function tickDotGrid() {
+  const targetX = mouseInside ? mouseX : -9999
+  const targetY = mouseInside ? mouseY : -9999
+  smoothX += (targetX - smoothX) * 0.25
+  smoothY += (targetY - smoothY) * 0.25
+
+  drawDots()
+
+  if (mouseInside || Math.abs(targetX - smoothX) > 1 || Math.abs(targetY - smoothY) > 1) {
+    dotRaf = requestAnimationFrame(tickDotGrid)
+  } else {
+    smoothX = -9999; smoothY = -9999
+    dotRaf = requestAnimationFrame(tickDotGrid)
+  }
+}
+
+function drawDots() {
+  if (!dotCtx || !dotCanvas) return
+  const w = dotCanvas.width
+  const h = dotCanvas.height
+  const ctx = dotCtx
+  ctx.clearRect(0, 0, w, h)
+  ctx.fillStyle = '#0f0f23'
+  ctx.fillRect(0, 0, w, h)
+
+  const gap = 24
+  const dotSize = 1.2
+  const dotColor = 'rgba(255,255,255,0.08)'
+  const hoverR = 120
+  const hoverR2 = hoverR * hoverR
+  const hoverColor = 'rgba(129,140,248,0.6)'
+
+  const hasHover = smoothX > -999 && smoothY > -999
+  const hoverMargin = hasHover ? hoverR + gap : 0
+
+  for (let x = gap / 2; x < w; x += gap) {
+    for (let y = gap / 2; y < h; y += gap) {
+      if (hasHover && x > smoothX - hoverMargin && x < smoothX + hoverMargin && y > smoothY - hoverMargin && y < smoothY + hoverMargin) {
+        const dx = x - smoothX, dy = y - smoothY
+        const dist2 = dx * dx + dy * dy
+        if (dist2 < hoverR2) {
+          const t = 1 - Math.sqrt(dist2) / hoverR
+          const eased = t * t
+          ctx.fillStyle = hoverColor
+          ctx.globalAlpha = 0.08 + eased * 0.92
+          ctx.beginPath()
+          ctx.arc(x, y, dotSize * (1 + 1.5 * eased), 0, Math.PI * 2)
+          ctx.fill()
+          continue
+        }
+      }
+      ctx.globalAlpha = 1
+      ctx.fillStyle = dotColor
+      ctx.beginPath()
+      ctx.arc(x, y, dotSize, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+  ctx.globalAlpha = 1
+}
+
+onMounted(() => {
+  loadProjects()
+  initDotGrid()
+})
+
+onUnmounted(() => {
+  if (dotRaf) cancelAnimationFrame(dotRaf)
+  window.removeEventListener('resize', resizeDotCanvas)
+  dotCanvas?.remove()
+})
 </script>
 
 <template>
-  <div class="home">
+  <div class="home" ref="homeRef" @mousemove="handleMouseMove" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
     <div class="home-header">
       <h1 class="app-title">MindDesign</h1>
       <p class="app-subtitle">AI 对话式 UI 设计工具</p>
@@ -159,12 +270,19 @@ async function handleCreate() {
 
 <style scoped>
 .home {
+  position: relative;
   min-height: 100vh;
-  background: #0f0f23;
+  background: transparent;
   padding: 80px 40px 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
+}
+
+.home > * {
+  position: relative;
+  z-index: 1;
 }
 
 .home-header {
