@@ -17,15 +17,25 @@ async function loadIconIndex(): Promise<IconEntry[]> {
   }
 }
 
-export async function searchIcons(query: string, limit = 10): Promise<IconEntry[]> {
+export async function searchIcons(query: string, limit = 5): Promise<IconEntry[]> {
   const index = await loadIconIndex()
   const q = query.toLowerCase()
 
-  return index
-    .filter((entry) =>
-      entry.keywords.some((k) => k.includes(q) || q.includes(k))
-    )
-    .slice(0, limit)
+  const exact: IconEntry[] = []
+  const partial: IconEntry[] = []
+
+  for (const entry of index) {
+    const nameMatch = entry.name.toLowerCase().includes(q)
+    const keywordMatch = entry.keywords.some(k => k.toLowerCase() === q)
+
+    if (nameMatch || keywordMatch) {
+      exact.push(entry)
+    } else if (entry.keywords.some(k => k.toLowerCase().includes(q))) {
+      partial.push(entry)
+    }
+  }
+
+  return [...exact, ...partial].slice(0, limit)
 }
 
 export const searchIconsToolDefinition = {

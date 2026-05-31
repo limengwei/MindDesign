@@ -31,7 +31,11 @@ arrow_back, arrow_forward, check, edit, email, lock, visibility, visibility_off,
 shopping_cart, account_circle, calendar_today, info, warning, error, dark_mode, light_mode,
 upload, download, share, code, smartphone, brush, star, refresh, more_vert, music_note, play_arrow,
 chat, call, send, folder, description, file_download, file_upload, attach_file, bar_chart,
-account_balance, payment, stethoscope, medical_services, monitoring, dashboard, palette, image
+account_balance, payment, stethoscope, medical_services, monitoring, dashboard, palette, image,
+cloud, sunny, water_drop, air, location_on, navigation, thermostat, bedtime, flag, grain,
+weather_hail, weather_mix, thunderstorm, ac_unit, gps_fixed, calendar_month
+
+**重要**：优先使用上面列出的图标名称。只有在确实找不到合适的图标时才调用 search_icons 工具，且最多调用 1 次。不要为了搜索图标而延迟输出 HTML。
 
 ## 页面类型约束
 

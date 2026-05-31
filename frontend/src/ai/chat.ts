@@ -53,6 +53,27 @@ function extractHTML(text: string): string | null {
   return null
 }
 
+function parseDSMLToolCalls(text: string): { name: string; args: string }[] | null {
+  if (!text.includes('DSML')) return null
+  const calls: { name: string; args: string }[] = []
+  const invokeRegex = /<\|*\|DSML\|*\|invoke\s+name="([^"]+)">([\s\S]*?)<\/\|*\|DSML\|*\|invoke>/g
+  let match
+  while ((match = invokeRegex.exec(text)) !== null) {
+    const name = match[1]
+    const body = match[2]
+    const params: Record<string, unknown> = {}
+    const paramRegex = /<\|*\|DSML\|*\|parameter\s+name="([^"]+)"[^>]*>([^<]*)<\/\|*\|DSML\|*\|parameter>/g
+    let pm
+    while ((pm = paramRegex.exec(body)) !== null) {
+      const val = pm[2].trim()
+      const num = Number(val)
+      params[pm[1]] = !isNaN(num) && val !== '' ? num : val
+    }
+    calls.push({ name, args: JSON.stringify(params) })
+  }
+  return calls.length > 0 ? calls : null
+}
+
 export interface SendMessageOptions {
   pageType: PageType
   colorScheme: ColorScheme
@@ -61,7 +82,8 @@ export interface SendMessageOptions {
   onStreamingHTML?: (html: string) => void
 }
 
-const MAX_TOOL_ROUNDS = 3
+const MAX_TOOL_ROUNDS = 8
+const MAX_TOOL_CALLS = 2
 
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
@@ -86,9 +108,16 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
   messages.push({ role: 'user', content: userText })
 
   let fullContent = ''
+  let toolCallCount = 0
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
-    const response = await callOpenAICompatible(config, messages, TOOLS, {
+    const allowTools = toolCallCount < MAX_TOOL_CALLS
+    const toolsToUse = allowTools ? TOOLS : undefined
+
+    console.log('[LLM] === round', round, 'start === tools allowed:', allowTools, 'tool calls so far:', toolCallCount)
+    console.log('[LLM] messages count:', messages.length)
+
+    const response = await callOpenAICompatible(config, messages, toolsToUse, {
       onContent: (chunk) => {
         fullContent += chunk
         const html = extractHTML(fullContent)
@@ -96,16 +125,44 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
       },
     })
 
+    console.log('[LLM] round', round, 'response.content:', response.content?.slice(0, 200))
+    console.log('[LLM] round', round, 'tool_calls:', response.tool_calls?.map(tc => tc.function.name))
+    console.log('[LLM] round', round, 'fullContent so far:', fullContent.length, 'chars')
+
     if (response.tool_calls && response.tool_calls.length > 0) {
+      toolCallCount++
       messages.push({ role: 'assistant', content: response.content || '', tool_calls: response.tool_calls })
       for (const tc of response.tool_calls) {
+        console.log('[LLM] executing tool:', tc.function.name, 'args:', tc.function.arguments.slice(0, 100))
         const result = await executeToolCall(tc.function.name, tc.function.arguments)
+        console.log('[LLM] tool result:', result.slice(0, 200))
         messages.push({ role: 'tool', content: result, tool_call_id: tc.id })
       }
       continue
     }
 
     const finalContent = response.content || fullContent
+
+    const dsmlCalls = parseDSMLToolCalls(finalContent)
+    if (dsmlCalls && dsmlCalls.length > 0 && toolCallCount < MAX_TOOL_CALLS + 2) {
+      console.log('[LLM] round', round, 'detected DSML tool calls:', dsmlCalls.length)
+      toolCallCount++
+      const fakeToolCalls = dsmlCalls.map((c, i) => ({
+        id: `dsml-${round}-${i}`,
+        type: 'function' as const,
+        function: { name: c.name, arguments: c.args },
+      }))
+      messages.push({ role: 'assistant', content: finalContent, tool_calls: fakeToolCalls })
+      for (const tc of fakeToolCalls) {
+        console.log('[LLM] executing DSML tool:', tc.function.name, 'args:', tc.function.arguments.slice(0, 100))
+        const result = await executeToolCall(tc.function.name, tc.function.arguments)
+        console.log('[LLM] DSML tool result:', result.slice(0, 200))
+        messages.push({ role: 'tool', content: result, tool_call_id: tc.id })
+      }
+      fullContent = ''
+      continue
+    }
+
     const html = extractHTML(finalContent)
     console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html)
     if (!html && finalContent) {
