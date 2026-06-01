@@ -160,8 +160,7 @@ func (s *ProjectService) SaveCardScreenshots(path string, screenshotsJson string
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	dir := filepath.Dir(path)
-	screenshotsDir := filepath.Join(dir, "screenshots")
+	screenshotsDir := s.screenshotsDir(path)
 	if err := os.MkdirAll(screenshotsDir, 0755); err != nil {
 		return err
 	}
@@ -192,8 +191,7 @@ func (s *ProjectService) LoadCardScreenshots(path string, cardIdsJson string) (s
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	dir := filepath.Dir(path)
-	screenshotsDir := filepath.Join(dir, "screenshots")
+	screenshotsDir := s.screenshotsDir(path)
 
 	var cardIds []string
 	if err := json.Unmarshal([]byte(cardIdsJson), &cardIds); err != nil {
@@ -218,8 +216,7 @@ func (s *ProjectService) CleanupCardScreenshots(path string, cardIdsJson string)
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	dir := filepath.Dir(path)
-	screenshotsDir := filepath.Join(dir, "screenshots")
+	screenshotsDir := s.screenshotsDir(path)
 
 	var keepIds []string
 	if err := json.Unmarshal([]byte(cardIdsJson), &keepIds); err != nil {
@@ -249,6 +246,11 @@ func (s *ProjectService) CleanupCardScreenshots(path string, cardIdsJson string)
 	}
 
 	return nil
+}
+
+func (s *ProjectService) screenshotsDir(path string) string {
+	base := strings.TrimSuffix(filepath.Base(path), ".project.json")
+	return filepath.Join(s.appDir, "screenshots", base)
 }
 
 func dataUrlToPng(dataUrl string) ([]byte, error) {

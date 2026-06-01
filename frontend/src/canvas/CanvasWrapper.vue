@@ -319,22 +319,37 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
   group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }) as any)
   group.hitSelf = true
   group.on('click', () => { canvasStore.selectCard(card.id) })
-  treeLayer.add(group as any)
+  if (treeLayer) treeLayer.add(group as any)
   cardGroups.set(card.id, group)
 }
 
 async function renderAll(shouldZoom = false) {
   if (!treeLayer) return
   const v = ++renderVersion
-  for (const g of actionBtnGroups.values()) g.remove()
-  actionBtnGroups.clear()
-  for (const g of cardGroups.values()) g.remove()
-  cardGroups.clear()
+
+  const currentIds = new Set(canvasStore.cards.map(c => c.id))
+  for (const [id, group] of cardGroups) {
+    if (!currentIds.has(id)) {
+      removeActionBtns(id)
+      group.remove()
+      cardGroups.delete(id)
+    }
+  }
+
   const genId = canvasStore.generatingCardId
+  const screenshotQueue: CanvasCard[] = []
   for (const card of canvasStore.cards) {
     if (renderVersion !== v) return
-    await renderCard(card, card.id === canvasStore.selectedCardId, card.id === genId)
+    if (!card.screenshot && card.html && card.id !== genId) {
+      screenshotQueue.push(card)
+      const w = card.width || props.pageWidth
+      const h = card.height || props.pageHeight
+      renderCardPlaceholder(card, card.id === canvasStore.selectedCardId, w, h)
+    } else {
+      await renderCard(card, card.id === canvasStore.selectedCardId, card.id === genId)
+    }
   }
+
   if (genId) startBreathAnimation()
   const selId = canvasStore.selectedCardId
   if (selId) {
@@ -344,6 +359,38 @@ async function renderAll(shouldZoom = false) {
   if (shouldZoom && cardGroups.size > 0) {
     setTimeout(() => { if (renderVersion === v) treeLayer?.zoom('fit', 40) }, 600)
   }
+
+  for (const card of screenshotQueue) {
+    if (renderVersion !== v) return
+    await renderCard(card, card.id === canvasStore.selectedCardId, false)
+  }
+}
+
+function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h: number) {
+  const existing = cardGroups.get(card.id)
+  if (existing) existing.remove()
+
+  const group = new Box({
+    id: card.id, x: card.x, y: card.y,
+    width: w, height: h,
+    strokeWidth: selected ? 3 : 1, stroke: selected ? '#818cf8' : '#2a2a4a',
+    cornerRadius: 8, fill: '#16213e',
+    overflow: 'hide',
+  })
+  group.add(new Rect({
+    width: w, height: h, cornerRadius: 8,
+    fill: 'rgba(15,15,35,0.5)',
+  }))
+  group.add(new Text({
+    text: '截图生成中...', fontSize: 14, fill: '#94a3b8',
+    x: w / 2, y: h / 2,
+    textAlign: 'center',
+  }) as any)
+  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }) as any)
+  group.hitSelf = true
+  group.on('click', () => { canvasStore.selectCard(card.id) })
+  treeLayer.add(group as any)
+  cardGroups.set(card.id, group)
 }
 
 function startBreathAnimation() {

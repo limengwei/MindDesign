@@ -5,6 +5,7 @@ import { useCanvasStore, PAGE_DIMENSIONS } from '../stores/canvasStore'
 import { useChatStore } from '../stores/chatStore'
 import { readProject, loadCardScreenshots } from '../services/projectBridge'
 import type { ProjectMeta, ProjectCards, ProjectSessions } from '../types/project'
+import type { CanvasCard } from '../stores/canvasStore'
 import Toolbar from '../components/Toolbar.vue'
 import ChatPanel from '../components/ChatPanel.vue'
 import CanvasWrapper from '../canvas/CanvasWrapper.vue'
@@ -23,7 +24,7 @@ const previewHtml = ref<string | null>(null)
 
 const pageDimensions = computed(() => PAGE_DIMENSIONS[canvasStore.pageType])
 
-function loadProjectData(bundle: { project: ProjectMeta | null; cards: ProjectCards | null; sessions: ProjectSessions | null }) {
+function loadProjectData(bundle: { project: ProjectMeta | null; cards: ProjectCards | null; sessions: ProjectSessions | null }, screenshots?: Record<string, string>) {
   canvasStore.reset()
   chatStore.reset()
 
@@ -43,8 +44,17 @@ function loadProjectData(bundle: { project: ProjectMeta | null; cards: ProjectCa
     }
   }
 
-  if (bundle.cards?.cards) {
-    canvasStore.cards = bundle.cards.cards
+  const rawCards = (bundle as any).cards
+  if (rawCards) {
+    const cards: CanvasCard[] = Array.isArray(rawCards) ? rawCards : rawCards.cards
+    if (screenshots) {
+      for (const card of cards) {
+        if (screenshots[card.id]) {
+          card.screenshot = screenshots[card.id]
+        }
+      }
+    }
+    canvasStore.cards = cards
   }
 
   if (bundle.sessions?.sessions) {
@@ -64,18 +74,14 @@ onMounted(async () => {
 
   try {
     const bundle = await readProject(filePath)
-    loadProjectData(bundle)
-    canvasStore.setCurrentFilePath(filePath)
-
-    if (canvasStore.cards.length > 0) {
-      const cardIds = canvasStore.cards.map(c => c.id)
-      const screenshots = await loadCardScreenshots(filePath, cardIds)
-      for (const card of canvasStore.cards) {
-        if (screenshots[card.id]) {
-          card.screenshot = screenshots[card.id]
-        }
-      }
+    let screenshots: Record<string, string> | undefined
+    const cardsArray = bundle.cards as any[] | null
+    if (cardsArray && cardsArray.length) {
+      const cardIds = cardsArray.map((c: any) => c.id)
+      screenshots = await loadCardScreenshots(filePath, cardIds)
     }
+    loadProjectData(bundle as any, screenshots)
+    canvasStore.setCurrentFilePath(filePath)
   } catch (e) {
     console.error('Failed to load project:', e)
   }
