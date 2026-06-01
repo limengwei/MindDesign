@@ -22,10 +22,17 @@ function showConfirm(cardId: string) {
   confirmState.value = { show: true, cardId, message: '确定删除这张设计稿吗？' }
 }
 
-function confirmDelete() {
-  canvasStore.removeCard(confirmState.value.cardId)
-  saveProject()
+async function confirmDelete() {
+  const cardId = confirmState.value.cardId
   confirmState.value.show = false
+  removeActionBtns(cardId)
+  const group = cardGroups.get(cardId)
+  if (group) {
+    group.remove()
+    cardGroups.delete(cardId)
+  }
+  canvasStore.removeCard(cardId)
+  await saveProject()
 }
 
 function cancelDelete() {
@@ -197,9 +204,15 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
   try {
     const doc = iframe.contentDocument!
     const freezeStyle = doc.createElement('style')
-    freezeStyle.textContent = '*, *::before, *::after { animation-delay: -999999s !important; animation-duration: 0.001s !important; transition-duration: 0.001s !important; }'
+    freezeStyle.textContent = `
+      *, *::before, *::after {
+        animation-play-state: paused !important;
+        animation-delay: -999999s !important;
+        transition: none !important;
+      }
+    `
     doc.head.appendChild(freezeStyle)
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+    await new Promise(r => setTimeout(r, 300))
 
     const externalImages = doc.querySelectorAll<HTMLImageElement>('img[src^="http"]')
     const proxyPromises = Array.from(externalImages).map(async (img) => {
