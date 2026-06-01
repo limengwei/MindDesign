@@ -12,11 +12,13 @@ import (
 var assets embed.FS
 
 func main() {
+
 	app := application.New(application.Options{
 		Name:        "MindDesign",
 		Description: "AI 对话式 UI 设计工具",
 		Services: []application.Service{
 			application.NewService(NewProjectService()),
+			application.NewService(NewImageProxyService()),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),

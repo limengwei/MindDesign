@@ -2,8 +2,11 @@ const STORAGE_KEY = 'minddesign:autosave'
 
 // @ts-ignore
 type ProjectServiceType = typeof import('../../bindings/changeme/projectservice')
+// @ts-ignore
+type ImageProxyServiceType = typeof import('../../bindings/changeme/imageproxyservice')
 
 let ProjectService: ProjectServiceType | null = null
+let ImageProxyService: ImageProxyServiceType | null = null
 let loadingPromise: Promise<void> | null = null
 
 async function loadWailsService() {
@@ -12,6 +15,12 @@ async function loadWailsService() {
     ProjectService = await import('../../bindings/changeme/projectservice')
   } catch {
     ProjectService = null
+  }
+  try {
+    // @ts-ignore
+    ImageProxyService = await import('../../bindings/changeme/imageproxyservice')
+  } catch {
+    ImageProxyService = null
   }
 }
 
@@ -186,4 +195,16 @@ export async function getRecentProjects(): Promise<RecentProject[]> {
     return JSON.parse(json) as RecentProject[]
   }
   return []
+}
+
+export async function fetchProxiedImage(url: string): Promise<string | null> {
+  await ensureLoaded()
+  if (ImageProxyService) {
+    try {
+      return await ImageProxyService.FetchImage(url)
+    } catch {
+      return null
+    }
+  }
+  return null
 }

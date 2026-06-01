@@ -118,7 +118,7 @@ weather_hail, weather_mix, thunderstorm, ac_unit, gps_fixed, calendar_month
 参数：
 - 宽x高：根据图片在页面中的实际尺寸设定
 - 背景色/文字色：HEX 值（不带 #），根据页面配色风格自行决定，使占位图与整体设计协调
-- text：图片上显示的简短描述文字
+- text：图片上显示的简短英文描述文字（不支持中文，只能用英文）
 - font 固定使用 raleway
 
 示例：

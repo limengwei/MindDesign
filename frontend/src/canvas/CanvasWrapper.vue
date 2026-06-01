@@ -3,10 +3,11 @@ import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { App, Leafer, Box, Image, Text, Rect, Ellipse, PointerEvent } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
-import html2canvas from 'html2canvas'
+import { toPng } from 'html-to-image'
 import { DotGrid } from './dotGrid'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
 import { saveProject } from '../stores/autoSave'
+import { fetchProxiedImage } from '../services/projectBridge'
 
 const emit = defineEmits<{
   exportCard: [cardId: string]
@@ -200,6 +201,16 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
     doc.head.appendChild(freezeStyle)
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
 
+    const externalImages = doc.querySelectorAll<HTMLImageElement>('img[src^="http"]')
+    const proxyPromises = Array.from(externalImages).map(async (img) => {
+      const originalSrc = img.getAttribute('src')!
+      const proxied = await fetchProxiedImage(originalSrc)
+      if (proxied) {
+        img.setAttribute('src', proxied)
+      }
+    })
+    await Promise.all(proxyPromises)
+
     doc.documentElement.style.height = 'auto'
     doc.documentElement.style.overflow = 'visible'
     doc.body.style.height = 'auto'
@@ -210,17 +221,13 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
     container.style.height = contentHeight + 'px'
     await new Promise(r => setTimeout(r, 200))
 
-    const c = await html2canvas(doc.documentElement, {
+    const dataUrl = await toPng(doc.body, {
       width: props.pageWidth,
       height: contentHeight,
-      scale: 2,
-      useCORS: true,
+      pixelRatio: 2,
       backgroundColor: '#ffffff',
-      foreignObjectRendering: false,
-      removeContainer: false,
     })
-    const dataUrl = c.toDataURL('image/png')
-    console.log('[Screenshot] canvas size:', c.width, 'x', c.height, 'dataUrl length:', dataUrl.length)
+    console.log('[Screenshot] dataUrl length:', dataUrl.length)
     document.body.removeChild(container)
     return { dataUrl, contentHeight }
   } catch (e) {
