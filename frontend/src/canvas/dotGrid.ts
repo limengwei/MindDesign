@@ -33,19 +33,17 @@ export class DotGrid {
   private mouseInside = false
   private animating = false
   private boundMouseMove: (e: MouseEvent) => void
-  private boundMouseEnter: () => void
+  private boundMouseEnter: (e: MouseEvent) => void
   private boundMouseLeave: () => void
-  private boundZoomChange: (e: any) => void
+  private zoomChangeEventId: any = null
   private _resizeObserver: ResizeObserver | null = null
 
   constructor(container: HTMLElement, app: App, config?: DotGridConfig) {
     this.app = app
     this.config = { ...DEFAULT_CONFIG, ...config }
 
-    // 用 LeaferJS 内部 Leafer 实例，不创建独立 DOM canvas
-    this.layer = new Leafer({ hittable: false })
+    this.layer = new Leafer({ hittable: false, usePartRender: false })
 
-    // 插入到 ground 之前（最底层），不影响 tree 层的渲染
     if (app.ground) {
       app.addBefore(this.layer, app.ground)
     } else {
@@ -55,15 +53,14 @@ export class DotGrid {
     this.boundMouseMove = this.onMouseMove.bind(this)
     this.boundMouseEnter = this.onMouseEnter.bind(this)
     this.boundMouseLeave = this.onMouseLeave.bind(this)
-    this.boundZoomChange = (e: any) => {
-      if (e.attrName === 'x' || e.attrName === 'y' || e.attrName === 'scaleX' || e.attrName === 'scaleY') {
-        this.scheduleRedraw()
-      }
-    }
 
     const zoomLayer = this.app.tree?.zoomLayer
     if (zoomLayer) {
-      zoomLayer.on(PropertyEvent.CHANGE, this.boundZoomChange)
+      this.zoomChangeEventId = zoomLayer.on_(PropertyEvent.CHANGE, (e: any) => {
+        if (e.attrName === 'x' || e.attrName === 'y' || e.attrName === 'scaleX' || e.attrName === 'scaleY') {
+          this.scheduleRedraw()
+        }
+      })
     }
 
     container.addEventListener('mousemove', this.boundMouseMove)
@@ -111,15 +108,23 @@ export class DotGrid {
     const lerp = 0.25
     const dx = targetX - this.smoothMouseX
     const dy = targetY - this.smoothMouseY
+
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
+      this.smoothMouseX = targetX
+      this.smoothMouseY = targetY
+      this.redraw()
+      this.animating = false
+      if (!this.mouseInside) {
+        this.smoothMouseX = -9999
+        this.smoothMouseY = -9999
+      }
+      return
+    }
+
     this.smoothMouseX += dx * lerp
     this.smoothMouseY += dy * lerp
     this.redraw()
-    if (this.mouseInside || Math.sqrt(dx * dx + dy * dy) > 1) {
-      requestAnimationFrame(() => this.tickHover())
-    } else {
-      this.animating = false
-      this.smoothMouseX = -9999; this.smoothMouseY = -9999
-    }
+    requestAnimationFrame(() => this.tickHover())
   }
 
   private scheduleRedraw() {
@@ -210,8 +215,11 @@ export class DotGrid {
   destroy() {
     if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = 0 }
     this.animating = false
-    const zoomLayer = this.app.tree?.zoomLayer
-    if (zoomLayer) zoomLayer.off(PropertyEvent.CHANGE, this.boundZoomChange)
+    if (this.zoomChangeEventId) {
+      const zoomLayer = this.app.tree?.zoomLayer
+      if (zoomLayer) zoomLayer.off_(this.zoomChangeEventId)
+      this.zoomChangeEventId = null
+    }
     this._resizeObserver?.disconnect()
     this._resizeObserver = null
     this.layer.destroy()

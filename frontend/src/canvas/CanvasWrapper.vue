@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { App, Leafer, Box, Image, Text, Rect, Ellipse, PointerEvent } from 'leafer-ui'
+import { App, Leafer, Box, Frame, Image, Text, Rect, Ellipse, PointerEvent, DragEvent, PropertyEvent } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
+import { ScrollBar } from '@leafer-in/scroll'
 import { toPng } from 'html-to-image'
 import { DotGrid } from './dotGrid'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
@@ -48,11 +49,16 @@ const canvasStore = useCanvasStore()
 const containerRef = ref<HTMLDivElement | null>(null)
 let app: App | null = null
 let treeLayer: Leafer | null = null
+let skyLayer: Leafer | null = null
 let dotGrid: DotGrid | null = null
 let resizeObserver: ResizeObserver | null = null
-const cardGroups = new Map<string, Box>()
+const cardGroups = new Map<string, Frame>()
 let breathRafId = 0
 let renderVersion = 0
+let appTapEventId: any = null
+let viewportChangeId: any = null
+const cardEventIds = new Map<string, any>()
+const btnEventIds = new Map<string, any[]>()
 
 onMounted(() => {
   if (!containerRef.value) return
@@ -60,19 +66,32 @@ onMounted(() => {
   app = new App({
     view: containerRef.value,
     tree: { type: 'design' },
-    zoom: { min: 0.1, max: 5 },
+    sky: {},
+    zoom: { min: 0.02, max: 32 },
     move: { holdSpaceKey: true, holdMiddleKey: true, drag: 'auto', dragAnimate: 0.9 },
     wheel: { zoomMode: true, zoomSpeed: 0.2 },
   })
 
   treeLayer = app.tree as Leafer
+  skyLayer = app.sky as Leafer
 
-  app.on(PointerEvent.TAP, (e: PointerEvent) => {
+  new ScrollBar(app)
+
+  appTapEventId = app.on_(PointerEvent.TAP, (e: PointerEvent) => {
     const target = e.target as any
     if (!target?.id || !cardGroups.has(target.id)) {
       canvasStore.selectCard(null)
     }
   })
+
+  const zoomLayer = (treeLayer as any)?.zoomLayer
+  if (zoomLayer) {
+    viewportChangeId = zoomLayer.on_(PropertyEvent.CHANGE, (e: any) => {
+      if (e.attrName === 'x' || e.attrName === 'y' || e.attrName === 'scaleX' || e.attrName === 'scaleY') {
+        updateActionBtnPositions()
+      }
+    })
+  }
 
   dotGrid = new DotGrid(containerRef.value, app, {
     dotColor: 'rgba(255,255,255,0.1)',
@@ -96,9 +115,17 @@ onUnmounted(() => {
   if (breathRafId) { cancelAnimationFrame(breathRafId); breathRafId = 0 }
   dotGrid?.destroy(); dotGrid = null
   resizeObserver?.disconnect(); resizeObserver = null
-  app?.destroy(); app = null; treeLayer = null
   cardGroups.clear()
   actionBtnGroups.clear()
+  cardEventIds.clear()
+  btnEventIds.clear()
+  if (app && appTapEventId) { app.off_(appTapEventId); appTapEventId = null }
+  if (viewportChangeId) {
+    const zoomLayer = (treeLayer as any)?.zoomLayer
+    if (zoomLayer) zoomLayer.off_(viewportChangeId)
+    viewportChangeId = null
+  }
+  app?.destroy(); app = null; treeLayer = null; skyLayer = null
 })
 
 const iconCache = new Map<string, string>()
@@ -196,6 +223,21 @@ async function replaceIcons(html: string): Promise<string> {
   return `<!DOCTYPE html><html><head>${headHtml}</head><body>${bodyContent}</body></html>`
 }
 
+function waitForDOMStable(doc: Document, options: { timeout: number; idleTime: number }): Promise<void> {
+  return new Promise((resolve) => {
+    let timer: ReturnType<typeof setTimeout>
+    const observer = new MutationObserver(() => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        observer.disconnect()
+        resolve()
+      }, options.idleTime)
+    })
+    observer.observe(doc.body, { childList: true, subtree: true, attributes: true })
+    setTimeout(() => { observer.disconnect(); resolve() }, options.timeout)
+  })
+}
+
 async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; contentHeight: number }> {
   if (!html) return { dataUrl: '', contentHeight: props.pageHeight }
 
@@ -218,7 +260,7 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
 
   try {
     const doc = iframe.contentDocument!
-    await new Promise(r => setTimeout(r, 2000))
+    await waitForDOMStable(doc, { timeout: 5000, idleTime: 300 })
 
     const freezeStyle = doc.createElement('style')
     freezeStyle.textContent = `
@@ -228,7 +270,7 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
       }
     `
     doc.head.appendChild(freezeStyle)
-    await new Promise(r => setTimeout(r, 200))
+    await new Promise(r => setTimeout(r, 100))
 
     const externalImages = doc.querySelectorAll<HTMLImageElement>('img[src^="http"]')
     const proxyPromises = Array.from(externalImages).map(async (img) => {
@@ -249,17 +291,10 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
     doc.body.style.overflow = 'visible'
     iframe.style.height = contentHeight + 'px'
     container.style.height = contentHeight + 'px'
-    await new Promise(r => setTimeout(r, 200))
+    await new Promise(r => setTimeout(r, 100))
 
-    const bodyBg = doc.defaultView!.getComputedStyle(doc.body).backgroundColor || '#ffffff'
-
-    const origGetComputedStyle = window.getComputedStyle.bind(window)
-    window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
-      if (elt.ownerDocument !== document && elt.ownerDocument.defaultView) {
-        return elt.ownerDocument.defaultView.getComputedStyle(elt, pseudoElt)
-      }
-      return origGetComputedStyle(elt, pseudoElt)
-    }
+    const iframeWindow = doc.defaultView!
+    const bodyBg = iframeWindow.getComputedStyle(doc.body).backgroundColor || '#ffffff'
 
     let dataUrl = ''
     try {
@@ -268,9 +303,16 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
         height: contentHeight,
         pixelRatio: 2,
         backgroundColor: bodyBg,
+        filter: (node: Node) => {
+          if (node instanceof Element && node.tagName === 'IFRAME') return false
+          return true
+        },
+        fetchRequestInit: {
+          credentials: 'omit' as RequestCredentials,
+        },
       })
-    } finally {
-      window.getComputedStyle = origGetComputedStyle
+    } catch (captureErr) {
+      console.error('[Screenshot] toPng error:', captureErr)
     }
     console.log('[Screenshot] dataUrl length:', dataUrl.length)
     document.body.removeChild(container)
@@ -282,29 +324,15 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
   }
 }
 
-async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boolean) {
-  if (!treeLayer) return
-
-  const existing = cardGroups.get(card.id)
-  if (existing) existing.remove()
-
-  if (!isGenerating && !card.screenshot && card.html) {
-    const result = await htmlToScreenshot(card.html)
-    card.screenshot = result.dataUrl
-    if (result.contentHeight !== card.height) {
-      card.height = result.contentHeight
-    }
-  }
-
+function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boolean): Frame {
   const w = card.width || props.pageWidth
   const h = card.height || props.pageHeight
 
-  const group = new Box({
+  const group = new Frame({
     id: card.id, x: card.x, y: card.y,
     width: w, height: h,
     strokeWidth: selected ? 3 : 1, stroke: selected ? '#818cf8' : '#2a2a4a',
     cornerRadius: 8, fill: isGenerating ? '#2a2a4a' : '#16213e',
-    overflow: 'hide',
   })
 
   if (isGenerating) {
@@ -313,14 +341,18 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
       fill: 'rgba(15,15,35,0.75)',
     })
     overlay.id = '__gen_overlay__'
-    group.add(overlay as any)
+    group.add(overlay)
 
     const dotCount = 8
     const dotRadius = 4
     const spinnerRadius = 22
     const cx = w / 2
     const cy = h / 2 - 14
-    const spinnerGroup = new Box({ id: '__spinner__', x: cx - spinnerRadius - dotRadius, y: cy - spinnerRadius - dotRadius, width: (spinnerRadius + dotRadius) * 2, height: (spinnerRadius + dotRadius) * 2 })
+    const spinnerGroup = new Box({
+      id: '__spinner__',
+      x: cx - spinnerRadius - dotRadius, y: cy - spinnerRadius - dotRadius,
+      width: (spinnerRadius + dotRadius) * 2, height: (spinnerRadius + dotRadius) * 2,
+    })
     for (let i = 0; i < dotCount; i++) {
       const angle = (i / dotCount) * Math.PI * 2 - Math.PI / 2
       const dx = spinnerRadius + dotRadius + Math.cos(angle) * spinnerRadius
@@ -332,9 +364,9 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
         opacity: 0.15 + (i / dotCount) * 0.85,
       })
       dot.id = `__spinner_dot_${i}__`
-      spinnerGroup.add(dot as any)
+      spinnerGroup.add(dot)
     }
-    group.add(spinnerGroup as any)
+    group.add(spinnerGroup)
 
     const loadingText = new Text({
       text: '生成中...',
@@ -343,15 +375,64 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
       y: cy + spinnerRadius + dotRadius + 16,
     })
     loadingText.id = '__gen_text__'
-    group.add(loadingText as any)
+    group.add(loadingText)
   } else if (card.screenshot) {
-    group.add(new Image({ url: card.screenshot, width: w, height: h }) as any)
+    group.add(new Image({ url: card.screenshot, width: w, height: h }))
   }
 
-  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }) as any)
+  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }))
   group.hitSelf = true
-  group.on('click', () => { canvasStore.selectCard(card.id) })
-  if (treeLayer) treeLayer.add(group as any)
+
+  const oldCardEvtId = cardEventIds.get(card.id)
+  if (oldCardEvtId) group.off_(oldCardEvtId)
+  const eventId = group.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  cardEventIds.set(card.id, eventId)
+
+  return group
+}
+
+async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boolean) {
+  if (!treeLayer) return
+
+  const existing = cardGroups.get(card.id)
+
+  if (!isGenerating && !card.screenshot && card.html) {
+    const result = await htmlToScreenshot(card.html)
+    card.screenshot = result.dataUrl
+    if (result.contentHeight !== card.height) {
+      card.height = result.contentHeight
+    }
+  }
+
+  if (existing && !isGenerating && card.screenshot) {
+    const w = card.width || props.pageWidth
+    const h = card.height || props.pageHeight
+    existing.set({
+      width: w, height: h,
+      strokeWidth: selected ? 3 : 1,
+      stroke: selected ? '#818cf8' : '#2a2a4a',
+      fill: '#16213e',
+    })
+
+    const hasOverlay = existing.children?.some(c => (c as any).id === '__gen_overlay__')
+    const hasImage = existing.children?.some(c => c instanceof Image)
+    if (hasOverlay || !hasImage) {
+      existing.removeAll()
+      existing.add(new Image({ url: card.screenshot, width: w, height: h }))
+      existing.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }))
+    } else {
+      const imgChild = existing.children?.find(c => c instanceof Image) as Image | undefined
+      if (imgChild) {
+        imgChild.set({ url: card.screenshot, width: w, height: h })
+      }
+    }
+    return
+  }
+
+  if (existing) existing.remove()
+
+  const group = buildCardFrame(card, selected, isGenerating)
+  treeLayer.add(group)
   cardGroups.set(card.id, group)
 }
 
@@ -402,12 +483,11 @@ function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h
   const existing = cardGroups.get(card.id)
   if (existing) existing.remove()
 
-  const group = new Box({
+  const group = new Frame({
     id: card.id, x: card.x, y: card.y,
     width: w, height: h,
     strokeWidth: selected ? 3 : 1, stroke: selected ? '#818cf8' : '#2a2a4a',
     cornerRadius: 8, fill: '#16213e',
-    overflow: 'hide',
   })
   group.add(new Rect({
     width: w, height: h, cornerRadius: 8,
@@ -417,11 +497,14 @@ function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h
     text: '截图生成中...', fontSize: 14, fill: '#94a3b8',
     x: w / 2, y: h / 2,
     textAlign: 'center',
-  }) as any)
-  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }) as any)
+  }))
+  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }))
   group.hitSelf = true
-  group.on('click', () => { canvasStore.selectCard(card.id) })
-  if (treeLayer) treeLayer.add(group as any)
+  const oldCardEvtId = cardEventIds.get(card.id)
+  if (oldCardEvtId) group.off_(oldCardEvtId)
+  const eventId = group.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  cardEventIds.set(card.id, eventId)
+  if (treeLayer) treeLayer.add(group)
   cardGroups.set(card.id, group)
 }
 
@@ -443,10 +526,14 @@ function startBreathAnimation() {
             const dots = (spinner as any).children || []
             for (let i = 0; i < dots.length; i++) {
               const brightness = ((i - rotationStep + dotCount) % dotCount) / dotCount
-              ;(dots[i] as any).opacity = 0.12 + brightness * 0.88
+              ;(dots[i] as any).set({ opacity: 0.12 + brightness * 0.88 })
             }
           }
         }
+      } else {
+        cancelAnimationFrame(breathRafId)
+        breathRafId = 0
+        return
       }
     }
     breathRafId = requestAnimationFrame(tick)
@@ -462,33 +549,37 @@ function stopBreathAnimation() {
 }
 
 watch(
-  () => {
-    const genId = canvasStore.generatingCardId
-    const cardsKey = canvasStore.cards.map(c => `${c.id}:${c.screenshot ? 'y' : 'n'}:${c.html ? 'h' : 'e'}`).join(',')
-    return `${cardsKey}|gen:${genId}`
-  },
-  (_new, _old) => {
-    const genId = canvasStore.generatingCardId
-    if (!genId) stopBreathAnimation()
-    const cardsChanged = _new.split('|')[0] !== _old.split('|')[0]
-    renderAll(cardsChanged)
-  },
+  () => canvasStore.cards.map(c => c.id).join(','),
+  () => { renderAll(true) },
 )
+
+watch(
+  () => canvasStore.cards.map(c => `${c.screenshot ? 'y' : 'n'}:${c.html ? 'h' : 'e'}`).join(','),
+  () => { renderAll(false) },
+)
+
+watch(() => canvasStore.generatingCardId, (newId) => {
+  if (!newId) {
+    stopBreathAnimation()
+    return
+  }
+  startBreathAnimation()
+  const card = canvasStore.cards.find(c => c.id === newId)
+  if (card) renderCard(card, card.id === canvasStore.selectedCardId, true)
+})
 
 watch(() => canvasStore.selectedCardId, (newId, oldId) => {
   if (oldId) {
     removeActionBtns(oldId)
     const oldGroup = cardGroups.get(oldId)
     if (oldGroup) {
-      ;(oldGroup as any).strokeWidth = 1
-      ;(oldGroup as any).stroke = '#2a2a4a'
+      oldGroup.set({ strokeWidth: 1, stroke: '#2a2a4a' })
     }
   }
   if (newId) {
     const group = cardGroups.get(newId)
     if (group) {
-      ;(group as any).strokeWidth = 3
-      ;(group as any).stroke = '#818cf8'
+      group.set({ strokeWidth: 3, stroke: '#818cf8' })
       createActionBtns(newId, group)
     }
   }
@@ -499,7 +590,29 @@ const BTN_GAP = 8
 const BTN_AREA_H = BTN_H + 6
 const actionBtnGroups = new Map<string, Box>()
 
-function createActionBtns(cardId: string, group: Box) {
+function updateActionBtnPositions() {
+  const zoomLayer = (treeLayer as any)?.zoomLayer
+  const scale = zoomLayer?.scaleX ?? 1
+  const offsetX = zoomLayer?.x ?? 0
+  const offsetY = zoomLayer?.y ?? 0
+
+  for (const [cardId, btnGroup] of actionBtnGroups) {
+    const cardGroup = cardGroups.get(cardId)
+    if (!cardGroup) continue
+    const wx = cardGroup.x ?? 0
+    const wy = cardGroup.y ?? 0
+    const screenX = wx * scale + offsetX
+    const screenY = wy * scale + offsetY
+    btnGroup.set({
+      x: screenX,
+      y: screenY - BTN_AREA_H * scale,
+      scaleX: scale,
+      scaleY: scale,
+    })
+  }
+}
+
+function createActionBtns(cardId: string, group: Frame) {
   const existing = actionBtnGroups.get(cardId)
   if (existing) return
 
@@ -519,9 +632,9 @@ function createActionBtns(cardId: string, group: Box) {
     fill: 'rgba(59,130,246,0.85)', cornerRadius: 6,
     hitSelf: true,
   })
-  previewBtn.add(new Text({ text: '预览', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  previewBtn.add(new Text({ text: '预览', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
   previewBtn.id = `__btn_preview__${cardId}`
-  previewBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('previewCard', cardId) })
+  const previewEvtId = previewBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('previewCard', cardId) })
 
   const exportBtn = new Box({
     x: w - btnW * 3 - BTN_GAP * 2, y: 0,
@@ -529,9 +642,9 @@ function createActionBtns(cardId: string, group: Box) {
     fill: 'rgba(16,185,129,0.85)', cornerRadius: 6,
     hitSelf: true,
   })
-  exportBtn.add(new Text({ text: '导出', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  exportBtn.add(new Text({ text: '导出', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
   exportBtn.id = `__btn_export__${cardId}`
-  exportBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('exportCard', cardId) })
+  const exportEvtId = exportBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('exportCard', cardId) })
 
   const refreshBtn = new Box({
     x: w - btnW * 2 - BTN_GAP, y: 0,
@@ -539,9 +652,9 @@ function createActionBtns(cardId: string, group: Box) {
     fill: 'rgba(79,70,229,0.85)', cornerRadius: 6,
     hitSelf: true,
   })
-  refreshBtn.add(new Text({ text: '刷新', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  refreshBtn.add(new Text({ text: '刷新', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
   refreshBtn.id = `__btn_refresh__${cardId}`
-  refreshBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; refreshCard(cardId) })
+  const refreshEvtId = refreshBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; refreshCard(cardId) })
 
   const deleteBtn = new Box({
     x: w - btnW, y: 0,
@@ -549,21 +662,30 @@ function createActionBtns(cardId: string, group: Box) {
     fill: 'rgba(239,68,68,0.85)', cornerRadius: 6,
     hitSelf: true,
   })
-  deleteBtn.add(new Text({ text: '删除', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  deleteBtn.add(new Text({ text: '删除', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
   deleteBtn.id = `__btn_delete__${cardId}`
-  deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; showConfirm(cardId) })
+  const deleteEvtId = deleteBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; showConfirm(cardId) })
 
-  btnGroup.add(previewBtn as any)
-  btnGroup.add(exportBtn as any)
-  btnGroup.add(refreshBtn as any)
-  btnGroup.add(deleteBtn as any)
-  treeLayer!.add(btnGroup as any)
+  btnGroup.add(previewBtn)
+  btnGroup.add(exportBtn)
+  btnGroup.add(refreshBtn)
+  btnGroup.add(deleteBtn)
+  if (skyLayer) skyLayer.add(btnGroup)
   actionBtnGroups.set(cardId, btnGroup)
+  btnEventIds.set(cardId, [previewEvtId, exportEvtId, refreshEvtId, deleteEvtId])
 }
 
 function removeActionBtns(cardId: string) {
   const btnGroup = actionBtnGroups.get(cardId)
-  if (btnGroup) { btnGroup.remove(); actionBtnGroups.delete(cardId) }
+  if (btnGroup) {
+    const ids = btnEventIds.get(cardId)
+    if (ids) {
+      for (const eid of ids) btnGroup.off_(eid)
+      btnEventIds.delete(cardId)
+    }
+    btnGroup.remove()
+    actionBtnGroups.delete(cardId)
+  }
 }
 
 async function refreshCard(cardId: string) {

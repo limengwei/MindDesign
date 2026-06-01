@@ -12,14 +12,15 @@
     "icons:prod": "NODE_ENV=production npx tsx ../scripts/generate-icon-index.ts"
   },
   "dependencies": {
-    "@leafer-in/editor": "^2.1.2",
-    "@leafer-in/export": "^2.1.2",
-    "@leafer-in/view": "^2.1.2",
-    "@leafer-in/viewport": "^2.1.2",
+    "@leafer-in/editor": "^2.1.3",
+    "@leafer-in/export": "^2.1.3",
+    "@leafer-in/scroll": "^2.1.3",
+    "@leafer-in/view": "^2.1.3",
+    "@leafer-in/viewport": "^2.1.3",
     "@wailsio/runtime": "latest",
     "html-to-image": "^1.11.13",
     "html2canvas": "^1.4.1",
-    "leafer-ui": "^2.1.2",
+    "leafer-ui": "^2.1.3",
     "pinia": "^3.0.4",
     "vue": "^3.2.45",
     "vue-router": "^4.6.4"
