@@ -50,23 +50,37 @@ export async function clearAutoSave(): Promise<void> {
   }
 }
 
-export async function writeFile(path: string, data: string): Promise<void> {
+export async function writeProjectFiles(path: string, projectJson: string, sessionsJson: string, cardsJson: string): Promise<void> {
   await ensureLoaded()
   if (ProjectService) {
-    await ProjectService.WriteFile(path, data)
+    await (ProjectService as any).WriteProjectFiles(path, projectJson, sessionsJson, cardsJson)
   } else {
-    localStorage.setItem(STORAGE_KEY + ':file:' + path, data)
+    localStorage.setItem(STORAGE_KEY + ':project:' + path, projectJson)
+    localStorage.setItem(STORAGE_KEY + ':sessions:' + path, sessionsJson)
+    localStorage.setItem(STORAGE_KEY + ':cards:' + path, cardsJson)
   }
 }
 
-export async function readFile(path: string): Promise<string> {
+export interface ProjectBundle {
+  project: any
+  sessions: any[] | null
+  cards: any[] | null
+}
+
+export async function readProject(path: string): Promise<ProjectBundle> {
   await ensureLoaded()
   if (ProjectService) {
-    return await ProjectService.ReadFile(path)
+    const json = await (ProjectService as any).ReadProject(path)
+    return JSON.parse(json) as ProjectBundle
   }
-  const data = localStorage.getItem(STORAGE_KEY + ':file:' + path)
-  if (!data) throw new Error('文件不存在')
-  return data
+  const projectStr = localStorage.getItem(STORAGE_KEY + ':project:' + path)
+  const sessionsStr = localStorage.getItem(STORAGE_KEY + ':sessions:' + path)
+  const cardsStr = localStorage.getItem(STORAGE_KEY + ':cards:' + path)
+  return {
+    project: projectStr ? JSON.parse(projectStr) : null,
+    sessions: sessionsStr ? JSON.parse(sessionsStr) : null,
+    cards: cardsStr ? JSON.parse(cardsStr) : null,
+  }
 }
 
 export async function getCurrentPath(): Promise<string> {
@@ -84,21 +98,35 @@ export async function setCurrentPath(path: string): Promise<void> {
   }
 }
 
-export async function showSaveDialog(defaultName?: string): Promise<string> {
+export async function clearCurrentPath(): Promise<void> {
   await ensureLoaded()
-  try {
-    const { Dialogs } = await import('@wailsio/runtime')
-    const path = await Dialogs.SaveFile({
-      Title: '保存项目',
-      DefaultFilename: defaultName || '未命名项目.mind',
-      Filters: [
-        { DisplayName: 'MindDesign 项目', Pattern: '*.mind' },
-        { DisplayName: '所有文件', Pattern: '*.*' },
-      ],
-    } as any)
-    return path || ''
-  } catch {
-    return ''
+  if (ProjectService) {
+    await ProjectService.ClearCurrentPath()
+  }
+}
+
+export async function createProject(name: string, projectJson: string, sessionsJson: string, cardsJson: string): Promise<string> {
+  await ensureLoaded()
+  if (ProjectService) {
+    return await (ProjectService as any).CreateProject(name, projectJson, sessionsJson, cardsJson)
+  }
+  const key = STORAGE_KEY + ':project:' + name
+  localStorage.setItem(key, projectJson)
+  localStorage.setItem(STORAGE_KEY + ':sessions:' + name, sessionsJson)
+  localStorage.setItem(STORAGE_KEY + ':cards:' + name, cardsJson)
+  return key
+}
+
+export async function updateProjectMeta(
+  path: string,
+  name: string,
+  pageType: string,
+  designSpecId: string,
+  colorScheme: string
+): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).UpdateProjectMeta(path, name, pageType, designSpecId, colorScheme)
   }
 }
 
@@ -109,7 +137,7 @@ export async function showOpenDialog(): Promise<string> {
     const path = await Dialogs.OpenFile({
       Title: '打开项目',
       Filters: [
-        { DisplayName: 'MindDesign 项目', Pattern: '*.mind' },
+        { DisplayName: 'MindDesign 项目', Pattern: '*.project.json' },
         { DisplayName: '所有文件', Pattern: '*.*' },
       ],
     })
@@ -135,34 +163,4 @@ export async function getRecentProjects(): Promise<RecentProject[]> {
     return JSON.parse(json) as RecentProject[]
   }
   return []
-}
-
-export async function clearCurrentPath(): Promise<void> {
-  await ensureLoaded()
-  if (ProjectService) {
-    await ProjectService.ClearCurrentPath()
-  }
-}
-
-export async function createProject(name: string, data: string): Promise<string> {
-  await ensureLoaded()
-  if (ProjectService) {
-    return await (ProjectService as any).CreateProject(name, data)
-  }
-  const key = STORAGE_KEY + ':project:' + name
-  localStorage.setItem(key, data)
-  return key
-}
-
-export async function updateProjectMeta(
-  path: string,
-  name: string,
-  pageType: string,
-  designSpecId: string,
-  colorScheme: string
-): Promise<void> {
-  await ensureLoaded()
-  if (ProjectService) {
-    await (ProjectService as any).UpdateProjectMeta(path, name, pageType, designSpecId, colorScheme)
-  }
 }

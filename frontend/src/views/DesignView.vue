@@ -3,8 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCanvasStore, PAGE_DIMENSIONS } from '../stores/canvasStore'
 import { useChatStore } from '../stores/chatStore'
-import { readFile } from '../services/projectBridge'
-import type { ProjectFile } from '../types/project'
+import { readProject } from '../services/projectBridge'
+import type { ProjectMeta, ProjectCards, ProjectSessions } from '../types/project'
 import Toolbar from '../components/Toolbar.vue'
 import ChatPanel from '../components/ChatPanel.vue'
 import CanvasWrapper from '../canvas/CanvasWrapper.vue'
@@ -23,22 +23,32 @@ const previewHtml = ref<string | null>(null)
 
 const pageDimensions = computed(() => PAGE_DIMENSIONS[canvasStore.pageType])
 
-function loadProjectData(data: ProjectFile) {
+function loadProjectData(bundle: { project: ProjectMeta | null; cards: ProjectCards | null; sessions: ProjectSessions | null }) {
   canvasStore.reset()
   chatStore.reset()
 
-  if (data.meta.name) canvasStore.setProjectName(data.meta.name)
-  if (data.meta.createdAt) canvasStore.setCreatedAt(data.meta.createdAt)
-  if (data.canvas.pageType) canvasStore.setPageType(data.canvas.pageType)
-  if (data.canvas.colorScheme) canvasStore.setColorScheme(data.canvas.colorScheme)
-  if (data.canvas.designSpecId) canvasStore.setDesignSpecId(data.canvas.designSpecId)
-  if (data.canvas.customDesignContent) canvasStore.setCustomDesignContent(data.canvas.customDesignContent)
-  if (data.canvas.cards) canvasStore.cards = data.canvas.cards
-  if (data.canvas.viewport) {
-    canvasStore.setViewport(data.canvas.viewport.zoom, data.canvas.viewport.scrollX, data.canvas.viewport.scrollY)
+  const proj = bundle.project
+  if (proj) {
+    if (proj.meta?.name) canvasStore.setProjectName(proj.meta.name)
+    if (proj.meta?.createdAt) canvasStore.setCreatedAt(proj.meta.createdAt)
+    if (proj.canvas?.pageType) canvasStore.setPageType(proj.canvas.pageType)
+    if (proj.canvas?.colorScheme) canvasStore.setColorScheme(proj.canvas.colorScheme)
+    if (proj.canvas?.designSpecId) canvasStore.setDesignSpecId(proj.canvas.designSpecId)
+    if (proj.canvas?.customDesignContent) canvasStore.setCustomDesignContent(proj.canvas.customDesignContent)
+    if (proj.canvas?.viewport) {
+      canvasStore.setViewport(proj.canvas.viewport.zoom, proj.canvas.viewport.scrollX, proj.canvas.viewport.scrollY)
+    }
+    if (proj.productBlueprint) {
+      canvasStore.setProductBlueprint(proj.productBlueprint)
+    }
   }
-  if (data.sessions) {
-    chatStore.sessions = data.sessions
+
+  if (bundle.cards?.cards) {
+    canvasStore.cards = bundle.cards.cards
+  }
+
+  if (bundle.sessions?.sessions) {
+    chatStore.sessions = bundle.sessions.sessions
     if (chatStore.sessions.length > 0) {
       chatStore.setActiveSession(chatStore.sessions[chatStore.sessions.length - 1].id)
     }
@@ -53,9 +63,8 @@ onMounted(async () => {
   }
 
   try {
-    const json = await readFile(filePath)
-    const data = JSON.parse(json) as ProjectFile
-    loadProjectData(data)
+    const bundle = await readProject(filePath)
+    loadProjectData(bundle)
     canvasStore.setCurrentFilePath(filePath)
   } catch (e) {
     console.error('Failed to load project:', e)

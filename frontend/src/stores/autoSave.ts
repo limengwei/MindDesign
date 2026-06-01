@@ -1,14 +1,13 @@
 import { useCanvasStore } from './canvasStore'
 import { useChatStore } from './chatStore'
-import type { ProjectFile } from '../types/project'
-import { writeFile, createProject } from '../services/projectBridge'
+import type { ProjectMeta, ProjectCards, ProjectSessions } from '../types/project'
+import { writeProjectFiles, createProject } from '../services/projectBridge'
 
-export function buildProjectData(): ProjectFile {
+export function buildProjectMeta(): ProjectMeta {
   const canvas = useCanvasStore()
-  const chat = useChatStore()
 
   return {
-    formatVersion: 2,
+    formatVersion: 3,
     meta: {
       name: canvas.projectName,
       createdAt: canvas.createdAt || new Date().toISOString(),
@@ -16,31 +15,42 @@ export function buildProjectData(): ProjectFile {
       appVersion: '1.0.0',
     },
     canvas: {
-      cards: canvas.cards,
       pageType: canvas.pageType,
       colorScheme: canvas.colorScheme,
       designSpecId: canvas.designSpecId,
       customDesignContent: canvas.customDesignContent,
       viewport: canvas.viewport,
     },
-    sessions: chat.sessions,
+    productBlueprint: canvas.productBlueprint,
   }
+}
+
+export function buildCardsData(): ProjectCards {
+  const canvas = useCanvasStore()
+  return { cards: canvas.cards }
+}
+
+export function buildSessionsData(): ProjectSessions {
+  const chat = useChatStore()
+  return { sessions: chat.sessions }
 }
 
 export async function saveProject(): Promise<void> {
   const canvas = useCanvasStore()
-  const data = buildProjectData()
-  const json = JSON.stringify(data, null, 2)
+
+  const projectJson = JSON.stringify(buildProjectMeta(), null, 2)
+  const sessionsJson = JSON.stringify(buildSessionsData(), null, 2)
+  const cardsJson = JSON.stringify(buildCardsData(), null, 2)
 
   if (canvas.currentFilePath) {
     try {
-      await writeFile(canvas.currentFilePath, json)
+      await writeProjectFiles(canvas.currentFilePath, projectJson, sessionsJson, cardsJson)
     } catch (e) {
       console.error('Save failed:', e)
     }
   } else {
     try {
-      const path = await createProject(canvas.projectName, json)
+      const path = await createProject(canvas.projectName, projectJson, sessionsJson, cardsJson)
       canvas.setCurrentFilePath(path)
     } catch (e) {
       console.error('Create project failed:', e)

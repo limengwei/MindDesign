@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { App, Leafer, Box, Image, Text, Rect, PointerEvent } from 'leafer-ui'
+import { App, Leafer, Box, Image, Text, Rect, Ellipse, PointerEvent } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
 import html2canvas from 'html2canvas'
@@ -44,7 +44,6 @@ let dotGrid: DotGrid | null = null
 let resizeObserver: ResizeObserver | null = null
 const cardGroups = new Map<string, Box>()
 let breathRafId = 0
-let breathPhase = 0
 let renderVersion = 0
 
 onMounted(() => {
@@ -259,10 +258,40 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
   if (isGenerating) {
     const overlay = new Rect({
       width: w, height: h, cornerRadius: 8,
-      fill: '#2a2a4a',
+      fill: 'rgba(15,15,35,0.75)',
     })
     overlay.id = '__gen_overlay__'
     group.add(overlay as any)
+
+    const dotCount = 8
+    const dotRadius = 4
+    const spinnerRadius = 22
+    const cx = w / 2
+    const cy = h / 2 - 14
+    const spinnerGroup = new Box({ id: '__spinner__', x: cx - spinnerRadius - dotRadius, y: cy - spinnerRadius - dotRadius, width: (spinnerRadius + dotRadius) * 2, height: (spinnerRadius + dotRadius) * 2 })
+    for (let i = 0; i < dotCount; i++) {
+      const angle = (i / dotCount) * Math.PI * 2 - Math.PI / 2
+      const dx = spinnerRadius + dotRadius + Math.cos(angle) * spinnerRadius
+      const dy = spinnerRadius + dotRadius + Math.sin(angle) * spinnerRadius
+      const dot = new Ellipse({
+        x: dx - dotRadius, y: dy - dotRadius,
+        width: dotRadius * 2, height: dotRadius * 2,
+        fill: '#818cf8',
+        opacity: 0.15 + (i / dotCount) * 0.85,
+      })
+      dot.id = `__spinner_dot_${i}__`
+      spinnerGroup.add(dot as any)
+    }
+    group.add(spinnerGroup as any)
+
+    const loadingText = new Text({
+      text: '生成中...',
+      fontSize: 14, fill: '#a5b4fc',
+      textAlign: 'center', width: w,
+      y: cy + spinnerRadius + dotRadius + 16,
+    })
+    loadingText.id = '__gen_text__'
+    group.add(loadingText as any)
   } else if (card.screenshot) {
     group.add(new Image({ url: card.screenshot, width: w, height: h }) as any)
   }
@@ -299,16 +328,25 @@ async function renderAll(shouldZoom = false) {
 
 function startBreathAnimation() {
   if (breathRafId) return
+  const dotCount = 8
+  let rotationStep = 0
+  let frameCount = 0
   const tick = () => {
-    breathPhase += 0.03
-    const alpha = 0.4 + 0.3 * Math.sin(breathPhase)
-    const genId = canvasStore.generatingCardId
-    if (genId) {
-      const group = cardGroups.get(genId)
-      if (group) {
-        const overlay = group.children?.find(c => (c as any).id === '__gen_overlay__')
-        if (overlay) {
-          (overlay as any).opacity = alpha
+    frameCount++
+    if (frameCount % 4 === 0) {
+      rotationStep = (rotationStep + 1) % dotCount
+      const genId = canvasStore.generatingCardId
+      if (genId) {
+        const group = cardGroups.get(genId)
+        if (group) {
+          const spinner = group.children?.find(c => (c as any).id === '__spinner__')
+          if (spinner) {
+            const dots = (spinner as any).children || []
+            for (let i = 0; i < dots.length; i++) {
+              const brightness = ((i - rotationStep + dotCount) % dotCount) / dotCount
+              ;(dots[i] as any).opacity = 0.12 + brightness * 0.88
+            }
+          }
         }
       }
     }
@@ -321,7 +359,6 @@ function stopBreathAnimation() {
   if (breathRafId) {
     cancelAnimationFrame(breathRafId)
     breathRafId = 0
-    breathPhase = 0
   }
 }
 

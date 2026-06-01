@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getRecentProjects, createProject, writeFile, readFile, updateProjectMeta, type RecentProject } from '../services/projectBridge'
+import { getRecentProjects, createProject, readProject, writeProjectFiles, updateProjectMeta, type RecentProject } from '../services/projectBridge'
 import WindowControls from '../components/WindowControls.vue'
 import DesignSpecSelector from '../components/DesignSpecSelector.vue'
 import {
@@ -31,8 +31,10 @@ const pageTypes = [
 
 async function loadCustomSpecs() {
   try {
-    const raw = await readFile('design-specs/custom-specs.json')
-    savedCustomSpecs.value = JSON.parse(raw)
+    const bundle = await readProject('design-specs/custom-specs')
+    if (bundle.project) {
+      savedCustomSpecs.value = bundle.project as any
+    }
   } catch {
     savedCustomSpecs.value = []
   }
@@ -44,7 +46,11 @@ async function saveCustomSpec() {
   if (!name || !content) return
   savedCustomSpecs.value.push({ name, content })
   try {
-    await writeFile('design-specs/custom-specs.json', JSON.stringify(savedCustomSpecs.value))
+    await writeProjectFiles(
+      'design-specs/custom-specs.project.json',
+      JSON.stringify(savedCustomSpecs.value),
+      '', ''
+    )
   } catch (e) {
     console.error('Failed to save custom spec:', e)
   }
@@ -61,7 +67,7 @@ function deleteCustomSpec(index: number) {
   savedCustomSpecs.value.splice(index, 1)
   if (selectedCustomSpecIndex.value === index) selectedCustomSpecIndex.value = -1
   else if (selectedCustomSpecIndex.value > index) selectedCustomSpecIndex.value--
-  writeFile('design-specs/custom-specs.json', JSON.stringify(savedCustomSpecs.value)).catch(() => {})
+  writeProjectFiles('design-specs/custom-specs.project.json', JSON.stringify(savedCustomSpecs.value), '', '').catch(() => {})
 }
 
 function getCustomContent(): string {
@@ -150,8 +156,8 @@ async function handleCreate() {
   creating.value = true
   try {
     const name = projectName.value || '未命名项目'
-    const data = JSON.stringify({
-      formatVersion: 2,
+    const projectJson = JSON.stringify({
+      formatVersion: 3,
       meta: {
         name,
         createdAt: new Date().toISOString(),
@@ -159,16 +165,16 @@ async function handleCreate() {
         appVersion: '1.0.0',
       },
       canvas: {
-        cards: [],
         pageType: pageType.value,
         designSpecId: designSpecId.value,
         customDesignContent: getCustomContent(),
         viewport: { zoom: 1, scrollX: 0, scrollY: 0 },
       },
-      sessions: [],
     })
+    const cardsJson = JSON.stringify({ cards: [] })
+    const sessionsJson = JSON.stringify({ sessions: [] })
 
-    const path = await createProject(name, data)
+    const path = await createProject(name, projectJson, sessionsJson, cardsJson)
     router.push({ name: 'design', query: { path } })
   } catch (e) {
     console.error('Create project failed:', e)

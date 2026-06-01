@@ -30,11 +30,13 @@ export function ClearCurrentPath() {
 
 /**
  * @param {string} name
- * @param {string} data
+ * @param {string} projectJson
+ * @param {string} sessionsJson
+ * @param {string} cardsJson
  * @returns {$CancellablePromise<string>}
  */
-export function CreateProject(name, data) {
-    return $Call.ByID(3794430337, name, data);
+export function CreateProject(name, projectJson, sessionsJson, cardsJson) {
+    return $Call.ByID(3794430337, name, projectJson, sessionsJson, cardsJson);
 }
 
 /**
@@ -62,8 +64,8 @@ export function GetRecentProjects() {
  * @param {string} path
  * @returns {$CancellablePromise<string>}
  */
-export function ReadFile(path) {
-    return $Call.ByID(1365949130, path);
+export function ReadProject(path) {
+    return $Call.ByID(2001088337, path);
 }
 
 /**
@@ -88,9 +90,11 @@ export function UpdateProjectMeta(path, name, pageType, designSpecId, colorSchem
 
 /**
  * @param {string} path
- * @param {string} data
+ * @param {string} projectJson
+ * @param {string} sessionsJson
+ * @param {string} cardsJson
  * @returns {$CancellablePromise<void>}
  */
-export function WriteFile(path, data) {
-    return $Call.ByID(1511688169, path, data);
+export function WriteProjectFiles(path, projectJson, sessionsJson, cardsJson) {
+    return $Call.ByID(59897619, path, projectJson, sessionsJson, cardsJson);
 }

@@ -46,7 +46,8 @@ export function createEmptyBlueprint(): ProductBlueprint {
 }
 
 export function isBlueprintEmpty(bp: ProductBlueprint): boolean {
-  return bp.version === 0 || (!bp.product.name && bp.pages.length === 0)
+  if (!bp) return true
+  return bp.version === 0 || (!bp.product?.name && !(bp.pages?.length > 0))
 }
 
 export function blueprintCharCount(bp: ProductBlueprint): number {
@@ -70,7 +71,7 @@ export function buildBlueprintPromptSection(bp: ProductBlueprint): string {
     '',
   ]
 
-  if (bp.product.name || bp.product.category || bp.product.targetUsers) {
+  if (bp.product?.name || bp.product?.category || bp.product?.targetUsers) {
     lines.push('### 产品概述')
     if (bp.product.name) lines.push(`- 产品名称：${bp.product.name}`)
     if (bp.product.category) lines.push(`- 类型：${bp.product.category}`)
@@ -79,7 +80,7 @@ export function buildBlueprintPromptSection(bp: ProductBlueprint): string {
     lines.push('')
   }
 
-  if (bp.visualSpec.primaryColor || bp.visualSpec.styleKeywords.length) {
+  if (bp.visualSpec?.primaryColor || bp.visualSpec?.styleKeywords?.length) {
     lines.push('### 视觉规范')
     if (bp.visualSpec.primaryColor) lines.push(`- 主色：${bp.visualSpec.primaryColor}`)
     if (bp.visualSpec.secondaryColor) lines.push(`- 辅助色：${bp.visualSpec.secondaryColor}`)
@@ -88,31 +89,31 @@ export function buildBlueprintPromptSection(bp: ProductBlueprint): string {
     lines.push('')
   }
 
-  if (bp.pages.length) {
+  if (bp.pages?.length) {
     lines.push('### 已有页面')
     bp.pages.forEach((p, i) => {
       const status = p.status === 'designed' ? '已设计' : '规划中'
-      const comps = p.keyComponents.length ? `（${p.keyComponents.join('、')}）` : ''
+      const comps = p.keyComponents?.length ? `（${p.keyComponents.join('、')}）` : ''
       lines.push(`${i + 1}. ${p.name} — ${p.purpose} ${comps} [${status}]`)
     })
     lines.push('')
   }
 
-  if (bp.navigation.type || bp.navigation.structure) {
+  if (bp.navigation?.type || bp.navigation?.structure) {
     lines.push('### 导航结构')
     if (bp.navigation.type) lines.push(`- 类型：${bp.navigation.type}`)
     if (bp.navigation.structure) lines.push(`- 结构：${bp.navigation.structure}`)
     lines.push('')
   }
 
-  if (bp.features.confirmed.length || bp.features.planned.length) {
+  if (bp.features?.confirmed?.length || bp.features?.planned?.length) {
     lines.push('### 功能模块')
     if (bp.features.confirmed.length) lines.push(`- 已确认：${bp.features.confirmed.join('、')}`)
     if (bp.features.planned.length) lines.push(`- 规划中：${bp.features.planned.join('、')}`)
     lines.push('')
   }
 
-  if (bp.designDecisions.length) {
+  if (bp.designDecisions?.length) {
     lines.push('### 设计决策')
     bp.designDecisions.forEach(d => lines.push(`- ${d}`))
     lines.push('')

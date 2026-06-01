@@ -1,8 +1,9 @@
 import type { CanvasCard, PageType, ColorScheme, DesignSpecId } from '../stores/canvasStore'
 import type { Session } from '../stores/chatStore'
+import type { ProductBlueprint } from '../prompts/blueprint'
 
-export interface ProjectFile {
-  formatVersion: 2
+export interface ProjectMeta {
+  formatVersion: 3
   meta: {
     name: string
     createdAt: string
@@ -10,7 +11,6 @@ export interface ProjectFile {
     appVersion: string
   }
   canvas: {
-    cards: CanvasCard[]
     pageType: PageType
     colorScheme: ColorScheme
     designSpecId?: DesignSpecId
@@ -21,5 +21,13 @@ export interface ProjectFile {
       scrollY: number
     }
   }
+  productBlueprint?: ProductBlueprint
+}
+
+export interface ProjectCards {
+  cards: CanvasCard[]
+}
+
+export interface ProjectSessions {
   sessions: Session[]
 }

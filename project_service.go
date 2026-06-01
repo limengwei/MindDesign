@@ -1,10 +1,13 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 )
@@ -35,12 +38,89 @@ func NewProjectService() *ProjectService {
 	return &ProjectService{appDir: appDir}
 }
 
-func (s *ProjectService) WriteFile(path string, data string) error {
+func generateId() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func projectPath(projectsDir, id string) string {
+	return filepath.Join(projectsDir, id+".project.json")
+}
+
+func sessionsPath(projectsDir, id string) string {
+	return filepath.Join(projectsDir, id+".sessions.json")
+}
+
+func cardsPath(projectsDir, id string) string {
+	return filepath.Join(projectsDir, id+".cards.json")
+}
+
+func (s *ProjectService) CreateProject(name string, projectJson string, sessionsJson string, cardsJson string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
+	projectsDir := filepath.Join(s.appDir, "projects")
+	if err := os.MkdirAll(projectsDir, 0755); err != nil {
+		return "", err
+	}
+
+	id := generateId()
+	projPath := projectPath(projectsDir, id)
+
+	if err := os.WriteFile(projPath, []byte(projectJson), 0644); err != nil {
+		return "", err
+	}
+	if sessionsJson != "" {
+		os.WriteFile(sessionsPath(projectsDir, id), []byte(sessionsJson), 0644)
+	}
+	if cardsJson != "" {
+		os.WriteFile(cardsPath(projectsDir, id), []byte(cardsJson), 0644)
+	}
+
+	var parsed struct {
+		Meta struct {
+			Name      string `json:"name"`
+			CreatedAt string `json:"createdAt"`
+		} `json:"meta"`
+		Canvas struct {
+			PageType     string `json:"pageType"`
+			DesignSpecId string `json:"designSpecId"`
+			ColorScheme  string `json:"colorScheme"`
+		} `json:"canvas"`
+	}
+	json.Unmarshal([]byte(projectJson), &parsed)
+
+	parsedName := parsed.Meta.Name
+	if parsedName == "" {
+		parsedName = "未命名项目"
+	}
+	var createdAt time.Time
+	if parsed.Meta.CreatedAt != "" {
+		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
+	}
+
+	s.currentPath = projPath
+	s.addRecentProject(projPath, parsedName, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
+
+	return projPath, nil
+}
+
+func (s *ProjectService) WriteProjectFiles(path string, projectJson string, sessionsJson string, cardsJson string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	dir := filepath.Dir(path)
+	base := strings.TrimSuffix(filepath.Base(path), ".project.json")
+
+	if err := os.WriteFile(path, []byte(projectJson), 0644); err != nil {
 		return err
+	}
+	if sessionsJson != "" {
+		os.WriteFile(filepath.Join(dir, base+".sessions.json"), []byte(sessionsJson), 0644)
+	}
+	if cardsJson != "" {
+		os.WriteFile(filepath.Join(dir, base+".cards.json"), []byte(cardsJson), 0644)
 	}
 
 	s.currentPath = path
@@ -56,7 +136,7 @@ func (s *ProjectService) WriteFile(path string, data string) error {
 			ColorScheme  string `json:"colorScheme"`
 		} `json:"canvas"`
 	}
-	json.Unmarshal([]byte(data), &parsed)
+	json.Unmarshal([]byte(projectJson), &parsed)
 	var createdAt time.Time
 	if parsed.Meta.CreatedAt != "" {
 		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
@@ -66,14 +146,27 @@ func (s *ProjectService) WriteFile(path string, data string) error {
 	return nil
 }
 
-func (s *ProjectService) ReadFile(path string) (string, error) {
-	data, err := os.ReadFile(path)
+func (s *ProjectService) ReadProject(path string) (string, error) {
+	dir := filepath.Dir(path)
+	base := strings.TrimSuffix(filepath.Base(path), ".project.json")
+
+	projectData, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return "", nil
 		}
 		return "", err
 	}
+
+	sessionsData, _ := os.ReadFile(filepath.Join(dir, base+".sessions.json"))
+	cardsData, _ := os.ReadFile(filepath.Join(dir, base+".cards.json"))
+
+	result := map[string]json.RawMessage{
+		"project":  projectData,
+		"sessions": sessionsData,
+		"cards":    cardsData,
+	}
+	combined, _ := json.Marshal(result)
 
 	s.currentPath = path
 
@@ -86,16 +179,16 @@ func (s *ProjectService) ReadFile(path string) (string, error) {
 			PageType     string `json:"pageType"`
 			DesignSpecId string `json:"designSpecId"`
 			ColorScheme  string `json:"colorScheme"`
-		} `json:"canvas"`
+		} `json:"meta"`
 	}
-	json.Unmarshal(data, &parsed)
+	json.Unmarshal(projectData, &parsed)
 	var createdAt time.Time
 	if parsed.Meta.CreatedAt != "" {
 		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
 	}
 	s.addRecentProject(path, parsed.Meta.Name, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
 
-	return string(data), nil
+	return string(combined), nil
 }
 
 func (s *ProjectService) GetCurrentPath() string {
@@ -108,54 +201,6 @@ func (s *ProjectService) SetCurrentPath(path string) {
 
 func (s *ProjectService) ClearCurrentPath() {
 	s.currentPath = ""
-}
-
-func (s *ProjectService) CreateProject(name string, data string) (string, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	projectsDir := filepath.Join(s.appDir, "projects")
-	if err := os.MkdirAll(projectsDir, 0755); err != nil {
-		return "", err
-	}
-
-	safeName := name
-	if safeName == "" {
-		safeName = "未命名项目"
-	}
-	filename := safeName + ".mind"
-	path := filepath.Join(projectsDir, filename)
-
-	if err := os.WriteFile(path, []byte(data), 0644); err != nil {
-		return "", err
-	}
-
-	var parsed struct {
-		Meta struct {
-			Name      string `json:"name"`
-			CreatedAt string `json:"createdAt"`
-		} `json:"meta"`
-		Canvas struct {
-			PageType     string `json:"pageType"`
-			DesignSpecId string `json:"designSpecId"`
-			ColorScheme  string `json:"colorScheme"`
-		} `json:"canvas"`
-	}
-	json.Unmarshal([]byte(data), &parsed)
-
-	parsedName := parsed.Meta.Name
-	if parsedName == "" {
-		parsedName = "未命名项目"
-	}
-	var createdAt time.Time
-	if parsed.Meta.CreatedAt != "" {
-		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
-	}
-
-	s.currentPath = path
-	s.addRecentProject(path, parsedName, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
-
-	return path, nil
 }
 
 func (s *ProjectService) AutoSave(data string) error {
