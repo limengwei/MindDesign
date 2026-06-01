@@ -29,6 +29,18 @@ const DESIGN_CONSTRAINTS = `
 - 移动端：触控目标最小 44×44px
 - 顶部状态栏 44px，底部 Home Indicator 34px
 - 内容区左右边距至少 16px
+
+### 动画与动效
+- **所有元素在无动画时必须是完全可见的最终状态**——设计稿会被截图为静态图，截图时动画会被移除，因此页面的"静态快照"必须是完整画面
+- 禁止使用 opacity: 0 作为动画初始状态（如 fadeIn、fadeInUp），所有元素默认 opacity: 1
+- 禁止使用 transform 偏移作为动画初始状态（如从 translateY(24px) 滑入），元素应在最终位置
+- 如需入场动效，只能使用从最终状态出发的微动效，例如：
+  - 轻微缩放：transform: scale(1) → scale(1.02) → scale(1)
+  - 轻微透明度波动：opacity: 0.9 → 1 → 0.9（循环，起始值接近 1）
+  - 微位移呼吸：translateY(0) → translateY(-4px) → translateY(0)
+- 循环动画（如脉冲、呼吸、弹跳）的起始帧必须是元素的正常显示状态
+- 禁止使用 animation-delay 让元素延迟出现（这会导致截图时元素不可见）
+- 简单来说：**动画应该是"锦上添花的微动效"，而不是"从无到有的出现动画"**
 `
 
 const CRITIQUE_PROTOCOL = `

@@ -61,7 +61,8 @@ onMounted(() => {
     view: containerRef.value,
     tree: { type: 'design' },
     zoom: { min: 0.1, max: 5 },
-    move: { holdSpaceKey: true, holdMiddleKey: true, scroll: true },
+    move: { holdSpaceKey: true, holdMiddleKey: true, drag: 'auto', dragAnimate: 0.9 },
+    wheel: { zoomMode: true, zoomSpeed: 0.2 },
   })
 
   treeLayer = app.tree as Leafer
@@ -146,12 +147,27 @@ async function replaceIcons(html: string): Promise<string> {
     }
 
     const colorMatch = elStyle.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i)
-    const color = colorMatch ? colorMatch[1].trim() : ''
+    let color = colorMatch ? colorMatch[1].trim() : ''
+
+    if (!color) {
+      let ancestor: Element | null = el.parentElement
+      while (ancestor) {
+        const aStyle = ancestor.getAttribute('style') || ''
+        const aColorMatch = aStyle.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i)
+        if (aColorMatch) {
+          color = aColorMatch[1].trim()
+          break
+        }
+        ancestor = ancestor.parentElement
+      }
+    }
+
+    const fillColor = color || 'currentColor'
 
     let styledSvg = svg
       .replace(/width="[^"]*"/, `width="${size}"`)
       .replace(/height="[^"]*"/, `height="${size}"`)
-      .replace('<svg ', `<svg style="vertical-align:middle;display:inline-block;fill:currentColor;" `)
+      .replace('<svg ', `<svg style="vertical-align:middle;display:inline-block;fill:${fillColor};" `)
     if (color) {
       styledSvg = `<span style="color:${color};display:inline-flex;vertical-align:middle;">${styledSvg}</span>`
     }
@@ -199,20 +215,20 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
   await new Promise<void>((resolve) => {
     iframe.onload = () => resolve()
   })
-  await new Promise(r => setTimeout(r, 100))
 
   try {
     const doc = iframe.contentDocument!
+    await new Promise(r => setTimeout(r, 2000))
+
     const freezeStyle = doc.createElement('style')
     freezeStyle.textContent = `
       *, *::before, *::after {
         animation-play-state: paused !important;
-        animation-delay: -999999s !important;
         transition: none !important;
       }
     `
     doc.head.appendChild(freezeStyle)
-    await new Promise(r => setTimeout(r, 300))
+    await new Promise(r => setTimeout(r, 200))
 
     const externalImages = doc.querySelectorAll<HTMLImageElement>('img[src^="http"]')
     const proxyPromises = Array.from(externalImages).map(async (img) => {
@@ -224,22 +240,38 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
     })
     await Promise.all(proxyPromises)
 
-    doc.documentElement.style.height = 'auto'
-    doc.documentElement.style.overflow = 'visible'
-    doc.body.style.height = 'auto'
-    doc.body.style.overflow = 'visible'
     const contentHeight = Math.ceil(Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight, props.pageHeight))
     console.log('[Screenshot] contentHeight:', contentHeight, 'body scrollHeight:', doc.body.scrollHeight)
+
+    doc.documentElement.style.height = contentHeight + 'px'
+    doc.documentElement.style.overflow = 'visible'
+    doc.body.style.height = contentHeight + 'px'
+    doc.body.style.overflow = 'visible'
     iframe.style.height = contentHeight + 'px'
     container.style.height = contentHeight + 'px'
     await new Promise(r => setTimeout(r, 200))
 
-    const dataUrl = await toPng(doc.body, {
-      width: props.pageWidth,
-      height: contentHeight,
-      pixelRatio: 2,
-      backgroundColor: '#ffffff',
-    })
+    const bodyBg = doc.defaultView!.getComputedStyle(doc.body).backgroundColor || '#ffffff'
+
+    const origGetComputedStyle = window.getComputedStyle.bind(window)
+    window.getComputedStyle = (elt: Element, pseudoElt?: string | null) => {
+      if (elt.ownerDocument !== document && elt.ownerDocument.defaultView) {
+        return elt.ownerDocument.defaultView.getComputedStyle(elt, pseudoElt)
+      }
+      return origGetComputedStyle(elt, pseudoElt)
+    }
+
+    let dataUrl = ''
+    try {
+      dataUrl = await toPng(doc.body, {
+        width: props.pageWidth,
+        height: contentHeight,
+        pixelRatio: 2,
+        backgroundColor: bodyBg,
+      })
+    } finally {
+      window.getComputedStyle = origGetComputedStyle
+    }
     console.log('[Screenshot] dataUrl length:', dataUrl.length)
     document.body.removeChild(container)
     return { dataUrl, contentHeight }
