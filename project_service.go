@@ -2,8 +2,10 @@ package main
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
@@ -152,6 +154,115 @@ func (s *ProjectService) WriteProjectFiles(path string, projectJson string, sess
 	s.addRecentProject(path, parsed.Meta.Name, parsed.Canvas.PageType, parsed.Canvas.DesignSpecId, parsed.Canvas.ColorScheme, createdAt)
 
 	return nil
+}
+
+func (s *ProjectService) SaveCardScreenshots(path string, screenshotsJson string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	dir := filepath.Dir(path)
+	screenshotsDir := filepath.Join(dir, "screenshots")
+	if err := os.MkdirAll(screenshotsDir, 0755); err != nil {
+		return err
+	}
+
+	var screenshots map[string]string
+	if err := json.Unmarshal([]byte(screenshotsJson), &screenshots); err != nil {
+		return err
+	}
+
+	for cardId, dataUrl := range screenshots {
+		if dataUrl == "" {
+			continue
+		}
+		pngData, err := dataUrlToPng(dataUrl)
+		if err != nil {
+			continue
+		}
+		pngPath := filepath.Join(screenshotsDir, cardId+".png")
+		if err := os.WriteFile(pngPath, pngData, 0644); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *ProjectService) LoadCardScreenshots(path string, cardIdsJson string) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	dir := filepath.Dir(path)
+	screenshotsDir := filepath.Join(dir, "screenshots")
+
+	var cardIds []string
+	if err := json.Unmarshal([]byte(cardIdsJson), &cardIds); err != nil {
+		return "{}", err
+	}
+
+	result := make(map[string]string)
+	for _, cardId := range cardIds {
+		pngPath := filepath.Join(screenshotsDir, cardId+".png")
+		data, err := os.ReadFile(pngPath)
+		if err != nil {
+			continue
+		}
+		result[cardId] = "data:image/png;base64," + base64.StdEncoding.EncodeToString(data)
+	}
+
+	jsonBytes, _ := json.Marshal(result)
+	return string(jsonBytes), nil
+}
+
+func (s *ProjectService) CleanupCardScreenshots(path string, cardIdsJson string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	dir := filepath.Dir(path)
+	screenshotsDir := filepath.Join(dir, "screenshots")
+
+	var keepIds []string
+	if err := json.Unmarshal([]byte(cardIdsJson), &keepIds); err != nil {
+		return err
+	}
+
+	keepSet := make(map[string]bool)
+	for _, id := range keepIds {
+		keepSet[id+".png"] = true
+	}
+
+	entries, err := os.ReadDir(screenshotsDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".png") {
+			continue
+		}
+		if !keepSet[entry.Name()] {
+			os.Remove(filepath.Join(screenshotsDir, entry.Name()))
+		}
+	}
+
+	return nil
+}
+
+func dataUrlToPng(dataUrl string) ([]byte, error) {
+	prefix := "data:image/png;base64,"
+	if !strings.HasPrefix(dataUrl, prefix) {
+		prefix = "data:image/"
+		idx := strings.Index(dataUrl, ";base64,")
+		if idx == -1 {
+			return nil, fmt.Errorf("invalid data URL")
+		}
+		prefix = dataUrl[:idx+len(";base64,")]
+	}
+	b64 := strings.TrimPrefix(dataUrl, prefix)
+	return base64.StdEncoding.DecodeString(b64)
 }
 
 func (s *ProjectService) ReadProject(path string) (string, error) {

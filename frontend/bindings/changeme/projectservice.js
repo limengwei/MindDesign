@@ -15,6 +15,15 @@ export function AutoSave(data) {
 }
 
 /**
+ * @param {string} path
+ * @param {string} cardIdsJson
+ * @returns {$CancellablePromise<void>}
+ */
+export function CleanupCardScreenshots(path, cardIdsJson) {
+    return $Call.ByID(1268381831, path, cardIdsJson);
+}
+
+/**
  * @returns {$CancellablePromise<void>}
  */
 export function ClearAutoSave() {
@@ -62,10 +71,28 @@ export function GetRecentProjects() {
 
 /**
  * @param {string} path
+ * @param {string} cardIdsJson
+ * @returns {$CancellablePromise<string>}
+ */
+export function LoadCardScreenshots(path, cardIdsJson) {
+    return $Call.ByID(3246821495, path, cardIdsJson);
+}
+
+/**
+ * @param {string} path
  * @returns {$CancellablePromise<string>}
  */
 export function ReadProject(path) {
     return $Call.ByID(2001088337, path);
+}
+
+/**
+ * @param {string} path
+ * @param {string} screenshotsJson
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveCardScreenshots(path, screenshotsJson) {
+    return $Call.ByID(3610063744, path, screenshotsJson);
 }
 
 /**

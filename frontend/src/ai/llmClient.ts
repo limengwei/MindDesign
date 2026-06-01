@@ -5,6 +5,7 @@ export interface ChatMessage {
   content: string
   tool_call_id?: string
   tool_calls?: ToolCall[]
+  reasoning_content?: string
 }
 
 export interface ToolCall {
@@ -29,6 +30,7 @@ export interface LLMResponse {
   content: string | null
   tool_calls?: ToolCall[]
   finish_reason: string
+  reasoning_content?: string
 }
 
 export interface StreamCallbacks {
@@ -82,6 +84,7 @@ async function parseSSEStream(
   const decoder = new TextDecoder()
 
   let content = ''
+  let reasoningContent = ''
   const toolCallsMap = new Map<number, ToolCall>()
   let finishReason = ''
 
@@ -114,6 +117,10 @@ async function parseSSEStream(
         if (delta.content) {
           content += delta.content
           callbacks?.onContent?.(delta.content)
+        }
+
+        if (delta.reasoning_content) {
+          reasoningContent += delta.reasoning_content
         }
 
         if (delta.tool_calls) {
@@ -150,5 +157,6 @@ async function parseSSEStream(
     content: content || null,
     tool_calls: toolCalls,
     finish_reason: finishReason,
+    reasoning_content: reasoningContent || undefined,
   }
 }

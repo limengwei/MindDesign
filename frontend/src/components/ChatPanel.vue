@@ -207,7 +207,7 @@ function handleCritiqueOptimize() {
   const suggestions = activeCritique.value.suggestions.join('；')
   activeCritique.value = null
   showCritique.value = false
-  chatStore.pendingSend = `根据设计评审建议进行优化：${suggestions}`
+  inputText.value = `根据设计评审建议进行优化：${suggestions}`
 }
 
 function critiqueScoreColor(score: number): string {
@@ -396,7 +396,10 @@ function formatTime(iso: string) {
           <div v-if="activeCritique.suggestions.length" class="critique-suggestions">
             <div v-for="(s, i) in activeCritique.suggestions" :key="i" class="critique-suggestion">• {{ s }}</div>
           </div>
-          <button class="critique-optimize-btn" @click="handleCritiqueOptimize">根据建议优化</button>
+          <div class="critique-actions">
+            <button class="critique-optimize-btn" @click="handleCritiqueOptimize">根据建议优化</button>
+            <button class="critique-dismiss-btn" @click="showCritique = false; activeCritique = null">忽略</button>
+          </div>
         </div>
       </div>
 
@@ -595,8 +598,11 @@ function formatTime(iso: string) {
 .critique-summary { font-size: 12px; color: var(--text-primary); line-height: 1.5; margin-bottom: 8px; }
 .critique-suggestions { margin-bottom: 10px; }
 .critique-suggestion { font-size: 11px; color: var(--text-secondary); line-height: 1.5; padding-left: 4px; }
-.critique-optimize-btn { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
+.critique-actions { display: flex; gap: 8px; }
+.critique-optimize-btn { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
 .critique-optimize-btn:hover { background: var(--color-primary); color: #fff; }
+.critique-dismiss-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: transparent; color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
+.critique-dismiss-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
 
 .active-skill-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; background: rgba(79, 70, 229, 0.2); color: var(--color-primary-light); border-radius: 6px; font-size: 12px; }
 .skill-chip-emoji { font-size: 14px; line-height: 1; }

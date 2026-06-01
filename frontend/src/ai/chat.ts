@@ -200,7 +200,9 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
 
     if (response.tool_calls && response.tool_calls.length > 0) {
       toolCallCount++
-      messages.push({ role: 'assistant', content: response.content || '', tool_calls: response.tool_calls })
+      const assistantMsg: ChatMessage = { role: 'assistant', content: response.content || '', tool_calls: response.tool_calls }
+      if (response.reasoning_content) assistantMsg.reasoning_content = response.reasoning_content
+      messages.push(assistantMsg)
       for (const tc of response.tool_calls) {
         console.log('[LLM] executing tool:', tc.function.name, 'args:', tc.function.arguments.slice(0, 100))
         const result = await executeToolCall(tc.function.name, tc.function.arguments)
@@ -221,7 +223,9 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
         type: 'function' as const,
         function: { name: c.name, arguments: c.args },
       }))
-      messages.push({ role: 'assistant', content: finalContent, tool_calls: fakeToolCalls })
+      const dsmlAssistantMsg: ChatMessage = { role: 'assistant', content: finalContent, tool_calls: fakeToolCalls }
+      if (response.reasoning_content) dsmlAssistantMsg.reasoning_content = response.reasoning_content
+      messages.push(dsmlAssistantMsg)
       for (const tc of fakeToolCalls) {
         console.log('[LLM] executing DSML tool:', tc.function.name, 'args:', tc.function.arguments.slice(0, 100))
         const result = await executeToolCall(tc.function.name, tc.function.arguments)

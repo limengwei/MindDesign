@@ -130,6 +130,29 @@ export async function updateProjectMeta(
   }
 }
 
+export async function saveCardScreenshots(path: string, screenshots: Record<string, string>): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).SaveCardScreenshots(path, JSON.stringify(screenshots))
+  }
+}
+
+export async function loadCardScreenshots(path: string, cardIds: string[]): Promise<Record<string, string>> {
+  await ensureLoaded()
+  if (ProjectService) {
+    const json = await (ProjectService as any).LoadCardScreenshots(path, JSON.stringify(cardIds))
+    return JSON.parse(json) as Record<string, string>
+  }
+  return {}
+}
+
+export async function cleanupCardScreenshots(path: string, cardIds: string[]): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).CleanupCardScreenshots(path, JSON.stringify(cardIds))
+  }
+}
+
 export async function showOpenDialog(): Promise<string> {
   await ensureLoaded()
   try {

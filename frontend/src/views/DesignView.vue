@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCanvasStore, PAGE_DIMENSIONS } from '../stores/canvasStore'
 import { useChatStore } from '../stores/chatStore'
-import { readProject } from '../services/projectBridge'
+import { readProject, loadCardScreenshots } from '../services/projectBridge'
 import type { ProjectMeta, ProjectCards, ProjectSessions } from '../types/project'
 import Toolbar from '../components/Toolbar.vue'
 import ChatPanel from '../components/ChatPanel.vue'
@@ -66,6 +66,16 @@ onMounted(async () => {
     const bundle = await readProject(filePath)
     loadProjectData(bundle)
     canvasStore.setCurrentFilePath(filePath)
+
+    if (canvasStore.cards.length > 0) {
+      const cardIds = canvasStore.cards.map(c => c.id)
+      const screenshots = await loadCardScreenshots(filePath, cardIds)
+      for (const card of canvasStore.cards) {
+        if (screenshots[card.id]) {
+          card.screenshot = screenshots[card.id]
+        }
+      }
+    }
   } catch (e) {
     console.error('Failed to load project:', e)
   }
