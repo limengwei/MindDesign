@@ -389,7 +389,7 @@ function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h
   group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }) as any)
   group.hitSelf = true
   group.on('click', () => { canvasStore.selectCard(card.id) })
-  treeLayer.add(group as any)
+  if (treeLayer) treeLayer.add(group as any)
   cardGroups.set(card.id, group)
 }
 
