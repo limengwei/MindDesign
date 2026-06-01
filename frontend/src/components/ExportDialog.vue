@@ -8,7 +8,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['close'])
 
-const activeTab = ref<'preview' | 'code'>('preview')
 const copying = ref(false)
 
 async function handleCopy() {
@@ -46,19 +45,8 @@ function handleDownload() {
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
 
-      <div class="tabs">
-        <button :class="['tab', { active: activeTab === 'preview' }]" @click="activeTab = 'preview'">预览</button>
-        <button :class="['tab', { active: activeTab === 'code' }]" @click="activeTab = 'code'">代码</button>
-      </div>
-
       <div class="dialog-body">
-        <div v-if="activeTab === 'preview'" class="preview-area">
-          <iframe v-if="html" :srcdoc="html" class="preview-iframe" sandbox="allow-same-origin"></iframe>
-          <p v-else class="empty-msg">暂无 HTML 内容</p>
-        </div>
-        <div v-else class="code-area">
-          <pre class="code-block">{{ html || '暂无 HTML 内容' }}</pre>
-        </div>
+        <pre class="code-block">{{ html || '暂无 HTML 内容' }}</pre>
       </div>
 
       <div class="dialog-actions">
@@ -76,7 +64,7 @@ function handleDownload() {
 .dialog-header h2 { font-size: var(--font-xl); font-weight: 600; color: var(--text-primary); }
 .close-btn { width: 32px; height: 32px; border: none; background: var(--border-default); border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
 .close-btn:hover { background: #3a3a5c; color: var(--text-primary); }
-.preview-iframe { width: 100%; height: 400px; border: 1px solid var(--border-default); border-radius: var(--radius-md); background: #fff; }
-.code-block { background: var(--bg-canvas); color: #d4d4d4; padding: 16px; border-radius: var(--radius-md); font-size: var(--font-sm); line-height: 1.5; overflow: auto; max-height: 400px; white-space: pre-wrap; word-break: break-all; border: 1px solid var(--border-default); }
-.empty-msg { color: var(--text-muted); text-align: center; padding: 40px 0; }
+.dialog-body { padding: 0 24px; flex: 1; overflow: auto; }
+.code-block { background: var(--bg-canvas); color: #d4d4d4; padding: 16px; border-radius: var(--radius-md); font-size: var(--font-sm); line-height: 1.5; overflow: auto; max-height: 500px; white-space: pre-wrap; word-break: break-all; border: 1px solid var(--border-default); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px 20px; }
 </style>

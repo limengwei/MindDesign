@@ -19,6 +19,7 @@ const chatCollapsed = ref(false)
 const showExportDialog = ref(false)
 const showSettingsPanel = ref(false)
 const exportCardId = ref<string | null>(null)
+const previewHtml = ref<string | null>(null)
 
 const pageDimensions = computed(() => PAGE_DIMENSIONS[canvasStore.pageType])
 
@@ -69,6 +70,17 @@ function handleExportCard(cardId: string) {
   exportCardId.value = cardId
   showExportDialog.value = true
 }
+
+function handlePreviewCard(cardId: string) {
+  const card = canvasStore.cards.find(c => c.id === cardId)
+  if (card?.html) {
+    previewHtml.value = card.html
+  }
+}
+
+function closePreview() {
+  previewHtml.value = null
+}
 </script>
 
 <template>
@@ -77,6 +89,7 @@ function handleExportCard(cardId: string) {
       :page-width="pageDimensions.width"
       :page-height="pageDimensions.height"
       @export-card="handleExportCard"
+      @preview-card="handlePreviewCard"
     />
 
     <Toolbar @back="handleBackToHome" />
@@ -93,6 +106,16 @@ function handleExportCard(cardId: string) {
       @close="showExportDialog = false"
     />
 
+    <div v-if="previewHtml" class="preview-overlay">
+      <div class="preview-topbar">
+        <span class="preview-title">全屏预览</span>
+        <button class="preview-close-btn" @click="closePreview">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <iframe :srcdoc="previewHtml" class="preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+    </div>
+
     <SettingsPanel
       v-if="showSettingsPanel"
       @close="showSettingsPanel = false"
@@ -107,4 +130,10 @@ function handleExportCard(cardId: string) {
   height: 100%;
   overflow: hidden;
 }
+.preview-overlay { position: fixed; inset: 0; z-index: 9999; background: #0f0f23; display: flex; flex-direction: column; }
+.preview-topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: rgba(22,33,62,0.95); border-bottom: 1px solid #2a2a4a; flex-shrink: 0; }
+.preview-title { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+.preview-close-btn { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.preview-close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+.preview-iframe { flex: 1; width: 100%; border: none; background: #fff; }
 </style>

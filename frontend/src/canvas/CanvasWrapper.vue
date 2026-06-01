@@ -10,6 +10,7 @@ import { saveProject } from '../stores/autoSave'
 
 const emit = defineEmits<{
   exportCard: [cardId: string]
+  previewCard: [cardId: string]
 }>()
 
 const confirmState = ref<{ show: boolean; cardId: string; message: string }>({
@@ -376,6 +377,16 @@ function createActionBtns(cardId: string, group: Box) {
     width: w, height: BTN_H,
   })
 
+  const previewBtn = new Box({
+    x: w - btnW * 4 - BTN_GAP * 3, y: 0,
+    width: btnW, height: BTN_H,
+    fill: 'rgba(59,130,246,0.85)', cornerRadius: 6,
+    hitSelf: true,
+  })
+  previewBtn.add(new Text({ text: '预览', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }) as any)
+  previewBtn.id = `__btn_preview__${cardId}`
+  previewBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('previewCard', cardId) })
+
   const exportBtn = new Box({
     x: w - btnW * 3 - BTN_GAP * 2, y: 0,
     width: btnW, height: BTN_H,
@@ -406,6 +417,7 @@ function createActionBtns(cardId: string, group: Box) {
   deleteBtn.id = `__btn_delete__${cardId}`
   deleteBtn.on(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; showConfirm(cardId) })
 
+  btnGroup.add(previewBtn as any)
   btnGroup.add(exportBtn as any)
   btnGroup.add(refreshBtn as any)
   btnGroup.add(deleteBtn as any)
