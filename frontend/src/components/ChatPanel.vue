@@ -406,18 +406,18 @@ function formatTime(iso: string) {
           <svg :style="{ transform: showBlueprintPanel ? 'rotate(180deg)' : '' }" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="transition: transform 0.2s"><path d="M7 10l5 5 5-5z"/></svg>
         </div>
         <div v-if="showBlueprintPanel" class="blueprint-body">
-          <div v-if="canvasStore.productBlueprint.product.name" class="blueprint-section">
+          <div v-if="canvasStore.productBlueprint.product?.name" class="blueprint-section">
             <div class="blueprint-section-title">产品概述</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product.name">名称：{{ canvasStore.productBlueprint.product.name }}</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product.category">类型：{{ canvasStore.productBlueprint.product.category }}</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product.targetUsers">目标用户：{{ canvasStore.productBlueprint.product.targetUsers }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.name">名称：{{ canvasStore.productBlueprint.product.name }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.category">类型：{{ canvasStore.productBlueprint.product.category }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.targetUsers">目标用户：{{ canvasStore.productBlueprint.product.targetUsers }}</div>
           </div>
-          <div v-if="canvasStore.productBlueprint.visualSpec.primaryColor" class="blueprint-section">
+          <div v-if="canvasStore.productBlueprint.visualSpec?.primaryColor" class="blueprint-section">
             <div class="blueprint-section-title">视觉规范</div>
             <div class="blueprint-field">主色：<span class="color-dot" :style="{ background: canvasStore.productBlueprint.visualSpec.primaryColor }"></span>{{ canvasStore.productBlueprint.visualSpec.primaryColor }}</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.visualSpec.styleKeywords.length">风格：{{ canvasStore.productBlueprint.visualSpec.styleKeywords.join('、') }}</div>
+            <div class="blueprint-field" v-if="canvasStore.productBlueprint.visualSpec?.styleKeywords?.length">风格：{{ canvasStore.productBlueprint.visualSpec.styleKeywords.join('、') }}</div>
           </div>
-          <div v-if="canvasStore.productBlueprint.pages.length" class="blueprint-section">
+          <div v-if="canvasStore.productBlueprint.pages?.length" class="blueprint-section">
             <div class="blueprint-section-title">页面 ({{ canvasStore.productBlueprint.pages.length }})</div>
             <div v-for="(p, i) in canvasStore.productBlueprint.pages" :key="i" class="blueprint-page-item">
               <span :class="['page-status', p.status]">{{ p.status === 'designed' ? '✓' : '○' }}</span>
@@ -425,13 +425,13 @@ function formatTime(iso: string) {
               <span class="page-purpose">{{ p.purpose }}</span>
             </div>
           </div>
-          <div v-if="canvasStore.productBlueprint.features.confirmed.length" class="blueprint-section">
+          <div v-if="canvasStore.productBlueprint.features?.confirmed?.length" class="blueprint-section">
             <div class="blueprint-section-title">已确认功能</div>
             <div class="blueprint-tags">
               <span v-for="f in canvasStore.productBlueprint.features.confirmed" :key="f" class="blueprint-tag">{{ f }}</span>
             </div>
           </div>
-          <div v-if="canvasStore.productBlueprint.designDecisions.length" class="blueprint-section">
+          <div v-if="canvasStore.productBlueprint.designDecisions?.length" class="blueprint-section">
             <div class="blueprint-section-title">设计决策</div>
             <div v-for="(d, i) in canvasStore.productBlueprint.designDecisions" :key="i" class="blueprint-decision">• {{ d }}</div>
           </div>

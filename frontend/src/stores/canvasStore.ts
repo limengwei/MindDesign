@@ -5,7 +5,7 @@ import type { ColorScheme } from '../prompts/colors'
 import type { DesignSpecId } from '../prompts/designSpecs'
 import type { SkillCategory } from '../prompts/skills'
 import type { ProductBlueprint } from '../prompts/blueprint'
-import { createEmptyBlueprint } from '../prompts/blueprint'
+import { createEmptyBlueprint, normalizeBlueprint } from '../prompts/blueprint'
 
 export type { PageType, ColorScheme }
 export type { DesignSpecId }
@@ -114,9 +114,10 @@ export const useCanvasStore = defineStore('canvas', () => {
   function setDesignSpecId(id: DesignSpecId) { designSpecId.value = id }
   function setCustomDesignContent(content: string) { customDesignContent.value = content }
   function setActiveSkillId(id: string | null) { activeSkillId.value = id }
-  function setProductBlueprint(bp: ProductBlueprint) { productBlueprint.value = bp }
+  function setProductBlueprint(bp: ProductBlueprint) { productBlueprint.value = normalizeBlueprint(bp) }
   function updateProductBlueprint(update: { action: string; blueprint: ProductBlueprint }) {
-    productBlueprint.value = { ...update.blueprint, version: (update.blueprint.version || 0) + 1, lastUpdated: new Date().toISOString() }
+    const normalized = normalizeBlueprint(update.blueprint)
+    productBlueprint.value = { ...normalized, version: (normalized.version || 0) + 1, lastUpdated: new Date().toISOString() }
   }
 
   function reset() {

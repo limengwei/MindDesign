@@ -19,6 +19,8 @@ async function loadIconIndex(): Promise<IconEntry[]> {
 
 export async function searchIcons(query: string, limit = 5): Promise<IconEntry[]> {
   const index = await loadIconIndex()
+  if (index.length === 0) return []
+
   const q = query.toLowerCase()
 
   const exact: IconEntry[] = []
@@ -35,7 +37,11 @@ export async function searchIcons(query: string, limit = 5): Promise<IconEntry[]
     }
   }
 
-  return [...exact, ...partial].slice(0, limit)
+  const results = [...exact, ...partial]
+  if (results.length > 0) return results.slice(0, limit)
+
+  const shuffled = [...index].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, limit)
 }
 
 export const searchIconsToolDefinition = {

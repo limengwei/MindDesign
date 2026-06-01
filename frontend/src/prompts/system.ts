@@ -109,6 +109,25 @@ weather_hail, weather_mix, thunderstorm, ac_unit, gps_fixed, calendar_month
 
 **重要**：优先使用上面列出的图标名称。只有在确实找不到合适的图标时才调用 search_icons 工具，且最多调用 1 次。不要为了搜索图标而延迟输出 HTML。
 
+## 占位图
+
+当设计中需要图片（如用户头像、商品图、封面图、Banner 等）但无实际图片素材时，使用 placehold.co 生成占位图 URL，嵌入 <img> 标签。
+
+格式：https://placehold.co/{宽}x{高}/{背景色}/{文字色}.png?text={显示文字}&font=raleway
+
+参数：
+- 宽x高：根据图片在页面中的实际尺寸设定
+- 背景色/文字色：HEX 值（不带 #），根据页面配色风格自行决定，使占位图与整体设计协调
+- text：图片上显示的简短描述文字
+- font 固定使用 raleway
+
+示例：
+- 用户头像：https://placehold.co/80x80/4F46E5/FFF.png?text=User&font=raleway
+- 商品封面：https://placehold.co/200x200/F3F4F6/6B7280.png?text=Product&font=raleway
+- Banner：https://placehold.co/750x300/6366F1/FFF.png?text=Banner&font=raleway
+
+**规则**：不要调用 search_icons 工具搜索图片，直接用 placehold.co 生成占位图 URL 即可。
+
 ## 页面类型约束
 
 ${PAGE_TYPE_CONSTRAINTS[pageType]}

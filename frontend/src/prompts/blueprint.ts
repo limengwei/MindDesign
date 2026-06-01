@@ -45,6 +45,21 @@ export function createEmptyBlueprint(): ProductBlueprint {
   }
 }
 
+export function normalizeBlueprint(bp: Partial<ProductBlueprint> | null | undefined): ProductBlueprint {
+  const empty = createEmptyBlueprint()
+  if (!bp) return empty
+  return {
+    product: { ...empty.product, ...bp.product },
+    visualSpec: { ...empty.visualSpec, ...bp.visualSpec },
+    pages: Array.isArray(bp.pages) ? bp.pages : [],
+    navigation: { ...empty.navigation, ...bp.navigation },
+    features: { ...empty.features, ...bp.features },
+    designDecisions: Array.isArray(bp.designDecisions) ? bp.designDecisions : [],
+    version: bp.version ?? 0,
+    lastUpdated: bp.lastUpdated ?? '',
+  }
+}
+
 export function isBlueprintEmpty(bp: ProductBlueprint): boolean {
   if (!bp) return true
   return bp.version === 0 || (!bp.product?.name && !(bp.pages?.length > 0))

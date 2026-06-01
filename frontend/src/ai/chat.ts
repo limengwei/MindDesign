@@ -62,7 +62,8 @@ async function executeToolCall(name: string, args: string): Promise<string> {
   if (name === 'search_icons') {
     const results = await searchIcons(parsed.query as string, parsed.limit as number | undefined)
     const icons = results.map(r => `${r.name} (${r.keywords.join(', ')})`)
-    return icons.length > 0 ? `找到的图标: ${icons.join('; ')}` : '未找到匹配的图标'
+    if (icons.length === 0) return '未找到匹配的图标'
+    return `找到的图标: ${icons.join('; ')}`
   }
   return `未知工具: ${name}`
 }
@@ -109,16 +110,23 @@ function extractPreflight(text: string): PreflightData | null {
   }
 }
 
+function stripDSML(text: string): string {
+  if (!text.includes('DSML')) return text
+  const pipe = '[\\|\uFF5C]'
+  return text.replace(new RegExp(`</?${pipe}*${pipe}DSML${pipe}*${pipe}[^>]*>`, 'g'), '').trim()
+}
+
 function parseDSMLToolCalls(text: string): { name: string; args: string }[] | null {
   if (!text.includes('DSML')) return null
+  const pipe = '[\\|\uFF5C]'
   const calls: { name: string; args: string }[] = []
-  const invokeRegex = /<\|*\|DSML\|*\|invoke\s+name="([^"]+)">([\s\S]*?)<\/\|*\|DSML\|*\|invoke>/g
+  const invokeRegex = new RegExp(`<${pipe}*${pipe}DSML${pipe}*${pipe}invoke\\s+name="([^"]+)">([\\s\\S]*?)<\\/${pipe}*${pipe}DSML${pipe}*${pipe}invoke>`, 'g')
   let match
   while ((match = invokeRegex.exec(text)) !== null) {
     const name = match[1]
     const body = match[2]
     const params: Record<string, unknown> = {}
-    const paramRegex = /<\|*\|DSML\|*\|parameter\s+name="([^"]+)"[^>]*>([^<]*)<\/\|*\|DSML\|*\|parameter>/g
+    const paramRegex = new RegExp(`<${pipe}*${pipe}DSML${pipe}*${pipe}parameter\\s+name="([^"]+)"[^>]*>([^<]*)<\\/${pipe}*${pipe}DSML${pipe}*${pipe}parameter>`, 'g')
     let pm
     while ((pm = paramRegex.exec(body)) !== null) {
       const val = pm[2].trim()
@@ -224,7 +232,7 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
       continue
     }
 
-    const html = extractHTML(finalContent)
+    const html = extractHTML(stripDSML(finalContent))
     const critique = extractCritique(finalContent)
     const preflight = extractPreflight(finalContent)
     const blueprintUpdate = extractBlueprintUpdate(finalContent)
@@ -235,12 +243,14 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight, blueprintUpdate }
   }
 
-  const html = extractHTML(fullContent)
-  const critique = extractCritique(fullContent)
-  const preflight = extractPreflight(fullContent)
-  const blueprintUpdate = extractBlueprintUpdate(fullContent)
-  console.log('[LLM] max rounds reached, fullContent length:', fullContent.length, 'html extracted:', !!html)
-  return { content: html ? '已为你生成了设计稿。' : fullContent, html, screenshot: '', critique, preflight, blueprintUpdate }
+  const cleaned = stripDSML(fullContent)
+
+  const html = extractHTML(cleaned)
+  const critique = extractCritique(cleaned)
+  const preflight = extractPreflight(cleaned)
+  const blueprintUpdate = extractBlueprintUpdate(cleaned)
+  console.log('[LLM] max rounds reached, fullContent length:', cleaned.length, 'html extracted:', !!html)
+  return { content: html ? '已为你生成了设计稿。' : cleaned, html, screenshot: '', critique, preflight, blueprintUpdate }
 }
 
 export async function sendMessageToLLM(
