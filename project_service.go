@@ -72,10 +72,14 @@ func (s *ProjectService) CreateProject(name string, projectJson string, sessions
 		return "", err
 	}
 	if sessionsJson != "" {
-		os.WriteFile(sessionsPath(projectsDir, id), []byte(sessionsJson), 0644)
+		if err := os.WriteFile(sessionsPath(projectsDir, id), []byte(sessionsJson), 0644); err != nil {
+			return "", err
+		}
 	}
 	if cardsJson != "" {
-		os.WriteFile(cardsPath(projectsDir, id), []byte(cardsJson), 0644)
+		if err := os.WriteFile(cardsPath(projectsDir, id), []byte(cardsJson), 0644); err != nil {
+			return "", err
+		}
 	}
 
 	var parsed struct {
@@ -117,10 +121,14 @@ func (s *ProjectService) WriteProjectFiles(path string, projectJson string, sess
 		return err
 	}
 	if sessionsJson != "" {
-		os.WriteFile(filepath.Join(dir, base+".sessions.json"), []byte(sessionsJson), 0644)
+		if err := os.WriteFile(filepath.Join(dir, base+".sessions.json"), []byte(sessionsJson), 0644); err != nil {
+			return err
+		}
 	}
 	if cardsJson != "" {
-		os.WriteFile(filepath.Join(dir, base+".cards.json"), []byte(cardsJson), 0644)
+		if err := os.WriteFile(filepath.Join(dir, base+".cards.json"), []byte(cardsJson), 0644); err != nil {
+			return err
+		}
 	}
 
 	s.currentPath = path
@@ -179,7 +187,7 @@ func (s *ProjectService) ReadProject(path string) (string, error) {
 			PageType     string `json:"pageType"`
 			DesignSpecId string `json:"designSpecId"`
 			ColorScheme  string `json:"colorScheme"`
-		} `json:"meta"`
+		} `json:"canvas"`
 	}
 	json.Unmarshal(projectData, &parsed)
 	var createdAt time.Time

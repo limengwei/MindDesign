@@ -31,7 +31,7 @@ const pageTypes = [
 
 async function loadCustomSpecs() {
   try {
-    const bundle = await readProject('design-specs/custom-specs')
+    const bundle = await readProject('design-specs/custom-specs.project.json')
     if (bundle.project) {
       savedCustomSpecs.value = bundle.project as any
     }
