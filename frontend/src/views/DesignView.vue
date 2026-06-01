@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCanvasStore, PAGE_DIMENSIONS } from '../stores/canvasStore'
 import { useChatStore } from '../stores/chatStore'
@@ -75,7 +75,8 @@ onMounted(async () => {
   try {
     const bundle = await readProject(filePath)
     let screenshots: Record<string, string> | undefined
-    const cardsArray = bundle.cards as any[] | null
+    const rawCards = (bundle as any).cards
+    const cardsArray: any[] | null = Array.isArray(rawCards) ? rawCards : (rawCards?.cards ?? null)
     if (cardsArray && cardsArray.length) {
       const cardIds = cardsArray.map((c: any) => c.id)
       screenshots = await loadCardScreenshots(filePath, cardIds)
@@ -88,6 +89,8 @@ onMounted(async () => {
 })
 
 function handleBackToHome() {
+  canvasStore.reset()
+  chatStore.reset()
   router.push({ name: 'home' })
 }
 
