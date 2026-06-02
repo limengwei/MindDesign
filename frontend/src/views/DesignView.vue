@@ -158,6 +158,7 @@ function closePreview() {
       v-if="showExportDialog"
       :html="canvasStore.cards.find(c => c.id === exportCardId)?.html ?? null"
       :project-name="canvasStore.projectName"
+      :card-label="canvasStore.cards.find(c => c.id === exportCardId)?.label ?? ''"
       @close="showExportDialog = false"
     />
 

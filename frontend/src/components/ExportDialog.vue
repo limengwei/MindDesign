@@ -6,6 +6,7 @@ import { showSaveDialog, saveExportFile, saveExportFileBinary } from '../service
 const props = defineProps<{
   html: string | null
   projectName: string
+  cardLabel: string
 }>()
 
 const emit = defineEmits(['close'])
@@ -42,7 +43,7 @@ async function handleCopy() {
 
 async function handleDownload() {
   if (!props.html) return
-  const fileName = `${props.projectName || 'design'}.html`
+  const fileName = `${props.projectName || 'design'}-${props.cardLabel || 'design'}.html`
   const path = await showSaveDialog('导出 HTML', fileName, [
     { DisplayName: 'HTML 文件', Pattern: '*.html' },
     { DisplayName: '所有文件', Pattern: '*.*' },
@@ -82,7 +83,7 @@ async function handleDownloadIcons() {
       reader.readAsDataURL(blob)
     })
 
-    const fileName = `${props.projectName || 'design'}-icons.zip`
+    const fileName = `${props.projectName || 'design'}-${props.cardLabel || 'icons'}-icons.zip`
     const path = await showSaveDialog('导出图标', fileName, [
       { DisplayName: 'ZIP 文件', Pattern: '*.zip' },
       { DisplayName: '所有文件', Pattern: '*.*' },
