@@ -208,3 +208,32 @@ export async function fetchProxiedImage(url: string): Promise<string | null> {
   }
   return null
 }
+
+export async function saveExportFile(path: string, content: string): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).SaveExportFile(path, content)
+  }
+}
+
+export async function saveExportFileBinary(path: string, base64Content: string): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).SaveExportFileBinary(path, base64Content)
+  }
+}
+
+export async function showSaveDialog(title: string, defaultFilename: string, filters: Array<{ DisplayName: string; Pattern: string }>): Promise<string> {
+  await ensureLoaded()
+  try {
+    const { Dialogs } = await import('@wailsio/runtime')
+    const path = await Dialogs.SaveFile({
+      Title: title,
+      Filename: defaultFilename,
+      Filters: filters,
+    })
+    return (path as string) || ''
+  } catch {
+    return ''
+  }
+}

@@ -477,3 +477,15 @@ func (s *ProjectService) addRecentProject(path, name, pageType, designSpecId, co
 	result, _ := json.MarshalIndent(projects, "", "  ")
 	os.WriteFile(recentPath, result, 0644)
 }
+
+func (s *ProjectService) SaveExportFile(path string, content string) error {
+	return os.WriteFile(path, []byte(content), 0644)
+}
+
+func (s *ProjectService) SaveExportFileBinary(path string, base64Content string) error {
+	data, err := base64.StdEncoding.DecodeString(base64Content)
+	if err != nil {
+		return fmt.Errorf("invalid base64: %w", err)
+	}
+	return os.WriteFile(path, data, 0644)
+}

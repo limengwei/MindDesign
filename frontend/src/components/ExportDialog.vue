@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import JSZip from 'jszip'
+import { showSaveDialog, saveExportFile, saveExportFileBinary } from '../services/projectBridge'
 
 const props = defineProps<{
   html: string | null
@@ -9,6 +11,19 @@ const props = defineProps<{
 const emit = defineEmits(['close'])
 
 const copying = ref(false)
+const downloadingIcons = ref(false)
+
+const iconNames = computed(() => {
+  if (!props.html) return []
+  const matches = props.html.match(/class="material-symbols-outlined"[^>]*>([^<]+)/g)
+  if (!matches) return []
+  const names = new Set<string>()
+  for (const m of matches) {
+    const name = m.replace(/.*class="material-symbols-outlined"[^>]*>/, '').trim()
+    if (name) names.add(name)
+  }
+  return [...names]
+})
 
 async function handleCopy() {
   copying.value = true
@@ -25,15 +40,58 @@ async function handleCopy() {
   setTimeout(() => { copying.value = false }, 1500)
 }
 
-function handleDownload() {
+async function handleDownload() {
   if (!props.html) return
-  const blob = new Blob([props.html], { type: 'text/html;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${props.projectName || 'design'}.html`
-  a.click()
-  URL.revokeObjectURL(url)
+  const fileName = `${props.projectName || 'design'}.html`
+  const path = await showSaveDialog('导出 HTML', fileName, [
+    { DisplayName: 'HTML 文件', Pattern: '*.html' },
+    { DisplayName: '所有文件', Pattern: '*.*' },
+  ])
+  if (!path) return
+  await saveExportFile(path, props.html)
+}
+
+async function handleDownloadIcons() {
+  if (iconNames.value.length === 0) return
+  downloadingIcons.value = true
+
+  try {
+    const zip = new JSZip()
+    const folder = zip.folder('icons')!
+
+    const results = await Promise.allSettled(
+      iconNames.value.map(async (name) => {
+        const resp = await fetch(`/icons/${name}.svg`)
+        if (!resp.ok) return
+        const svg = await resp.text()
+        folder.file(`${name}.svg`, svg)
+      })
+    )
+
+    const successCount = results.filter(r => r.status === 'fulfilled').length
+    if (successCount === 0) return
+
+    const blob = await zip.generateAsync({ type: 'blob' })
+
+    const base64 = await new Promise<string>((resolve) => {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string
+        resolve(dataUrl.split(',')[1])
+      }
+      reader.readAsDataURL(blob)
+    })
+
+    const fileName = `${props.projectName || 'design'}-icons.zip`
+    const path = await showSaveDialog('导出图标', fileName, [
+      { DisplayName: 'ZIP 文件', Pattern: '*.zip' },
+      { DisplayName: '所有文件', Pattern: '*.*' },
+    ])
+    if (!path) return
+    await saveExportFileBinary(path, base64)
+  } finally {
+    downloadingIcons.value = false
+  }
 }
 </script>
 
@@ -50,6 +108,9 @@ function handleDownload() {
       </div>
 
       <div class="dialog-actions">
+        <button v-if="iconNames.length > 0" class="btn btn-secondary" @click="handleDownloadIcons" :disabled="downloadingIcons">
+          {{ downloadingIcons ? '打包中...' : `下载图标 (${iconNames.length})` }}
+        </button>
         <button class="btn btn-secondary" @click="handleCopy">{{ copying ? '已复制 ✓' : '复制代码' }}</button>
         <button class="btn btn-primary" @click="handleDownload" :disabled="!html">下载 .html</button>
       </div>

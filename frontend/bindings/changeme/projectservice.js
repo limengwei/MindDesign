@@ -97,6 +97,24 @@ export function SaveCardScreenshots(path, screenshotsJson) {
 
 /**
  * @param {string} path
+ * @param {string} content
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveExportFile(path, content) {
+    return $Call.ByID(1096197965, path, content);
+}
+
+/**
+ * @param {string} path
+ * @param {string} base64Content
+ * @returns {$CancellablePromise<void>}
+ */
+export function SaveExportFileBinary(path, base64Content) {
+    return $Call.ByID(2713292276, path, base64Content);
+}
+
+/**
+ * @param {string} path
  * @returns {$CancellablePromise<void>}
  */
 export function SetCurrentPath(path) {
