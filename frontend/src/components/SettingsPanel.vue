@@ -62,7 +62,7 @@ const emit = defineEmits<{
 
         <div class="status-bar" :class="{ configured: configStore.isConfigured }">
           <span class="status-dot"></span>
-          {{ configStore.isConfigured ? '已配置 - 将使用真实 API' : '未配置 - 将使用模拟数据' }}
+          {{ configStore.isConfigured ? '已配置' : '未配置' }}
         </div>
       </div>
 
@@ -76,7 +76,7 @@ const emit = defineEmits<{
 
 <style scoped>
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
-.settings-panel { width: 440px; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-default); }
+.settings-panel { width: 640px; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-default); }
 .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-default); }
 .panel-header h3 { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); margin: 0; }
 .close-btn { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); font-size: 18px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); }

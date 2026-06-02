@@ -2,8 +2,10 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRecentProjects, createProject, readProject, writeProjectFiles, updateProjectMeta, type RecentProject } from '../services/projectBridge'
+import { useLLMConfigStore } from '../stores/llmConfigStore'
 import WindowControls from '../components/WindowControls.vue'
 import DesignSpecSelector from '../components/DesignSpecSelector.vue'
+import SettingsPanel from '../components/SettingsPanel.vue'
 import {
   type DesignSpecId,
   DESIGN_SPEC_LABELS,
@@ -11,9 +13,11 @@ import {
 } from '../prompts/designSpecs'
 
 const router = useRouter()
+const llmConfigStore = useLLMConfigStore()
 const projects = ref<RecentProject[]>([])
 const loading = ref(true)
 const showCreateForm = ref(false)
+const showSettingsPanel = ref(false)
 const projectName = ref('')
 const pageType = ref('app')
 const designSpecId = ref<DesignSpecId>('none')
@@ -317,6 +321,14 @@ onUnmounted(() => {
       </div>
       <div class="titlebar-center"></div>
       <div class="titlebar-right">
+        <button
+          class="titlebar-btn"
+          :class="{ active: llmConfigStore.isConfigured }"
+          title="API 设置"
+          @click="showSettingsPanel = true"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+        </button>
         <WindowControls />
       </div>
     </div>
@@ -353,7 +365,7 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="project-card create-card" @click="showCreateForm = true">
+      <div class="project-card create-card" @click="llmConfigStore.isConfigured ? (showCreateForm = true) : (showSettingsPanel = true)">
         <div class="create-icon">＋</div>
         <div class="create-text">创建新项目</div>
       </div>
@@ -492,6 +504,13 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
+
+    <Teleport to="body">
+      <SettingsPanel
+        v-if="showSettingsPanel"
+        @close="showSettingsPanel = false"
+      />
+    </Teleport>
   </div>
 </template>
 
@@ -501,7 +520,10 @@ onUnmounted(() => {
 .titlebar-left { display: flex; align-items: center; padding-left: 16px; --wails-draggable: no-drag; }
 .titlebar-app-name { font-size: var(--font-base); font-weight: 600; color: var(--color-primary-light); }
 .titlebar-center { flex: 1; }
-.titlebar-right { --wails-draggable: no-drag; }
+.titlebar-right { --wails-draggable: no-drag; display: flex; align-items: center; gap: 8px; }
+.titlebar-btn { border: none; background: none; color: var(--text-secondary); cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.titlebar-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+.titlebar-btn.active { color: #34d399; }
 .home > *:not(.titlebar):not(.dialog-overlay) { position: relative; z-index: 1; }
 .home-header { text-align: center; margin-bottom: 48px; padding-top: 48px; }
 .app-logo { width: 72px; height: 72px; border-radius: var(--radius-xl); margin-bottom: 16px; }
