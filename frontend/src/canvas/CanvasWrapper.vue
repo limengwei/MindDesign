@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { App, Leafer, Box, Frame, Image, Text, Rect, Ellipse, PointerEvent, DragEvent, PropertyEvent } from 'leafer-ui'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { App, Leafer, Box, Frame, Image, Text, Rect, Ellipse, PointerEvent } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
 import { ScrollBar } from '@leafer-in/scroll'
@@ -26,7 +26,6 @@ function showConfirm(cardId: string) {
 async function confirmDelete() {
   const cardId = confirmState.value.cardId
   confirmState.value.show = false
-  removeActionBtns(cardId)
   const group = cardGroups.get(cardId)
   if (group) {
     group.remove()
@@ -56,9 +55,7 @@ const cardGroups = new Map<string, Frame>()
 let breathRafId = 0
 let renderVersion = 0
 let appTapEventId: any = null
-let viewportChangeId: any = null
 const cardEventIds = new Map<string, any>()
-const btnEventIds = new Map<string, any[]>()
 
 onMounted(() => {
   if (!containerRef.value) return
@@ -92,15 +89,6 @@ onMounted(() => {
     }
   })
 
-  const zoomLayer = (treeLayer as any)?.zoomLayer
-  if (zoomLayer) {
-    viewportChangeId = zoomLayer.on_(PropertyEvent.CHANGE, (e: any) => {
-      if (e.attrName === 'x' || e.attrName === 'y' || e.attrName === 'scaleX' || e.attrName === 'scaleY') {
-        updateActionBtnPositions()
-      }
-    })
-  }
-
   dotGrid = new DotGrid(containerRef.value, app, {
     dotColor: 'rgba(255,255,255,0.1)',
     dotSize: 1.2,
@@ -124,15 +112,8 @@ onUnmounted(() => {
   dotGrid?.destroy(); dotGrid = null
   resizeObserver?.disconnect(); resizeObserver = null
   cardGroups.clear()
-  actionBtnGroups.clear()
   cardEventIds.clear()
-  btnEventIds.clear()
   if (app && appTapEventId) { app.off_(appTapEventId); appTapEventId = null }
-  if (viewportChangeId) {
-    const zoomLayer = (treeLayer as any)?.zoomLayer
-    if (zoomLayer) zoomLayer.off_(viewportChangeId)
-    viewportChangeId = null
-  }
   app?.destroy(); app = null; treeLayer = null; skyLayer = null
 })
 
@@ -339,7 +320,7 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
   const group = new Frame({
     id: card.id, x: card.x, y: card.y,
     width: w, height: h,
-    strokeWidth: selected ? 3 : 1, stroke: selected ? '#818cf8' : '#2a2a4a',
+    strokeWidth: selected ? 3 : 1, stroke: selected ? '#22d3ee' : '#2a2a4a',
     cornerRadius: 8, fill: isGenerating ? '#2a2a4a' : '#16213e',
   })
 
@@ -418,7 +399,7 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
     existing.set({
       width: w, height: h,
       strokeWidth: selected ? 3 : 1,
-      stroke: selected ? '#818cf8' : '#2a2a4a',
+      stroke: selected ? '#22d3ee' : '#2a2a4a',
       fill: '#16213e',
     })
 
@@ -451,7 +432,6 @@ async function renderAll(shouldZoom = false) {
   const currentIds = new Set(canvasStore.cards.map(c => c.id))
   for (const [id, group] of cardGroups) {
     if (!currentIds.has(id)) {
-      removeActionBtns(id)
       group.remove()
       cardGroups.delete(id)
     }
@@ -472,11 +452,6 @@ async function renderAll(shouldZoom = false) {
   }
 
   if (genId) startBreathAnimation()
-  const selId = canvasStore.selectedCardId
-  if (selId) {
-    const selGroup = cardGroups.get(selId)
-    if (selGroup) createActionBtns(selId, selGroup)
-  }
   if (shouldZoom && cardGroups.size > 0) {
     setTimeout(() => { if (renderVersion === v) treeLayer?.zoom('fit', 40) }, 600)
   }
@@ -494,7 +469,7 @@ function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h
   const group = new Frame({
     id: card.id, x: card.x, y: card.y,
     width: w, height: h,
-    strokeWidth: selected ? 3 : 1, stroke: selected ? '#818cf8' : '#2a2a4a',
+    strokeWidth: selected ? 3 : 1, stroke: selected ? '#22d3ee' : '#2a2a4a',
     cornerRadius: 8, fill: '#16213e',
   })
   group.add(new Rect({
@@ -585,7 +560,6 @@ watch(() => canvasStore.generatingCardId, (newId, oldId) => {
 
 watch(() => canvasStore.selectedCardId, (newId, oldId) => {
   if (oldId) {
-    removeActionBtns(oldId)
     const oldGroup = cardGroups.get(oldId)
     if (oldGroup) {
       oldGroup.set({ strokeWidth: 1, stroke: '#2a2a4a' })
@@ -594,112 +568,10 @@ watch(() => canvasStore.selectedCardId, (newId, oldId) => {
   if (newId) {
     const group = cardGroups.get(newId)
     if (group) {
-      group.set({ strokeWidth: 3, stroke: '#818cf8' })
-      createActionBtns(newId, group)
+      group.set({ strokeWidth: 3, stroke: '#22d3ee' })
     }
   }
 })
-
-const BTN_H = 28
-const BTN_GAP = 8
-const BTN_AREA_H = BTN_H + 6
-const actionBtnGroups = new Map<string, Box>()
-
-function updateActionBtnPositions() {
-  const zoomLayer = (treeLayer as any)?.zoomLayer
-  const scale = zoomLayer?.scaleX ?? 1
-  const offsetX = zoomLayer?.x ?? 0
-  const offsetY = zoomLayer?.y ?? 0
-
-  for (const [cardId, btnGroup] of actionBtnGroups) {
-    const cardGroup = cardGroups.get(cardId)
-    if (!cardGroup) continue
-    const wx = cardGroup.x ?? 0
-    const wy = cardGroup.y ?? 0
-    const screenX = wx * scale + offsetX
-    const screenY = wy * scale + offsetY
-    btnGroup.set({
-      x: screenX,
-      y: screenY - BTN_AREA_H * scale,
-      scaleX: scale,
-      scaleY: scale,
-    })
-  }
-}
-
-function createActionBtns(cardId: string, group: Frame) {
-  const existing = actionBtnGroups.get(cardId)
-  if (existing) return
-
-  const w = group.width ?? 0
-  const btnW = 56
-
-  const btnGroup = new Box({
-    width: w, height: BTN_H,
-  })
-
-  const previewBtn = new Box({
-    x: w - btnW * 4 - BTN_GAP * 3, y: 0,
-    width: btnW, height: BTN_H,
-    fill: 'rgba(59,130,246,0.85)', cornerRadius: 6,
-    hitSelf: true,
-  })
-  previewBtn.add(new Text({ text: '预览', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
-  previewBtn.id = `__btn_preview__${cardId}`
-  const previewEvtId = previewBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('previewCard', cardId) })
-
-  const exportBtn = new Box({
-    x: w - btnW * 3 - BTN_GAP * 2, y: 0,
-    width: btnW, height: BTN_H,
-    fill: 'rgba(16,185,129,0.85)', cornerRadius: 6,
-    hitSelf: true,
-  })
-  exportBtn.add(new Text({ text: '导出', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
-  exportBtn.id = `__btn_export__${cardId}`
-  const exportEvtId = exportBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; emit('exportCard', cardId) })
-
-  const refreshBtn = new Box({
-    x: w - btnW * 2 - BTN_GAP, y: 0,
-    width: btnW, height: BTN_H,
-    fill: 'rgba(79,70,229,0.85)', cornerRadius: 6,
-    hitSelf: true,
-  })
-  refreshBtn.add(new Text({ text: '刷新', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
-  refreshBtn.id = `__btn_refresh__${cardId}`
-  const refreshEvtId = refreshBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; refreshCard(cardId) })
-
-  const deleteBtn = new Box({
-    x: w - btnW, y: 0,
-    width: btnW, height: BTN_H,
-    fill: 'rgba(239,68,68,0.85)', cornerRadius: 6,
-    hitSelf: true,
-  })
-  deleteBtn.add(new Text({ text: '删除', fontSize: 12, fill: '#fff', textAlign: 'center', verticalAlign: 'middle', width: btnW, height: BTN_H }))
-  deleteBtn.id = `__btn_delete__${cardId}`
-  const deleteEvtId = deleteBtn.on_(PointerEvent.TAP, (e: PointerEvent) => { e.stop() ; showConfirm(cardId) })
-
-  btnGroup.add(previewBtn)
-  btnGroup.add(exportBtn)
-  btnGroup.add(refreshBtn)
-  btnGroup.add(deleteBtn)
-  if (skyLayer) skyLayer.add(btnGroup)
-  actionBtnGroups.set(cardId, btnGroup)
-  btnEventIds.set(cardId, [previewEvtId, exportEvtId, refreshEvtId, deleteEvtId])
-  updateActionBtnPositions()
-}
-
-function removeActionBtns(cardId: string) {
-  const btnGroup = actionBtnGroups.get(cardId)
-  if (btnGroup) {
-    const ids = btnEventIds.get(cardId)
-    if (ids) {
-      for (const eid of ids) btnGroup.off_(eid)
-      btnEventIds.delete(cardId)
-    }
-    btnGroup.remove()
-    actionBtnGroups.delete(cardId)
-  }
-}
 
 async function refreshCard(cardId: string) {
   const card = canvasStore.cards.find(c => c.id === cardId)
@@ -726,13 +598,26 @@ function handleZoomOut() { treeLayer?.zoom('out') }
 function handleZoomFit() { if (treeLayer && cardGroups.size > 0) treeLayer.zoom('fit') }
 
 defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
+
+const selectedCard = computed(() => {
+  if (!canvasStore.selectedCardId) return null
+  return canvasStore.cards.find(c => c.id === canvasStore.selectedCardId) ?? null
+})
 </script>
 
 <template>
   <div class="canvas-wrapper">
     <div ref="containerRef" class="canvas-container"></div>
 
-    <div class="canvas-info">
+    <div v-if="selectedCard" class="action-bar">
+      <span class="action-label">{{ selectedCard.label }}</span>
+      <button class="action-btn action-preview" @click="emit('previewCard', selectedCard!.id)"><img src="/icons/visibility.svg" alt="" class="action-icon" />预览</button>
+      <button class="action-btn action-export" @click="emit('exportCard', selectedCard!.id)"><img src="/icons/file_export.svg" alt="" class="action-icon" />导出</button>
+      <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><img src="/icons/refresh.svg" alt="" class="action-icon" />刷新</button>
+      <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><img src="/icons/delete.svg" alt="" class="action-icon" />删除</button>
+    </div>
+
+    <div v-if="!selectedCard" class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
     </div>
 
@@ -761,4 +646,13 @@ defineExpose({ handleZoomIn, handleZoomOut, handleZoomFit })
 .confirm-icon { font-size: 20px; }
 .confirm-text { font-size: var(--font-md); color: var(--text-primary); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.action-bar { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(22,33,62,0.92); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.action-label { font-size: 13px; color: #a5b4fc; margin-right: 4px; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.action-btn { padding: 4px 14px; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; color: #fff; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 4px; }
+.action-icon { width: 14px; height: 14px; vertical-align: middle; filter: brightness(0) invert(1); }
+.action-btn:hover { opacity: 0.85; }
+.action-preview { background: rgba(59,130,246,0.85); }
+.action-export { background: rgba(16,185,129,0.85); }
+.action-refresh { background: rgba(79,70,229,0.85); }
+.action-delete { background: rgba(239,68,68,0.85); }
 </style>
