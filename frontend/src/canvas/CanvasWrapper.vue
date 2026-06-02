@@ -68,7 +68,7 @@ onMounted(() => {
     tree: { type: 'design' },
     sky: {},
     zoom: { min: 0.02, max: 32 },
-    move: { holdSpaceKey: true, holdMiddleKey: true, drag: 'auto', dragAnimate: 0.9 },
+    move: { holdSpaceKey: true, holdMiddleKey: true, dragEmpty: true, dragAnimate: 0.9 },
     wheel: { zoomMode: true, zoomSpeed: 0.2 },
   })
 
@@ -78,8 +78,16 @@ onMounted(() => {
   new ScrollBar(app)
 
   appTapEventId = app.on_(PointerEvent.TAP, (e: PointerEvent) => {
-    const target = e.target as any
-    if (!target?.id || !cardGroups.has(target.id)) {
+    let target = e.target as any
+    let found = false
+    while (target) {
+      if (target.id && cardGroups.has(target.id)) {
+        found = true
+        break
+      }
+      target = target.parent
+    }
+    if (!found) {
       canvasStore.selectCard(null)
     }
   })
@@ -617,12 +625,9 @@ function createActionBtns(cardId: string, group: Frame) {
   if (existing) return
 
   const w = group.width ?? 0
-  const gx = group.x ?? 0
-  const gy = group.y ?? 0
   const btnW = 56
 
   const btnGroup = new Box({
-    x: gx, y: gy - BTN_AREA_H,
     width: w, height: BTN_H,
   })
 
@@ -673,6 +678,7 @@ function createActionBtns(cardId: string, group: Frame) {
   if (skyLayer) skyLayer.add(btnGroup)
   actionBtnGroups.set(cardId, btnGroup)
   btnEventIds.set(cardId, [previewEvtId, exportEvtId, refreshEvtId, deleteEvtId])
+  updateActionBtnPositions()
 }
 
 function removeActionBtns(cardId: string) {
