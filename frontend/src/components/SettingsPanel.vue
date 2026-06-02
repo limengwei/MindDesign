@@ -22,13 +22,12 @@ const emit = defineEmits<{
 
       <div class="panel-body">
         <div class="form-group">
-          <label>服务商</label>
-          <select v-model="configStore.provider" @change="configStore.setProvider(configStore.provider)">
-            <option value="openai">OpenAI</option>
-            <option value="deepseek">DeepSeek (国内可用)</option>
-            <option value="glm">智谱 GLM (国内可用)</option>
-            <option value="custom">自定义 (OpenAI 兼容)</option>
+          <label>协议</label>
+          <select v-model="configStore.protocol">
+            <option value="openai">OpenAI 兼容</option>
+            <option value="claude">Claude (Anthropic)</option>
           </select>
+          <span class="hint">选择 API 使用的通信协议</span>
         </div>
 
         <div class="form-group">
@@ -48,7 +47,7 @@ const emit = defineEmits<{
             v-model="configStore.baseUrl"
             placeholder="https://api.openai.com/v1"
           />
-          <span class="hint">支持任何 OpenAI 兼容的 API 地址</span>
+          <span class="hint">OpenAI 协议示例：https://api.openai.com/v1、https://api.deepseek.com/v1</span>
         </div>
 
         <div class="form-group">
@@ -58,6 +57,7 @@ const emit = defineEmits<{
             v-model="configStore.model"
             placeholder="gpt-4o"
           />
+          <span class="hint">如 gpt-4o、deepseek-chat、glm-4-plus、claude-sonnet-4-20250514 等</span>
         </div>
 
         <div class="status-bar" :class="{ configured: configStore.isConfigured }">

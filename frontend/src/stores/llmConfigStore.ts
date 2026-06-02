@@ -2,39 +2,23 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 
 export interface LLMConfig {
-  provider: 'openai' | 'deepseek' | 'glm' | 'custom'
+  protocol: 'openai' | 'claude'
   apiKey: string
   baseUrl: string
   model: string
 }
 
-const PROVIDER_PRESETS: Record<string, { baseUrl: string; model: string }> = {
-  openai:    { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o' },
-  deepseek:  { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
-  glm:       { baseUrl: 'https://open.bigmodel.cn/api/paas/v4', model: 'glm-4-plus' },
-  custom:    { baseUrl: '', model: '' },
-}
-
 export const useLLMConfigStore = defineStore('llmConfig', () => {
-  const provider = ref<LLMConfig['provider']>('openai')
+  const protocol = ref<LLMConfig['protocol']>('openai')
   const apiKey = ref('')
   const baseUrl = ref('https://api.openai.com/v1')
   const model = ref('gpt-4o')
 
   const isConfigured = computed(() => !!apiKey.value.trim() && !!baseUrl.value.trim() && !!model.value.trim())
 
-  function setProvider(p: LLMConfig['provider']) {
-    provider.value = p
-    const preset = PROVIDER_PRESETS[p]
-    if (preset) {
-      baseUrl.value = preset.baseUrl
-      model.value = preset.model
-    }
-  }
-
   function getConfig(): LLMConfig {
     return {
-      provider: provider.value,
+      protocol: protocol.value,
       apiKey: apiKey.value,
       baseUrl: baseUrl.value,
       model: model.value,
@@ -46,7 +30,10 @@ export const useLLMConfigStore = defineStore('llmConfig', () => {
       const raw = localStorage.getItem('minddesign:llmConfig')
       if (raw) {
         const data = JSON.parse(raw) as Partial<LLMConfig>
-        if (data.provider) provider.value = data.provider
+        // 兼容旧字段 provider
+        const proto = (data as Record<string, unknown>).provider || data.protocol
+        if (proto === 'claude') protocol.value = 'claude'
+        else if (typeof proto === 'string') protocol.value = 'openai'
         if (data.apiKey) apiKey.value = data.apiKey
         if (data.baseUrl) baseUrl.value = data.baseUrl
         if (data.model) model.value = data.model
@@ -64,12 +51,11 @@ export const useLLMConfigStore = defineStore('llmConfig', () => {
   loadFromStorage()
 
   return {
-    provider,
+    protocol,
     apiKey,
     baseUrl,
     model,
     isConfigured,
-    setProvider,
     getConfig,
     loadFromStorage,
     saveToStorage,

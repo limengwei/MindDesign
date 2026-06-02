@@ -6,8 +6,8 @@ import type { ProductBlueprint } from '../prompts/blueprint'
 import { extractBlueprintUpdate } from '../prompts/blueprint'
 import { buildSystemPrompt } from '../prompts/system'
 import { searchIcons, searchIconsToolDefinition } from './tools'
-import { callOpenAICompatible, type ChatMessage, type ToolDefinition } from './llmClient'
-import { useLLMConfigStore } from '../stores/llmConfigStore'
+import { callOpenAICompatible, callClaude, type ChatMessage, type ToolDefinition, type LLMResponse } from './llmClient'
+import { useLLMConfigStore, type LLMConfig } from '../stores/llmConfigStore'
 
 export interface DesignCritique {
   scores: {
@@ -153,6 +153,13 @@ export interface SendMessageOptions {
 const MAX_TOOL_ROUNDS = 8
 const MAX_TOOL_CALLS = 2
 
+function callLLM(config: LLMConfig, messages: ChatMessage[], tools?: ToolDefinition[]): Promise<LLMResponse> {
+  if (config.protocol === 'claude') {
+    return callClaude(config, messages, tools)
+  }
+  return callOpenAICompatible(config, messages, tools)
+}
+
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
@@ -184,7 +191,7 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     console.log('[LLM] === round', round, 'start === tools allowed:', allowTools, 'tool calls so far:', toolCallCount)
     console.log('[LLM] messages count:', messages.length)
 
-    const response = await callOpenAICompatible(config, messages, toolsToUse)
+    const response = await callLLM(config, messages, toolsToUse)
 
     console.log('[LLM] round', round, 'response.content:', response.content?.slice(0, 200))
     console.log('[LLM] round', round, 'tool_calls:', response.tool_calls?.map(tc => tc.function.name))
