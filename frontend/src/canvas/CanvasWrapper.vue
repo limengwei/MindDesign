@@ -577,7 +577,10 @@ watch(() => canvasStore.generatingCardId, (newId, oldId) => {
   }
   startBreathAnimation()
   const card = canvasStore.cards.find(c => c.id === newId)
-  if (card) renderCard(card, card.id === canvasStore.selectedCardId, true)
+  if (card) {
+    renderCard(card, card.id === canvasStore.selectedCardId, true)
+    nextTick(() => panToCard(card))
+  }
 })
 
 watch(() => canvasStore.selectedCardId, (newId, oldId) => {
@@ -704,6 +707,18 @@ async function refreshCard(cardId: string) {
   card.screenshot = ''
   await renderCard(card, true, false)
   await saveProject()
+}
+
+function panToCard(card: CanvasCard) {
+  if (!treeLayer || !containerRef.value) return
+  const zoomLayer = (treeLayer as any)?.zoomLayer
+  if (!zoomLayer) return
+  const scale = zoomLayer.scaleX ?? 1
+  const cw = containerRef.value.clientWidth
+  const ch = containerRef.value.clientHeight
+  const tx = cw / 2 - (card.x + card.width / 2) * scale
+  const ty = ch / 2 - (card.y + card.height / 2) * scale
+  zoomLayer.set({ x: tx, y: ty })
 }
 
 function handleZoomIn() { treeLayer?.zoom('in') }
