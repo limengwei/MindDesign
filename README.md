@@ -25,17 +25,23 @@ MindDesign 是一款基于 AI 对话的 UI 设计工具。通过自然语言与 
 <p align="center">
   <img src="screenshot/005.png" width="600" alt="截图 5" />
 </p>
+<p align="center">
+  <img src="screenshot/006.png" width="600" alt="截图 6" />
+</p>
+<p align="center">
+  <img src="screenshot/007.png" width="600" alt="截图 7" />
+</p>
 
 ## 功能特性
 
-- **多模型支持** — 支持 OpenAI、DeepSeek、GLM 及自定义（OpenAI 兼容）等多种大模型
+- **多模型支持** — 支持 OpenAI 兼容协议和 Claude 协议，可接入 OpenAI、DeepSeek、GLM、Claude 等多种大模型
 - **AI 对话式设计** — 通过自然语言描述，AI 自动生成 UI 设计稿
 - **可视化画布** — 基于 Leafer UI 的交互式画布，支持缩放、拖拽和元素编辑
 - **设计规范系统** — 内置多种设计规范，保持设计一致性
 - **多种页面类型** — 支持不同类型的页面设计模板
 - **配色方案** — 灵活的配色方案切换
 - **项目管理** — 创建、保存、自动保存和最近项目记录
-- **导出功能** — 将设计稿导出为 HTML
+- **导出功能** — 将设计稿导出为 HTML，支持图标导出
 
 ## 技术栈
 
