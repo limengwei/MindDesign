@@ -39,6 +39,7 @@ func main() {
 			BackdropType: application.Mica,
 		},
 		Frameless:        true,
+		StartState:       application.WindowStateMaximised,
 		BackgroundColour: application.NewRGB(15, 15, 35),
 		URL:              "/",
 		Width:            1280,
