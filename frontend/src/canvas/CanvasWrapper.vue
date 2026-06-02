@@ -566,9 +566,13 @@ watch(
   () => { renderAll(false) },
 )
 
-watch(() => canvasStore.generatingCardId, (newId) => {
+watch(() => canvasStore.generatingCardId, (newId, oldId) => {
   if (!newId) {
     stopBreathAnimation()
+    if (oldId) {
+      const card = canvasStore.cards.find(c => c.id === oldId)
+      if (card) renderCard(card, card.id === canvasStore.selectedCardId, false)
+    }
     return
   }
   startBreathAnimation()
