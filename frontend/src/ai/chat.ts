@@ -215,6 +215,7 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     const finalContent = response.content || fullContent
 
     const dsmlCalls = parseDSMLToolCalls(finalContent)
+    console.log('[LLM] round', round, 'dsmlCalls:', dsmlCalls?.length ?? null, 'toolCallCount:', toolCallCount, 'limit:', MAX_TOOL_CALLS + 2)
     if (dsmlCalls && dsmlCalls.length > 0 && toolCallCount < MAX_TOOL_CALLS + 2) {
       console.log('[LLM] round', round, 'detected DSML tool calls:', dsmlCalls.length)
       toolCallCount++
