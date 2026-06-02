@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCanvasStore, PAGE_DIMENSIONS } from '../stores/canvasStore'
 import { useChatStore } from '../stores/chatStore'
@@ -21,6 +21,27 @@ const showExportDialog = ref(false)
 const showSettingsPanel = ref(false)
 const exportCardId = ref<string | null>(null)
 const previewHtml = ref<string | null>(null)
+const previewContainerRef = ref<HTMLDivElement | null>(null)
+const previewScale = ref(1)
+const previewPageWidth = ref(375)
+
+function updatePreviewScale() {
+  if (!previewContainerRef.value) return
+  const containerWidth = previewContainerRef.value.clientWidth
+  if (containerWidth <= 0 || previewPageWidth.value <= 0) return
+  previewScale.value = Math.min(containerWidth / previewPageWidth.value, 1)
+}
+
+const previewScaledWidth = computed(() => Math.ceil(previewPageWidth.value * previewScale.value))
+
+const previewSrcdoc = computed(() => {
+  if (!previewHtml.value) return null
+  const style = '<style>html{overflow-x:hidden!important;}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}</style>'
+  if (previewHtml.value.includes('</head>')) {
+    return previewHtml.value.replace('</head>', style + '</head>')
+  }
+  return style + previewHtml.value
+})
 
 const pageDimensions = computed(() => PAGE_DIMENSIONS[canvasStore.pageType])
 
@@ -102,12 +123,18 @@ function handleExportCard(cardId: string) {
 function handlePreviewCard(cardId: string) {
   const card = canvasStore.cards.find(c => c.id === cardId)
   if (card?.html) {
+    previewPageWidth.value = card.width || pageDimensions.value.width
     previewHtml.value = card.html
+    nextTick(() => {
+      updatePreviewScale()
+      window.addEventListener('resize', updatePreviewScale)
+    })
   }
 }
 
 function closePreview() {
   previewHtml.value = null
+  window.removeEventListener('resize', updatePreviewScale)
 }
 </script>
 
@@ -141,7 +168,13 @@ function closePreview() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
       </div>
-      <iframe :srcdoc="previewHtml" class="preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+      <div ref="previewContainerRef" class="preview-container">
+        <div class="preview-scaler" :style="{ width: previewScaledWidth + 'px' }">
+          <div :style="{ width: previewPageWidth + 'px', transform: `scale(${previewScale})`, transformOrigin: 'top left' }">
+            <iframe :srcdoc="previewSrcdoc ?? undefined" class="preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>
+          </div>
+        </div>
+      </div>
     </div>
 
     <SettingsPanel
@@ -163,5 +196,7 @@ function closePreview() {
 .preview-title { font-size: 14px; font-weight: 600; color: #e2e8f0; }
 .preview-close-btn { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
 .preview-close-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
-.preview-iframe { flex: 1; width: 100%; border: none; background: #fff; }
+.preview-container { flex: 1; overflow: hidden; display: flex; justify-content: center; }
+.preview-scaler { flex-shrink: 0; }
+.preview-iframe { width: 100%; height: calc(100vh - 45px); border: none; background: #fff; }
 </style>
