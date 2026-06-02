@@ -145,7 +145,6 @@ export interface SendMessageOptions {
   customDesignContent?: string
   history: Array<{ role: string; content: string }>
   selectedHtml?: string
-  onStreamingHTML?: (html: string) => void
   skill?: DesignSkill | null
   isFirstMessage?: boolean
   blueprint?: ProductBlueprint | null
@@ -176,7 +175,6 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
 
   messages.push({ role: 'user', content: userText })
 
-  let fullContent = ''
   let toolCallCount = 0
 
   for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
@@ -186,17 +184,10 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     console.log('[LLM] === round', round, 'start === tools allowed:', allowTools, 'tool calls so far:', toolCallCount)
     console.log('[LLM] messages count:', messages.length)
 
-    const response = await callOpenAICompatible(config, messages, toolsToUse, {
-      onContent: (chunk) => {
-        fullContent += chunk
-        const html = extractHTML(fullContent)
-        if (html) options.onStreamingHTML?.(html)
-      },
-    })
+    const response = await callOpenAICompatible(config, messages, toolsToUse)
 
     console.log('[LLM] round', round, 'response.content:', response.content?.slice(0, 200))
     console.log('[LLM] round', round, 'tool_calls:', response.tool_calls?.map(tc => tc.function.name))
-    console.log('[LLM] round', round, 'fullContent so far:', fullContent.length, 'chars')
 
     if (response.tool_calls && response.tool_calls.length > 0) {
       toolCallCount++
@@ -212,7 +203,7 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
       continue
     }
 
-    const finalContent = response.content || fullContent
+    const finalContent = response.content || ''
 
     const dsmlCalls = parseDSMLToolCalls(finalContent)
     console.log('[LLM] round', round, 'dsmlCalls:', dsmlCalls?.length ?? null, 'toolCallCount:', toolCallCount, 'limit:', MAX_TOOL_CALLS + 2)
@@ -233,7 +224,14 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
         console.log('[LLM] DSML tool result:', result.slice(0, 200))
         messages.push({ role: 'tool', content: result, tool_call_id: tc.id })
       }
-      fullContent = ''
+      continue
+    }
+
+    // DSML tool call 超限但内容仍全是 DSML 标签，追加提示让模型直接输出 HTML
+    if (dsmlCalls && dsmlCalls.length > 0 && toolCallCount >= MAX_TOOL_CALLS + 2) {
+      console.log('[LLM] round', round, 'DSML limit reached, asking model to output HTML directly')
+      messages.push({ role: 'assistant', content: finalContent })
+      messages.push({ role: 'user', content: '请停止搜索图标，直接使用已有的图标结果输出完整的 HTML 设计稿。如果缺少某个图标，用 design_services 替代。' })
       continue
     }
 
@@ -248,14 +246,16 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight, blueprintUpdate }
   }
 
-  const cleaned = stripDSML(fullContent)
+  // 达到最大轮次，用最后一条 assistant 消息的内容
+  const lastAssistantMsg = messages.filter(m => m.role === 'assistant').pop()
+  const lastContent = lastAssistantMsg?.content || ''
 
-  const html = extractHTML(cleaned)
-  const critique = extractCritique(cleaned)
-  const preflight = extractPreflight(cleaned)
-  const blueprintUpdate = extractBlueprintUpdate(cleaned)
-  console.log('[LLM] max rounds reached, fullContent length:', cleaned.length, 'html extracted:', !!html)
-  return { content: html ? '已为你生成了设计稿。' : cleaned, html, screenshot: '', critique, preflight, blueprintUpdate }
+  const html = extractHTML(stripDSML(lastContent))
+  const critique = extractCritique(lastContent)
+  const preflight = extractPreflight(lastContent)
+  const blueprintUpdate = extractBlueprintUpdate(lastContent)
+  console.log('[LLM] max rounds reached, content length:', lastContent.length, 'html extracted:', !!html)
+  return { content: html ? '已为你生成了设计稿。' : lastContent, html, screenshot: '', critique, preflight, blueprintUpdate }
 }
 
 export async function sendMessageToLLM(

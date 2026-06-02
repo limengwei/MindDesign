@@ -68,13 +68,6 @@ function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
     skill: activeSkill.value,
     isFirstMessage,
     blueprint: canvasStore.productBlueprint,
-    onStreamingHTML: (html: string) => {
-      const genId = canvasStore.generatingCardId
-      if (genId) {
-        const card = canvasStore.cards.find(c => c.id === genId)
-        if (card) card.html = html
-      }
-    },
   }
 }
 

@@ -33,23 +33,16 @@ export interface LLMResponse {
   reasoning_content?: string
 }
 
-export interface StreamCallbacks {
-  onContent?: (text: string) => void
-  onToolCall?: (toolCall: ToolCall) => void
-}
-
 export async function callOpenAICompatible(
   config: LLMConfig,
   messages: ChatMessage[],
   tools?: ToolDefinition[],
-  callbacks?: StreamCallbacks,
 ): Promise<LLMResponse> {
   const url = `${config.baseUrl.replace(/\/$/, '')}/chat/completions`
 
   const body: Record<string, unknown> = {
     model: config.model,
     messages,
-    stream: true,
   }
 
   if (tools && tools.length > 0) {
@@ -73,90 +66,20 @@ export async function callOpenAICompatible(
     throw new Error(`API request failed (${resp.status}): ${errorText}`)
   }
 
-  return parseSSEStream(resp, callbacks)
-}
+  const data = await resp.json()
+  const choice = data.choices?.[0]
+  if (!choice) throw new Error('No choices in response')
 
-async function parseSSEStream(
-  resp: Response,
-  callbacks?: StreamCallbacks,
-): Promise<LLMResponse> {
-  const reader = resp.body!.getReader()
-  const decoder = new TextDecoder()
+  const message = choice.message
 
-  let content = ''
-  let reasoningContent = ''
-  const toolCallsMap = new Map<number, ToolCall>()
-  let finishReason = ''
-
-  let buffer = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
-
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() || ''
-
-    for (const line of lines) {
-      const trimmed = line.trim()
-      if (!trimmed) continue
-      // 兼容多种 DONE 格式: data: [DONE], [DONE], data:[DONE]
-      if (trimmed === 'data: [DONE]' || trimmed === '[DONE]' || trimmed === 'data:[DONE]') {
-        break
-      }
-      if (!trimmed.startsWith('data: ')) continue
-
-      try {
-        const data = JSON.parse(trimmed.slice(6))
-        const delta = data.choices?.[0]?.delta
-        if (!delta) continue
-
-        finishReason = data.choices?.[0]?.finish_reason || finishReason
-
-        if (delta.content) {
-          content += delta.content
-          callbacks?.onContent?.(delta.content)
-        }
-
-        if (delta.reasoning_content) {
-          reasoningContent += delta.reasoning_content
-        }
-
-        if (delta.tool_calls) {
-          for (const tc of delta.tool_calls) {
-            const idx = tc.index ?? 0
-            if (!toolCallsMap.has(idx)) {
-              toolCallsMap.set(idx, {
-                id: tc.id || '',
-                type: 'function',
-                function: { name: '', arguments: '' },
-              })
-            }
-            const existing = toolCallsMap.get(idx)!
-            if (tc.id) existing.id = tc.id
-            if (tc.function?.name) existing.function.name += tc.function.name
-            if (tc.function?.arguments) existing.function.arguments += tc.function.arguments
-          }
-        }
-      } catch {}
-    }
-  }
-
-  const toolCalls = toolCallsMap.size > 0
-    ? Array.from(toolCallsMap.values())
+  const toolCalls: ToolCall[] | undefined = message.tool_calls?.length
+    ? message.tool_calls
     : undefined
 
-  if (toolCalls) {
-    for (const tc of toolCalls) {
-      callbacks?.onToolCall?.(tc)
-    }
-  }
-
   return {
-    content: content || null,
+    content: message.content || null,
     tool_calls: toolCalls,
-    finish_reason: finishReason,
-    reasoning_content: reasoningContent || undefined,
+    finish_reason: choice.finish_reason || '',
+    reasoning_content: message.reasoning_content || undefined,
   }
 }

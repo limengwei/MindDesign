@@ -40,8 +40,8 @@ export async function searchIcons(query: string, limit = 5): Promise<IconEntry[]
   const results = [...exact, ...partial]
   if (results.length > 0) return results.slice(0, limit)
 
-  const shuffled = [...index].sort(() => Math.random() - 0.5)
-  return shuffled.slice(0, limit)
+  // 搜不到时返回默认图标
+  return [{ name: 'design_services', keywords: ['design', 'default', 'fallback'] }]
 }
 
 export const searchIconsToolDefinition = {

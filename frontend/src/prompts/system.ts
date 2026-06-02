@@ -119,7 +119,11 @@ account_balance, payment, stethoscope, medical_services, monitoring, dashboard, 
 cloud, sunny, water_drop, air, location_on, navigation, thermostat, bedtime, flag, grain,
 weather_hail, weather_mix, thunderstorm, ac_unit, gps_fixed, calendar_month
 
-**重要**：优先使用上面列出的图标名称。只有在确实找不到合适的图标时才调用 search_icons 工具，且最多调用 1 次。不要为了搜索图标而延迟输出 HTML。
+**重要**：
+- 优先使用上面列出的图标名称，这些都是 fonts.google.com 中确认存在的图标
+- 只有在确实找不到合适的图标时才调用 search_icons 工具，且最多调用 1 次
+- 如果搜索不到匹配的图标，直接使用 design_services 作为替代
+- 不要为了搜索图标而延迟输出 HTML
 
 ## 占位图
 
