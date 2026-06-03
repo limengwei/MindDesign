@@ -102,6 +102,17 @@ export const useCanvasStore = defineStore('canvas', () => {
   function removeCard(id: string) {
     cards.value = cards.value.filter(c => c.id !== id)
     if (selectedCardId.value === id) selectedCardId.value = null
+    relayoutCards()
+  }
+
+  function relayoutCards() {
+    const gap = 60
+    let x = 0
+    for (const card of cards.value) {
+      card.x = x
+      card.y = 0
+      x += card.width + gap
+    }
   }
 
   function setPageType(type: PageType) { pageType.value = type }

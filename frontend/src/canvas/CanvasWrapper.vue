@@ -550,6 +550,18 @@ watch(
 )
 
 watch(
+  () => canvasStore.cards.map(c => `${c.x}:${c.y}`).join(','),
+  () => {
+    for (const card of canvasStore.cards) {
+      const wrapper = cardGroups.get(card.id)
+      if (wrapper) {
+        wrapper.set({ x: card.x, y: card.y })
+      }
+    }
+  }
+)
+
+watch(
   () => canvasStore.cards.map(c => `${c.screenshot ? 'y' : 'n'}:${c.html ? 'h' : 'e'}`).join(','),
   () => { renderAll(false) },
 )
