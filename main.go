@@ -13,12 +13,16 @@ var assets embed.FS
 
 func main() {
 
+	projectService := NewProjectService()
+	mcpService := NewMCPService(projectService)
+
 	app := application.New(application.Options{
 		Name:        "MindDesign",
 		Description: "AI 对话式 UI 设计工具",
 		Services: []application.Service{
-			application.NewService(NewProjectService()),
+			application.NewService(projectService),
 			application.NewService(NewImageProxyService()),
+			application.NewService(mcpService),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -47,6 +51,11 @@ func main() {
 		MinWidth:         1280,
 		MinHeight:        800,
 	})
+
+	// 自动启动 MCP 服务
+	if err := mcpService.StartMCP(9527); err != nil {
+		log.Printf("MCP 服务启动失败: %v", err)
+	}
 
 	err := app.Run()
 	if err != nil {

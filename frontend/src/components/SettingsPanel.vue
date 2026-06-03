@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
+import { startMCP, stopMCP, isMCPRunning, getMCPPort } from '../services/projectBridge'
 
 const configStore = useLLMConfigStore()
 
@@ -10,17 +12,42 @@ function handleSave() {
 const emit = defineEmits<{
   close: []
 }>()
+
+const mcpRunning = ref(false)
+const mcpPort = ref(9527)
+
+onMounted(async () => {
+  mcpRunning.value = await isMCPRunning()
+  if (mcpRunning.value) {
+    mcpPort.value = await getMCPPort()
+  }
+})
+
+async function toggleMCP() {
+  if (mcpRunning.value) {
+    await stopMCP()
+    mcpRunning.value = false
+  } else {
+    try {
+      await startMCP(mcpPort.value)
+      mcpRunning.value = true
+    } catch (e: any) {
+      alert(e?.message || e || '启动 MCP 服务失败')
+    }
+  }
+}
 </script>
 
 <template>
   <div class="modal-overlay" @click.self="emit('close')">
     <div class="settings-panel">
       <div class="panel-header">
-        <h3>API 设置</h3>
+        <h3>设置</h3>
         <button class="close-btn" @click="emit('close')">&times;</button>
       </div>
 
       <div class="panel-body">
+        <h4 class="section-title">API 配置</h4>
         <div class="form-group">
           <label>协议</label>
           <select v-model="configStore.protocol">
@@ -64,6 +91,44 @@ const emit = defineEmits<{
           <span class="status-dot"></span>
           {{ configStore.isConfigured ? '已配置' : '未配置' }}
         </div>
+
+        <div class="divider"></div>
+
+        <h4 class="section-title">MCP 服务</h4>
+        <p class="section-desc">启动后，开发工具（Trae、Cursor 等）可通过 MCP 协议读取设计稿数据。</p>
+
+        <div class="form-group">
+          <label>端口</label>
+          <input
+            type="number"
+            v-model.number="mcpPort"
+            :disabled="mcpRunning"
+            placeholder="9527"
+            min="1024"
+            max="65535"
+          />
+        </div>
+
+        <div class="status-bar" :class="{ configured: mcpRunning }">
+          <span class="status-dot"></span>
+          <span v-if="mcpRunning">运行中 — http://localhost:{{ mcpPort }}/mcp</span>
+          <span v-else>未启动</span>
+        </div>
+
+        <button class="btn" :class="mcpRunning ? 'btn-danger' : 'btn-primary'" @click="toggleMCP" style="width: 100%; margin-top: 8px;">
+          {{ mcpRunning ? '停止 MCP 服务' : '启动 MCP 服务' }}
+        </button>
+
+        <div v-if="mcpRunning" class="mcp-config-hint">
+          <span class="hint">在 Trae 的 MCP 配置中添加：</span>
+          <pre class="code-block">{
+  "mcpServers": {
+    "minddesign": {
+      "url": "http://localhost:{{ mcpPort }}/mcp"
+    }
+  }
+}</pre>
+        </div>
       </div>
 
       <div class="panel-footer">
@@ -76,12 +141,12 @@ const emit = defineEmits<{
 
 <style scoped>
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
-.settings-panel { width: 640px; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-default); }
+.settings-panel { width: 640px; max-height: 80vh; display: flex; flex-direction: column; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-default); }
 .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-default); }
 .panel-header h3 { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); margin: 0; }
 .close-btn { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); font-size: 18px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); }
 .close-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
-.panel-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.panel-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; min-height: 0; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-group label { font-size: var(--font-sm); font-weight: 500; color: var(--text-secondary); }
 .form-group input,
@@ -102,4 +167,12 @@ const emit = defineEmits<{
 .btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); border-color: var(--border-hover); }
 .btn-primary { background: var(--color-primary); color: #fff; }
 .btn-primary:hover { background: var(--color-primary-hover); }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.section-title { font-size: var(--font-sm); font-weight: 600; color: var(--text-primary); margin: 0; }
+.section-desc { font-size: var(--font-xs); color: var(--text-muted); margin: 0; }
+.divider { height: 1px; background: var(--border-default); margin: 4px 0; }
+.mcp-config-hint { display: flex; flex-direction: column; gap: 6px; }
+.code-block { font-size: var(--font-xs); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 12px; color: var(--text-secondary); margin: 0; white-space: pre; overflow-x: auto; font-family: 'Consolas', 'Monaco', monospace; line-height: 1.5; }
+.form-group input:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

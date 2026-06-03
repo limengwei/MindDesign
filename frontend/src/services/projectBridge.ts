@@ -4,9 +4,12 @@ const STORAGE_KEY = 'minddesign:autosave'
 type ProjectServiceType = typeof import('../../bindings/changeme/projectservice')
 // @ts-ignore
 type ImageProxyServiceType = typeof import('../../bindings/changeme/imageproxyservice')
+// @ts-ignore
+type MCPServiceType = typeof import('../../bindings/changeme/mcpservice')
 
 let ProjectService: ProjectServiceType | null = null
 let ImageProxyService: ImageProxyServiceType | null = null
+let MCPService: MCPServiceType | null = null
 let loadingPromise: Promise<void> | null = null
 
 async function loadWailsService() {
@@ -21,6 +24,12 @@ async function loadWailsService() {
     ImageProxyService = await import('../../bindings/changeme/imageproxyservice')
   } catch {
     ImageProxyService = null
+  }
+  try {
+    // @ts-ignore
+    MCPService = await import('../../bindings/changeme/mcpservice')
+  } catch {
+    MCPService = null
   }
 }
 
@@ -177,6 +186,38 @@ export async function showOpenDialog(): Promise<string> {
   } catch {
     return ''
   }
+}
+
+// ========== MCP Service ==========
+
+export async function startMCP(port: number): Promise<void> {
+  await ensureLoaded()
+  if (MCPService) {
+    await (MCPService as any).StartMCP(port)
+  }
+}
+
+export async function stopMCP(): Promise<void> {
+  await ensureLoaded()
+  if (MCPService) {
+    await (MCPService as any).StopMCP()
+  }
+}
+
+export async function isMCPRunning(): Promise<boolean> {
+  await ensureLoaded()
+  if (MCPService) {
+    return await (MCPService as any).IsMCPRunning()
+  }
+  return false
+}
+
+export async function getMCPPort(): Promise<number> {
+  await ensureLoaded()
+  if (MCPService) {
+    return await (MCPService as any).GetMCPPort()
+  }
+  return 0
 }
 
 export interface RecentProject {
