@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { App, Leafer, Box, Frame, Image, Text, Rect, Ellipse, PointerEvent } from 'leafer-ui'
+import { App, Leafer, Box, Frame, Group, Image, Text, Rect, Ellipse, PointerEvent } from 'leafer-ui'
 import '@leafer-in/viewport'
 import '@leafer-in/view'
 import { ScrollBar } from '@leafer-in/scroll'
@@ -51,7 +51,7 @@ let treeLayer: Leafer | null = null
 let skyLayer: Leafer | null = null
 let dotGrid: DotGrid | null = null
 let resizeObserver: ResizeObserver | null = null
-const cardGroups = new Map<string, Frame>()
+const cardGroups = new Map<string, Group>()
 let breathRafId = 0
 let renderVersion = 0
 let appTapEventId: any = null
@@ -66,7 +66,7 @@ onMounted(() => {
     sky: {},
     zoom: { min: 0.02, max: 32 },
     move: { holdSpaceKey: true, holdMiddleKey: true, dragEmpty: true, dragAnimate: 0.9 },
-    wheel: { zoomMode: true, zoomSpeed: 0.2 },
+    wheel: { zoomMode: true, zoomSpeed: 0.02 },
   })
 
   treeLayer = app.tree as Leafer
@@ -313,13 +313,14 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
   }
 }
 
-function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boolean): Frame {
+function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boolean): Group {
   const w = card.width || props.pageWidth
   const h = card.height || props.pageHeight
 
-  const group = new Frame({
-    id: card.id, x: card.x, y: card.y,
-    width: w, height: h,
+  const wrapper = new Group({ x: card.x, y: card.y })
+
+  const frame = new Frame({
+    id: card.id, width: w, height: h,
     strokeWidth: selected ? 3 : 1, stroke: selected ? '#22d3ee' : '#2a2a4a',
     cornerRadius: 8, fill: isGenerating ? '#2a2a4a' : '#16213e',
   })
@@ -330,7 +331,7 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
       fill: 'rgba(15,15,35,0.75)',
     })
     overlay.id = '__gen_overlay__'
-    group.add(overlay)
+    frame.add(overlay)
 
     const dotCount = 8
     const dotRadius = 4
@@ -355,29 +356,33 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
       dot.id = `__spinner_dot_${i}__`
       spinnerGroup.add(dot)
     }
-    group.add(spinnerGroup)
+    frame.add(spinnerGroup)
 
     const loadingText = new Text({
-      text: '生成中...',
+      text: '设计中...',
       fontSize: 14, fill: '#a5b4fc',
       textAlign: 'center', width: w,
       y: cy + spinnerRadius + dotRadius + 16,
     })
     loadingText.id = '__gen_text__'
-    group.add(loadingText)
+    frame.add(loadingText)
   } else if (card.screenshot) {
-    group.add(new Image({ url: card.screenshot, width: w, height: h }))
+    frame.add(new Image({ url: card.screenshot, width: w, height: h }))
   }
 
-  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }))
-  group.hitSelf = true
+  const label = new Text({ text: card.label, fontSize: 14, fill: '#ffffff', y: -22 })
+  label.id = '__label__'
+  
+  wrapper.add(frame)
+  wrapper.add(label)
+  frame.hitSelf = true
 
   const oldCardEvtId = cardEventIds.get(card.id)
-  if (oldCardEvtId) group.off_(oldCardEvtId)
-  const eventId = group.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  if (oldCardEvtId) frame.off_(oldCardEvtId)
+  const eventId = frame.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
   cardEventIds.set(card.id, eventId)
 
-  return group
+  return wrapper
 }
 
 async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boolean) {
@@ -396,25 +401,29 @@ async function renderCard(card: CanvasCard, selected: boolean, isGenerating: boo
   if (existing && !isGenerating && card.screenshot) {
     const w = card.width || props.pageWidth
     const h = card.height || props.pageHeight
-    existing.set({
-      width: w, height: h,
-      strokeWidth: selected ? 3 : 1,
-      stroke: selected ? '#22d3ee' : '#2a2a4a',
-      fill: '#16213e',
-    })
+    const frame = existing.children?.find(c => c instanceof Frame) as Frame | undefined
+    if (frame) {
+      frame.set({
+        width: w, height: h,
+        strokeWidth: selected ? 3 : 1,
+        stroke: selected ? '#22d3ee' : '#2a2a4a',
+        fill: '#16213e',
+      })
+    }
 
-    const hasOverlay = existing.children?.some(c => (c as any).id === '__gen_overlay__')
-    const hasImage = existing.children?.some(c => c instanceof Image)
+    const hasOverlay = frame?.children?.some(c => (c as any).id === '__gen_overlay__')
+    const hasImage = frame?.children?.some(c => c instanceof Image)
     if (hasOverlay || !hasImage) {
-      existing.removeAll()
-      existing.add(new Image({ url: card.screenshot, width: w, height: h }))
-      existing.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }))
+      frame?.removeAll()
+      frame?.add(new Image({ url: card.screenshot, width: w, height: h }))
     } else {
-      const imgChild = existing.children?.find(c => c instanceof Image) as Image | undefined
+      const imgChild = frame?.children?.find(c => c instanceof Image) as Image | undefined
       if (imgChild) {
         imgChild.set({ url: card.screenshot, width: w, height: h })
       }
     }
+    const labelNode = existing.children?.find(c => (c as any).id === '__label__') as Text | undefined
+    if (labelNode) labelNode.set({ text: card.label })
     return
   }
 
@@ -466,29 +475,32 @@ function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h
   const existing = cardGroups.get(card.id)
   if (existing) existing.remove()
 
-  const group = new Frame({
-    id: card.id, x: card.x, y: card.y,
-    width: w, height: h,
+  const wrapper = new Group({ x: card.x, y: card.y })
+  const frame = new Frame({
+    id: card.id, width: w, height: h,
     strokeWidth: selected ? 3 : 1, stroke: selected ? '#22d3ee' : '#2a2a4a',
     cornerRadius: 8, fill: '#16213e',
   })
-  group.add(new Rect({
+  frame.add(new Rect({
     width: w, height: h, cornerRadius: 8,
     fill: 'rgba(15,15,35,0.5)',
   }))
-  group.add(new Text({
-    text: '截图生成中...', fontSize: 14, fill: '#94a3b8',
+  frame.add(new Text({
+    text: '效果图生成中...', fontSize: 14, fill: '#94a3b8',
     x: w / 2, y: h / 2,
     textAlign: 'center',
   }))
-  group.add(new Text({ text: card.label, fontSize: 12, fill: '#6b7280', y: -22 }))
-  group.hitSelf = true
+  const label = new Text({ text: card.label, fontSize: 14, fill: '#ffffff', y: -22 })
+  label.id = '__label__'
+  frame.hitSelf = true
+  wrapper.add(frame)
+  wrapper.add(label)
   const oldCardEvtId = cardEventIds.get(card.id)
-  if (oldCardEvtId) group.off_(oldCardEvtId)
-  const eventId = group.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  if (oldCardEvtId) frame.off_(oldCardEvtId)
+  const eventId = frame.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
   cardEventIds.set(card.id, eventId)
-  if (treeLayer) treeLayer.add(group)
-  cardGroups.set(card.id, group)
+  if (treeLayer) treeLayer.add(wrapper)
+  cardGroups.set(card.id, wrapper)
 }
 
 function startBreathAnimation() {
@@ -502,9 +514,10 @@ function startBreathAnimation() {
       rotationStep = (rotationStep + 1) % dotCount
       const genId = canvasStore.generatingCardId
       if (genId) {
-        const group = cardGroups.get(genId)
-        if (group) {
-          const spinner = group.children?.find(c => (c as any).id === '__spinner__')
+        const wrapper = cardGroups.get(genId)
+        if (wrapper) {
+          const frame = wrapper.children?.find(c => c instanceof Frame)
+          const spinner = frame?.children?.find(c => (c as any).id === '__spinner__')
           if (spinner) {
             const dots = (spinner as any).children || []
             for (let i = 0; i < dots.length; i++) {
@@ -560,15 +573,17 @@ watch(() => canvasStore.generatingCardId, (newId, oldId) => {
 
 watch(() => canvasStore.selectedCardId, (newId, oldId) => {
   if (oldId) {
-    const oldGroup = cardGroups.get(oldId)
-    if (oldGroup) {
-      oldGroup.set({ strokeWidth: 1, stroke: '#2a2a4a' })
+    const oldWrapper = cardGroups.get(oldId)
+    const oldFrame = oldWrapper?.children?.find(c => c instanceof Frame) as Frame | undefined
+    if (oldFrame) {
+      oldFrame.set({ strokeWidth: 1, stroke: '#2a2a4a' })
     }
   }
   if (newId) {
-    const group = cardGroups.get(newId)
-    if (group) {
-      group.set({ strokeWidth: 3, stroke: '#22d3ee' })
+    const wrapper = cardGroups.get(newId)
+    const frame = wrapper?.children?.find(c => c instanceof Frame) as Frame | undefined
+    if (frame) {
+      frame.set({ strokeWidth: 3, stroke: '#22d3ee' })
     }
   }
 })
@@ -617,6 +632,39 @@ async function copyCardId() {
     setTimeout(() => { copyTooltip.value = '' }, 1500)
   }
 }
+
+const editingLabel = ref(false)
+const editingLabelValue = ref('')
+
+function startEditLabel() {
+  if (!selectedCard.value) return
+  editingLabelValue.value = selectedCard.value.label
+  editingLabel.value = true
+  nextTick(() => {
+    const input = document.querySelector('.card-name-input') as HTMLInputElement
+    input?.focus()
+    input?.select()
+  })
+}
+
+function finishEditLabel() {
+  editingLabel.value = false
+  if (!selectedCard.value || !editingLabelValue.value.trim()) return
+  const newLabel = editingLabelValue.value.trim()
+  if (newLabel === selectedCard.value.label) return
+  selectedCard.value.label = newLabel
+  updateCardLabelText(selectedCard.value.id, newLabel)
+  saveProject()
+}
+
+function updateCardLabelText(cardId: string, label: string) {
+  const wrapper = cardGroups.get(cardId)
+  if (!wrapper) return
+  const labelNode = wrapper.children?.find(c => (c as any).id === '__label__') as Text | undefined
+  if (labelNode) {
+    labelNode.set({ text: label })
+  }
+}
 </script>
 
 <template>
@@ -624,7 +672,15 @@ async function copyCardId() {
     <div ref="containerRef" class="canvas-container"></div>
 
     <div v-if="selectedCard" class="action-bar">
-      <span class="action-label">{{ selectedCard.label }}</span>
+      <input
+        v-if="editingLabel"
+        v-model="editingLabelValue"
+        class="card-name-input"
+        @blur="finishEditLabel"
+        @keydown.enter="finishEditLabel"
+        @keydown.escape="editingLabel = false"
+      />
+      <span v-else class="action-label" @dblclick="startEditLabel" title="双击编辑名称">{{ selectedCard.label }}</span>
       <button class="action-btn action-preview" @click="emit('previewCard', selectedCard!.id)"><img src="/icons/visibility.svg" alt="" class="action-icon" />预览</button>
       <button class="action-btn action-export" @click="emit('exportCard', selectedCard!.id)"><img src="/icons/file_export.svg" alt="" class="action-icon" />导出</button>
       <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><img src="/icons/refresh.svg" alt="" class="action-icon" />刷新</button>
@@ -672,7 +728,10 @@ async function copyCardId() {
 .confirm-text { font-size: var(--font-md); color: var(--text-primary); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .action-bar { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(22,33,62,0.92); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-.action-label { font-size: 13px; color: #a5b4fc; margin-right: 4px; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+.action-label { font-size: 13px; color: #a5b4fc; margin-right: 4px; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+.action-label:hover { background: rgba(165, 180, 252, 0.1); border-radius: 4px; }
+.card-name-input { font-size: 13px; color: #a5b4fc; background: rgba(165, 180, 252, 0.1); border: 1px solid rgba(165, 180, 252, 0.3); border-radius: 4px; padding: 1px 6px; outline: none; width: 120px; margin-right: 4px; font-family: inherit; }
+.card-name-input:focus { border-color: #818cf8; background: rgba(165, 180, 252, 0.15); }
 .action-btn { padding: 4px 14px; border: none; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; color: #fff; transition: opacity 0.15s; display: inline-flex; align-items: center; gap: 4px; }
 .action-icon { width: 14px; height: 14px; vertical-align: middle; filter: brightness(0) invert(1); }
 .action-btn:hover { opacity: 0.85; }
