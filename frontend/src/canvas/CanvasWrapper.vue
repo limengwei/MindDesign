@@ -603,6 +603,20 @@ const selectedCard = computed(() => {
   if (!canvasStore.selectedCardId) return null
   return canvasStore.cards.find(c => c.id === canvasStore.selectedCardId) ?? null
 })
+
+const copyTooltip = ref('')
+
+async function copyCardId() {
+  if (!selectedCard.value) return
+  try {
+    await navigator.clipboard.writeText(selectedCard.value.id)
+    copyTooltip.value = '已复制'
+    setTimeout(() => { copyTooltip.value = '' }, 1500)
+  } catch {
+    copyTooltip.value = '复制失败'
+    setTimeout(() => { copyTooltip.value = '' }, 1500)
+  }
+}
 </script>
 
 <template>
@@ -616,6 +630,17 @@ const selectedCard = computed(() => {
       <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><img src="/icons/refresh.svg" alt="" class="action-icon" />刷新</button>
       <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><img src="/icons/delete.svg" alt="" class="action-icon" />删除</button>
     </div>
+
+    <Transition name="slide">
+      <div v-if="selectedCard" class="card-id-bar">
+        <span class="card-id-label">ID:</span>
+        <span class="card-id-value">{{ selectedCard.id }}</span>
+        <button class="card-id-copy-btn" @click="copyCardId" title="复制 ID">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+          <span v-if="copyTooltip" class="copy-tooltip">{{ copyTooltip }}</span>
+        </button>
+      </div>
+    </Transition>
 
     <div v-if="!selectedCard" class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
@@ -655,4 +680,14 @@ const selectedCard = computed(() => {
 .action-export { background: rgba(16,185,129,0.85); }
 .action-refresh { background: rgba(79,70,229,0.85); }
 .action-delete { background: rgba(239,68,68,0.85); }
+
+.card-id-bar { position: absolute; top: 88px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 3px 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; backdrop-filter: blur(8px); }
+.card-id-label { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.card-id-value { font-size: 11px; color: var(--text-secondary); font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; user-select: all; }
+.card-id-copy-btn { position: relative; border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 2px; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+.card-id-copy-btn:hover { color: var(--color-primary-light); background: rgba(129, 140, 248, 0.1); }
+.copy-tooltip { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #34d399; white-space: nowrap; background: rgba(15, 23, 42, 0.9); padding: 2px 8px; border-radius: 4px; pointer-events: none; }
+
+.slide-enter-active, .slide-leave-active { transition: all 0.2s ease; }
+.slide-enter-from, .slide-leave-to { opacity: 0; transform: translateX(-50%) translateY(-4px); }
 </style>
