@@ -36,7 +36,7 @@ const previewScaledWidth = computed(() => Math.ceil(previewPageWidth.value * pre
 
 const previewSrcdoc = computed(() => {
   if (!previewHtml.value) return null
-  const style = '<style>html{overflow-x:hidden!important;}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}</style>'
+  const style = '<style>html{overflow-x:hidden!important;}::-webkit-scrollbar{width:0px;height:0px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}</style>'
   if (previewHtml.value.includes('</head>')) {
     return previewHtml.value.replace('</head>', style + '</head>')
   }
