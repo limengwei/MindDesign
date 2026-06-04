@@ -49,6 +49,14 @@ export function CreateProject(name, projectJson, sessionsJson, cardsJson) {
 }
 
 /**
+ * @param {string} path
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteProject(path) {
+    return $Call.ByID(1959829424, path);
+}
+
+/**
  * @returns {$CancellablePromise<string>}
  */
 export function GetAutoSave() {

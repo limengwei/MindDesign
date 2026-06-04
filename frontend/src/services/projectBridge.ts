@@ -278,3 +278,10 @@ export async function showSaveDialog(title: string, defaultFilename: string, fil
     return ''
   }
 }
+
+export async function deleteProject(path: string): Promise<void> {
+  await ensureLoaded()
+  if (ProjectService) {
+    await (ProjectService as any).DeleteProject(path)
+  }
+}

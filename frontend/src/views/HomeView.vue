@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getRecentProjects, createProject, readProject, writeProjectFiles, updateProjectMeta, type RecentProject } from '../services/projectBridge'
+import { getRecentProjects, createProject, readProject, writeProjectFiles, updateProjectMeta, deleteProject, type RecentProject } from '../services/projectBridge'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
 import WindowControls from '../components/WindowControls.vue'
 import DesignSpecSelector from '../components/DesignSpecSelector.vue'
@@ -103,6 +103,8 @@ const editName = ref('')
 const editPageType = ref('app')
 const editDesignSpecId = ref<DesignSpecId>('none')
 const editColorScheme = ref('auto')
+const showDeleteConfirm = ref(false)
+const deleting = ref(false)
 const saving = ref(false)
 
 function startEdit(project: RecentProject) {
@@ -135,6 +137,22 @@ async function handleSaveEdit() {
   }
 }
 
+async function handleDelete() {
+  if (deleting.value || !editingProject.value) return
+  deleting.value = true
+  try {
+    await deleteProject(editingProject.value.path)
+    showEditForm.value = false
+    showDeleteConfirm.value = false
+    await loadProjects()
+  } catch (e) {
+    console.error('Delete project failed:', e)
+    alert('删除项目失败：' + (e as Error).message)
+  } finally {
+    deleting.value = false
+  }
+}
+
 const pageTypeLabels: Record<string, string> = {
   app: '📱 移动App',
   web: '🌐 网页',
@@ -152,6 +170,20 @@ function getDesignSpecColors(id: string): string[] {
   if (!spec) return []
   return [spec.colors.primary, spec.colors.accent, spec.colors.background]
 }
+
+function getCardIconStyle(project: RecentProject) {
+  const colors = getDesignSpecColors(project.designSpecId)
+  const bg = colors.length > 0 ? colors[0] : '#ffffff'
+  // 计算相对亮度，>0.5 视为浅色背景
+  const hex = bg.replace('#', '')
+  const r = parseInt(hex.slice(0, 2), 16) / 255
+  const g = parseInt(hex.slice(2, 4), 16) / 255
+  const b = parseInt(hex.slice(4, 6), 16) / 255
+  const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+  const color = luminance > 0.5 ? '#1a1a2e' : '#ffffff'
+  return { background: bg, color }
+}
+
 
 const creating = ref(false)
 
@@ -346,7 +378,7 @@ onUnmounted(() => {
         @click="openProject(project)"
       >
         <div class="card-header">
-          <div class="card-icon">📄</div>
+          <div class="card-icon" :style="getCardIconStyle(project)">{{ project.name.charAt(0) }}</div>
           <button class="card-edit-btn" @click.stop="startEdit(project)" title="编辑项目">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
           </button>
@@ -410,8 +442,20 @@ onUnmounted(() => {
         </div>
 
         <div class="dialog-actions">
-          <button class="btn btn-secondary" @click="showEditForm = false">取消</button>
-          <button class="btn btn-primary" :disabled="saving" @click="handleSaveEdit">{{ saving ? '保存中...' : '保存' }}</button>
+          <div class="dialog-actions-left">
+            <template v-if="!showDeleteConfirm">
+              <button class="btn btn-danger-ghost" @click="showDeleteConfirm = true">删除项目</button>
+            </template>
+            <template v-else>
+              <span class="delete-confirm-text">确定删除「{{ editName }}」？此操作不可撤销</span>
+              <button class="btn btn-secondary" @click="showDeleteConfirm = false">取消</button>
+              <button class="btn btn-danger" :disabled="deleting" @click="handleDelete">{{ deleting ? '删除中...' : '确认删除' }}</button>
+            </template>
+          </div>
+          <div class="dialog-actions-right">
+            <button class="btn btn-secondary" @click="showEditForm = false">取消</button>
+            <button v-if="!showDeleteConfirm" class="btn btn-primary" :disabled="saving" @click="handleSaveEdit">{{ saving ? '保存中...' : '保存' }}</button>
+          </div>
         </div>
       </div>
     </div>
@@ -533,7 +577,7 @@ onUnmounted(() => {
 .project-card { background: var(--bg-overlay); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; cursor: pointer; transition: all var(--transition-normal); display: flex; flex-direction: column; gap: 10px; position: relative; }
 .project-card:hover { background: var(--bg-hover); border-color: var(--color-primary-light); transform: translateY(-2px); }
 .card-header { display: flex; align-items: flex-start; justify-content: space-between; }
-.card-icon { font-size: 28px; flex-shrink: 0; }
+.card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0; }
 .card-edit-btn { flex-shrink: 0; background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 6px; opacity: 0; transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast); }
 .project-card:hover .card-edit-btn { opacity: 1; }
 .card-edit-btn:hover { background: rgba(255,255,255,0.1); color: var(--color-primary-light); }
@@ -555,7 +599,15 @@ onUnmounted(() => {
 .option-card.small { flex: 0 1 auto; min-width: 80px; padding: 8px 12px; white-space: nowrap; }
 .option-label { font-size: var(--font-md); font-weight: 500; }
 .option-hint { font-size: var(--font-sm); color: var(--text-muted); margin-top: 4px; }
-.dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.dialog-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 24px;padding: 16px 0px; }
+.dialog-actions-left { display: flex; align-items: center; gap: 10px; }
+.dialog-actions-right { display: flex; align-items: center; gap: 10px; }
+.btn-danger { background: #ef4444; color: #fff; border: none; }
+.btn-danger:hover { background: #dc2626; }
+.btn-danger:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-danger-ghost { background: none; color: #ef4444; border: 1px solid transparent; }
+.btn-danger-ghost:hover { background: rgba(239,68,68,0.1); }
+.delete-confirm-text { font-size: var(--font-sm); color: var(--text-muted); }
 .btn-link { background: none; color: var(--color-primary-light); padding: 4px 8px; font-size: var(--font-base); }
 .btn-link:hover { background: none; color: #a5b4fc; }
 .dialog-create { width: 560px; max-height: 85vh; overflow-y: auto; }

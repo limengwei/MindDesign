@@ -489,3 +489,36 @@ func (s *ProjectService) SaveExportFileBinary(path string, base64Content string)
 	}
 	return os.WriteFile(path, data, 0644)
 }
+
+func (s *ProjectService) DeleteProject(path string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	dir := filepath.Dir(path)
+	base := strings.TrimSuffix(filepath.Base(path), ".project.json")
+
+	// 删除项目文件
+	for _, ext := range []string{".project.json", ".sessions.json", ".cards.json"} {
+		os.Remove(filepath.Join(dir, base+ext))
+	}
+
+	// 删除截图目录
+	screenshotsDir := s.screenshotsDir(path)
+	os.RemoveAll(screenshotsDir)
+
+	// 从最近列表移除
+	recentPath := filepath.Join(s.appDir, "recent.json")
+	data, _ := os.ReadFile(recentPath)
+	var projects []RecentProject
+	json.Unmarshal(data, &projects)
+	filtered := projects[:0]
+	for _, p := range projects {
+		if p.Path != path {
+			filtered = append(filtered, p)
+		}
+	}
+	result, _ := json.MarshalIndent(filtered, "", "  ")
+	os.WriteFile(recentPath, result, 0644)
+
+	return nil
+}
