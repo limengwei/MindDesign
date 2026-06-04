@@ -13,6 +13,9 @@ const emit = defineEmits<{
   close: []
 }>()
 
+type TabType = 'api' | 'mcp' | 'about'
+const activeTab = ref<TabType>('api')
+
 const mcpRunning = ref(false)
 const mcpPort = ref(9527)
 
@@ -95,8 +98,23 @@ async function handleDownloadAndInstall() {
         <button class="close-btn" @click="emit('close')">&times;</button>
       </div>
 
+      <div class="tab-bar">
+        <button
+          v-for="tab in ([
+            { key: 'api', label: 'API 配置' },
+            { key: 'mcp', label: 'MCP 服务' },
+            { key: 'about', label: '关于' },
+          ] as { key: TabType; label: string }[])"
+          :key="tab.key"
+          class="tab-btn"
+          :class="{ active: activeTab === tab.key }"
+          @click="activeTab = tab.key"
+        >{{ tab.label }}</button>
+      </div>
+
       <div class="panel-body">
-        <h4 class="section-title">API 配置</h4>
+        <!-- API 配置 Tab -->
+        <div v-show="activeTab === 'api'" class="tab-content">
         <div class="form-group">
           <label>协议</label>
           <select v-model="configStore.protocol">
@@ -140,10 +158,10 @@ async function handleDownloadAndInstall() {
           <span class="status-dot"></span>
           {{ configStore.isConfigured ? '已配置' : '未配置' }}
         </div>
+        </div>
 
-        <div class="divider"></div>
-
-        <h4 class="section-title">MCP 服务</h4>
+        <!-- MCP 服务 Tab -->
+        <div v-show="activeTab === 'mcp'" class="tab-content">
         <p class="section-desc">启动后，开发工具（Trae、Cursor 等）可通过 MCP 协议读取设计稿数据。</p>
 
         <div class="form-group">
@@ -178,10 +196,10 @@ async function handleDownloadAndInstall() {
   }
 }</pre>
         </div>
+        </div>
 
-        <div class="divider"></div>
-
-        <h4 class="section-title">关于 & 更新</h4>
+        <!-- 关于 Tab -->
+        <div v-show="activeTab === 'about'" class="tab-content">
 
         <div v-if="!updateInfo" class="update-section">
           <button class="btn btn-secondary" @click="handleCheckUpdate" :disabled="checkingUpdate" style="width: 100%;">
@@ -207,6 +225,7 @@ async function handleDownloadAndInstall() {
             </button>
           </div>
         </div>
+        </div>
       </div>
 
       <div class="panel-footer">
@@ -222,9 +241,15 @@ async function handleDownloadAndInstall() {
 .settings-panel { width: 640px; max-height: 80vh; display: flex; flex-direction: column; background: var(--bg-elevated); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border-default); }
 .panel-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border-default); }
 .panel-header h3 { font-size: var(--font-lg); font-weight: 600; color: var(--text-primary); margin: 0; }
+.tab-bar { display: flex; gap: 0; padding: 0 20px; border-bottom: 1px solid var(--border-default); background: var(--bg-surface); }
+.tab-btn { padding: 10px 20px; font-size: var(--font-sm); font-weight: 500; color: var(--text-muted); background: none; border: none; cursor: pointer; position: relative; transition: color var(--transition-fast); font-family: var(--font-family); }
+.tab-btn:hover { color: var(--text-secondary); }
+.tab-btn.active { color: var(--color-primary-light); }
+.tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 20px; right: 20px; height: 2px; background: var(--color-primary-light); border-radius: 1px; }
 .close-btn { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); font-size: 18px; cursor: pointer; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); }
 .close-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
 .panel-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; min-height: 0; }
+.tab-content { display: flex; flex-direction: column; gap: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-group label { font-size: var(--font-sm); font-weight: 500; color: var(--text-secondary); }
 .form-group input,

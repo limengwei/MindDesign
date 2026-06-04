@@ -6,10 +6,13 @@ type ProjectServiceType = typeof import('../../bindings/changeme/projectservice'
 type ImageProxyServiceType = typeof import('../../bindings/changeme/imageproxyservice')
 // @ts-ignore
 type MCPServiceType = typeof import('../../bindings/changeme/mcpservice')
+// @ts-ignore
+type UpdateServiceType = typeof import('../../bindings/changeme/updateservice')
 
 let ProjectService: ProjectServiceType | null = null
 let ImageProxyService: ImageProxyServiceType | null = null
 let MCPService: MCPServiceType | null = null
+let UpdateService: UpdateServiceType | null = null
 let loadingPromise: Promise<void> | null = null
 
 async function loadWailsService() {
@@ -30,6 +33,12 @@ async function loadWailsService() {
     MCPService = await import('../../bindings/changeme/mcpservice')
   } catch {
     MCPService = null
+  }
+  try {
+    // @ts-ignore
+    UpdateService = await import('../../bindings/changeme/updateservice')
+  } catch {
+    UpdateService = null
   }
 }
 
@@ -297,7 +306,7 @@ export interface UpdateResult {
 export async function checkUpdate(): Promise<UpdateResult | null> {
   await ensureLoaded()
   try {
-    const json = await (window as any).UpdateService.CheckUpdate()
+    const json = await UpdateService!.CheckUpdate()
     return JSON.parse(json)
   } catch {
     return null
@@ -306,16 +315,12 @@ export async function checkUpdate(): Promise<UpdateResult | null> {
 
 export async function downloadUpdate(
   downloadURL: string,
-  onProgress?: (current: number, total: number) => void,
 ): Promise<string> {
   await ensureLoaded()
-  const service = (window as any).UpdateService
-  // Wails v3 不直接支持回调，通过轮询模拟进度
-  const result = await service.DownloadUpdate(downloadURL)
-  return result as string
+  return await UpdateService!.DownloadUpdate(downloadURL)
 }
 
 export async function installUpdate(installerPath: string): Promise<void> {
   await ensureLoaded()
-  await (window as any).UpdateService.InstallUpdate(installerPath)
+  await UpdateService!.InstallUpdate(installerPath)
 }

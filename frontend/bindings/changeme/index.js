@@ -5,8 +5,10 @@
 import * as ImageProxyService from "./imageproxyservice.js";
 import * as MCPService from "./mcpservice.js";
 import * as ProjectService from "./projectservice.js";
+import * as UpdateService from "./updateservice.js";
 export {
     ImageProxyService,
     MCPService,
-    ProjectService
+    ProjectService,
+    UpdateService
 };
