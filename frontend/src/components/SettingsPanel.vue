@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
-import { startMCP, stopMCP, isMCPRunning, getMCPPort } from '../services/projectBridge'
+import { startMCP, stopMCP, isMCPRunning, getMCPPort, checkUpdate, downloadUpdate, installUpdate, type UpdateResult } from '../services/projectBridge'
 
 const configStore = useLLMConfigStore()
 
@@ -34,6 +34,55 @@ async function toggleMCP() {
     } catch (e: any) {
       alert(e?.message || e || '启动 MCP 服务失败')
     }
+  }
+}
+
+// 更新相关
+const updateInfo = ref<UpdateResult | null>(null)
+const checkingUpdate = ref(false)
+const downloading = ref(false)
+const installing = ref(false)
+const updateError = ref('')
+
+onMounted(async () => {
+  mcpRunning.value = await isMCPRunning()
+  if (mcpRunning.value) {
+    mcpPort.value = await getMCPPort()
+  }
+})
+
+async function handleCheckUpdate() {
+  checkingUpdate.value = true
+  updateError.value = ''
+  try {
+    const result = await checkUpdate()
+    if (result) {
+      updateInfo.value = result
+      if (!result.hasUpdate) {
+        updateInfo.value = { ...result, releaseNotes: '当前已是最新版本' }
+      }
+    } else {
+      updateError.value = '检查更新失败，请检查网络连接'
+    }
+  } catch (e: any) {
+    updateError.value = e?.message || e || '检查更新失败'
+  } finally {
+    checkingUpdate.value = false
+  }
+}
+
+async function handleDownloadAndInstall() {
+  if (!updateInfo.value?.downloadURL) return
+  downloading.value = true
+  updateError.value = ''
+  try {
+    const installerPath = await downloadUpdate(updateInfo.value.downloadURL)
+    installing.value = true
+    await installUpdate(installerPath)
+  } catch (e: any) {
+    updateError.value = e?.message || e || '更新失败'
+    downloading.value = false
+    installing.value = false
   }
 }
 </script>
@@ -129,6 +178,35 @@ async function toggleMCP() {
   }
 }</pre>
         </div>
+
+        <div class="divider"></div>
+
+        <h4 class="section-title">关于 & 更新</h4>
+
+        <div v-if="!updateInfo" class="update-section">
+          <button class="btn btn-secondary" @click="handleCheckUpdate" :disabled="checkingUpdate" style="width: 100%;">
+            {{ checkingUpdate ? '检查中...' : '检查更新' }}
+          </button>
+        </div>
+
+        <div v-else class="update-section">
+          <div class="update-info">
+            <span class="update-version">当前版本：{{ updateInfo.currentVersion }}</span>
+            <span v-if="updateInfo.hasUpdate" class="update-new">最新版本：{{ updateInfo.latestVersion }}</span>
+          </div>
+          <p v-if="updateInfo.releaseNotes" class="update-notes">{{ updateInfo.releaseNotes }}</p>
+          <div v-if="updateError" class="update-error">{{ updateError }}</div>
+          <div v-if="updateInfo.hasUpdate" class="update-actions">
+            <button
+              class="btn btn-primary"
+              @click="handleDownloadAndInstall"
+              :disabled="downloading || installing"
+              style="width: 100%;"
+            >
+              {{ downloading ? '下载中...' : (installing ? '安装中...' : '立即更新') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="panel-footer">
@@ -175,4 +253,10 @@ async function toggleMCP() {
 .mcp-config-hint { display: flex; flex-direction: column; gap: 6px; }
 .code-block { font-size: var(--font-xs); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 12px; color: var(--text-secondary); margin: 0; white-space: pre; overflow-x: auto; font-family: 'Consolas', 'Monaco', monospace; line-height: 1.5; }
 .form-group input:disabled { opacity: 0.5; cursor: not-allowed; }
+.update-section { display: flex; flex-direction: column; gap: 10px; }
+.update-info { display: flex; flex-direction: column; gap: 4px; font-size: var(--font-sm); color: var(--text-secondary); }
+.update-new { color: var(--color-primary-light); font-weight: 600; }
+.update-notes { font-size: var(--font-xs); color: var(--text-muted); margin: 0; line-height: 1.6; white-space: pre-wrap; max-height: 120px; overflow-y: auto; padding: 8px; background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-default); }
+.update-error { font-size: var(--font-sm); color: #ef4444; background: rgba(239,68,68,0.1); padding: 8px 12px; border-radius: var(--radius-md); }
+.update-actions { display: flex; gap: 8px; }
 </style>

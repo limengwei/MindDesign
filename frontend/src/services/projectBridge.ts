@@ -284,3 +284,38 @@ export async function deleteProject(path: string): Promise<void> {
     await (ProjectService as any).DeleteProject(path)
   }
 }
+
+export interface UpdateResult {
+  hasUpdate: boolean
+  latestVersion: string
+  releaseNotes: string
+  downloadURL: string
+  fileSize: number
+  currentVersion: string
+}
+
+export async function checkUpdate(): Promise<UpdateResult | null> {
+  await ensureLoaded()
+  try {
+    const json = await (window as any).UpdateService.CheckUpdate()
+    return JSON.parse(json)
+  } catch {
+    return null
+  }
+}
+
+export async function downloadUpdate(
+  downloadURL: string,
+  onProgress?: (current: number, total: number) => void,
+): Promise<string> {
+  await ensureLoaded()
+  const service = (window as any).UpdateService
+  // Wails v3 不直接支持回调，通过轮询模拟进度
+  const result = await service.DownloadUpdate(downloadURL)
+  return result as string
+}
+
+export async function installUpdate(installerPath: string): Promise<void> {
+  await ensureLoaded()
+  await (window as any).UpdateService.InstallUpdate(installerPath)
+}

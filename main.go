@@ -15,6 +15,7 @@ func main() {
 
 	projectService := NewProjectService()
 	mcpService := NewMCPService(projectService)
+	updateService := NewUpdateService()
 
 	app := application.New(application.Options{
 		Name:        "MindDesign",
@@ -23,6 +24,7 @@ func main() {
 			application.NewService(projectService),
 			application.NewService(NewImageProxyService()),
 			application.NewService(mcpService),
+			application.NewService(updateService),
 		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
@@ -31,6 +33,8 @@ func main() {
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
+
+	updateService.SetApp(app)
 
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title: "MindDesign",
