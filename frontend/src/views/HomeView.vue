@@ -300,7 +300,7 @@ function drawDots() {
   ctx.globalAlpha = 1
 }
 
-onMounted(() => {
+onMounted(async () => {
   loadProjects()
   loadCustomSpecs()
   initDotGrid()
