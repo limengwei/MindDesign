@@ -257,6 +257,11 @@ async function htmlToScreenshot(html: string): Promise<{ dataUrl: string; conten
         animation-play-state: paused !important;
         transition: none !important;
       }
+      * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      ::-webkit-scrollbar { display: none !important; }
     `
     doc.head.appendChild(freezeStyle)
     await new Promise(r => setTimeout(r, 100))
