@@ -139,12 +139,11 @@ export async function updateProjectMeta(
   path: string,
   name: string,
   pageType: string,
-  designSpecId: string,
-  colorScheme: string
+  designSpecId: string
 ): Promise<void> {
   await ensureLoaded()
   if (ProjectService) {
-    await (ProjectService as any).UpdateProjectMeta(path, name, pageType, designSpecId, colorScheme)
+    await (ProjectService as any).UpdateProjectMeta(path, name, pageType, designSpecId)
   }
 }
 

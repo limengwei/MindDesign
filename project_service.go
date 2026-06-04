@@ -350,7 +350,7 @@ func (s *ProjectService) ClearAutoSave() error {
 	return err
 }
 
-func (s *ProjectService) UpdateProjectMeta(path string, name string, pageType string, designSpecId string, colorScheme string) error {
+func (s *ProjectService) UpdateProjectMeta(path string, name string, pageType string, designSpecId string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -371,7 +371,6 @@ func (s *ProjectService) UpdateProjectMeta(path string, name string, pageType st
 	if canvas, ok := project["canvas"].(map[string]interface{}); ok {
 		canvas["pageType"] = pageType
 		canvas["designSpecId"] = designSpecId
-		canvas["colorScheme"] = colorScheme
 	}
 
 	updated, err := json.MarshalIndent(project, "", "  ")
@@ -394,7 +393,7 @@ func (s *ProjectService) UpdateProjectMeta(path string, name string, pageType st
 	if parsed.Meta.CreatedAt != "" {
 		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
 	}
-	s.addRecentProject(path, name, pageType, designSpecId, colorScheme, createdAt)
+	s.addRecentProject(path, name, pageType, designSpecId, "", createdAt)
 
 	return nil
 }

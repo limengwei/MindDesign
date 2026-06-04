@@ -102,7 +102,6 @@ const editingProject = ref<RecentProject | null>(null)
 const editName = ref('')
 const editPageType = ref('app')
 const editDesignSpecId = ref<DesignSpecId>('none')
-const editColorScheme = ref('auto')
 const showDeleteConfirm = ref(false)
 const deleting = ref(false)
 const saving = ref(false)
@@ -112,7 +111,6 @@ function startEdit(project: RecentProject) {
   editName.value = project.name
   editPageType.value = project.pageType || 'app'
   editDesignSpecId.value = (project.designSpecId || 'none') as DesignSpecId
-  editColorScheme.value = project.colorScheme || 'auto'
   showEditForm.value = true
 }
 
@@ -124,8 +122,7 @@ async function handleSaveEdit() {
       editingProject.value.path,
       editName.value,
       editPageType.value,
-      editDesignSpecId.value,
-      editColorScheme.value
+      editDesignSpecId.value
     )
     showEditForm.value = false
     await loadProjects()
