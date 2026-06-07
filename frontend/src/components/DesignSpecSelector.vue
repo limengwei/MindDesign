@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import SvgIcon from './SvgIcon.vue'
 import {
   BUILT_IN_DESIGN_SPECS,
   DESIGN_SPEC_LABELS,
@@ -70,7 +71,7 @@ function openSource(e: MouseEvent, url: string) {
             <div class="modal-header">
               <h3 class="modal-title">选择设计规范</h3>
               <button class="modal-close" @click="close">
-                <img src="/icons/close.svg" alt="关闭" />
+                <SvgIcon name="close" :size="18" />
               </button>
             </div>
 
@@ -100,7 +101,7 @@ function openSource(e: MouseEvent, url: string) {
                     @click="select(spec.id as DesignSpecId)"
                   >
                     <button class="spec-card-link" @click="openSource($event, spec.source)" title="查看源站">
-                      <img src="/icons/open_in_new.svg" alt="查看源站" />
+                      <SvgIcon name="open_in_new" :size="14" />
                     </button>
                     <div class="spec-card-colors">
                       <span class="cdot" :style="{ backgroundColor: spec.colors.primary }"></span>

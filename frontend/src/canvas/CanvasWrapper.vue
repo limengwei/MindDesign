@@ -6,6 +6,7 @@ import '@leafer-in/view'
 import { ScrollBar } from '@leafer-in/scroll'
 import { toPng } from 'html-to-image'
 import { DotGrid } from './dotGrid'
+import SvgIcon from '../components/SvgIcon.vue'
 import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
 import { saveProject } from '../stores/autoSave'
 import { fetchProxiedImage } from '../services/projectBridge'
@@ -698,10 +699,10 @@ function updateCardLabelText(cardId: string, label: string) {
         @keydown.escape="editingLabel = false"
       />
       <span v-else class="action-label" @dblclick="startEditLabel" title="双击编辑名称">{{ selectedCard.label }}</span>
-      <button class="action-btn action-preview" @click="emit('previewCard', selectedCard!.id)"><img src="/icons/visibility.svg" alt="" class="action-icon" />预览</button>
-      <button class="action-btn action-export" @click="emit('exportCard', selectedCard!.id)"><img src="/icons/file_export.svg" alt="" class="action-icon" />导出</button>
-      <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><img src="/icons/refresh.svg" alt="" class="action-icon" />刷新</button>
-      <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><img src="/icons/delete.svg" alt="" class="action-icon" />删除</button>
+      <button class="action-btn action-preview" @click="emit('previewCard', selectedCard!.id)"><SvgIcon name="visibility" :size="16" class="action-icon" />预览</button>
+      <button class="action-btn action-export" @click="emit('exportCard', selectedCard!.id)"><SvgIcon name="file_export" :size="16" class="action-icon" />导出</button>
+      <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><SvgIcon name="refresh" :size="16" class="action-icon" />刷新</button>
+      <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><SvgIcon name="delete" :size="16" class="action-icon" />删除</button>
     </div>
 
     <Transition name="slide">
