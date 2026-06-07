@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 
+const svgCache = new Map<string, string>()
+const svgPending = new Map<string, Promise<string>>()
+
 const props = withDefaults(defineProps<{
   name: string
   size?: number | string
@@ -12,16 +15,23 @@ const props = withDefaults(defineProps<{
 
 const svgHtml = ref<string>('')
 
+async function fetchSvg(name: string): Promise<string> {
+  const cached = svgCache.get(name)
+  if (cached !== undefined) return cached
+  const pending = svgPending.get(name)
+  if (pending) return pending
+  const p = fetch(`/icons/${name}.svg`)
+    .then(r => (r.ok ? r.text() : ''))
+    .finally(() => svgPending.delete(name))
+  svgPending.set(name, p)
+  const svg = await p
+  svgCache.set(name, svg)
+  return svg
+}
+
 async function loadSvg(name: string) {
-  if (!name) return
-  try {
-    const resp = await fetch(`/icons/${name}.svg`)
-    if (resp.ok) {
-      svgHtml.value = await resp.text()
-    }
-  } catch {
-    svgHtml.value = ''
-  }
+  if (!name) { svgHtml.value = ''; return }
+  svgHtml.value = await fetchSvg(name)
 }
 
 onMounted(() => loadSvg(props.name))

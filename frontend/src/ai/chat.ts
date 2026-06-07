@@ -250,6 +250,15 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     if (!html && finalContent) {
       console.log('[LLM] raw content (first 500):', finalContent.slice(0, 500))
     }
+
+    // LLM 输出了 critique/blueprint 但没有 HTML，追问一轮让它补充
+    if (!html && !preflight && round < MAX_TOOL_ROUNDS - 1) {
+      console.log('[LLM] round', round, 'no HTML found, asking model to output HTML')
+      messages.push({ role: 'assistant', content: finalContent })
+      messages.push({ role: 'user', content: '你的回复中没有包含 HTML 设计稿。请直接输出完整的 HTML 文件（以 <!DOCTYPE html> 开头），不需要重复设计评审和蓝图。' })
+      continue
+    }
+
     return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight, blueprintUpdate }
   }
 
