@@ -42,12 +42,16 @@ jobs:
       - name: Update Build Assets
         run: wails3 task common:update:build-assets
 
-      - name: Build Frontend
-        working-directory: frontend
-        run: npm install && npm run build
-
       - name: Generate Bindings
         run: wails3 generate bindings -f "-tags production" -clean=true
+
+      - name: Install Frontend Dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build Frontend
+        working-directory: frontend
+        run: npm run build
 
       - name: Generate Windows Resources
         working-directory: build
