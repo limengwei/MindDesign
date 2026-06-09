@@ -9,6 +9,7 @@ import { isBlueprintEmpty, type ProductBlueprint } from '../prompts/blueprint'
 import { saveProject } from '../stores/autoSave'
 import { DESIGN_SPEC_LABELS, getDesignSpecById } from '../prompts/designSpecs'
 import DesignSpecEditor from './DesignSpecEditor.vue'
+import SvgIcon from './SvgIcon.vue'
 
 const props = defineProps<{
   collapsed: boolean
@@ -290,11 +291,11 @@ function formatTime(iso: string) {
           title="会话列表"
           @click="showSessionList = !showSessionList"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+          <SvgIcon name="view_list" :size="14" />
         </button>
         <button class="toggle-btn" @click="emit('toggle')" :title="collapsed ? '展开' : '收起'">
-          <svg v-if="collapsed" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
-          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+          <SvgIcon v-if="collapsed" name="chevron_right" :size="14" />
+          <SvgIcon v-else name="chevron_left" :size="14" />
         </button>
       </div>
     </div>
@@ -370,7 +371,7 @@ function formatTime(iso: string) {
       <div v-if="showCritique && activeCritique" class="critique-card">
         <div class="critique-header" @click="showCritique = !showCritique">
           <span>📊 设计质量评估</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg>
+          <SvgIcon name="arrow_drop_down" :size="12" />
         </div>
         <div v-if="showCritique" class="critique-body">
           <div class="critique-scores">
@@ -399,7 +400,7 @@ function formatTime(iso: string) {
       <div v-if="hasBlueprint" class="blueprint-card">
         <div class="blueprint-header" @click="showBlueprintPanel = !showBlueprintPanel">
           <span>📋 产品蓝图 v{{ canvasStore.productBlueprint.version }}</span>
-          <svg :style="{ transform: showBlueprintPanel ? 'rotate(180deg)' : '' }" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="transition: transform 0.2s"><path d="M7 10l5 5 5-5z"/></svg>
+          <SvgIcon name="arrow_drop_down" :size="12" :style="{ transform: showBlueprintPanel ? 'rotate(180deg)' : '', transition: 'transform 0.2s' }" />
         </div>
         <div v-if="showBlueprintPanel" class="blueprint-body">
           <div v-if="canvasStore.productBlueprint.product?.name" class="blueprint-section">
@@ -478,16 +479,14 @@ function formatTime(iso: string) {
               <button class="skill-chip-close" @click="canvasStore.setActiveSkillId(null)">&times;</button>
             </div>
             <button class="input-action-btn" :class="{ active: !!activeSkill }" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+              <SvgIcon name="bolt" :size="18" />
             </button>
             <button
               class="send-btn"
               :disabled="!inputText.trim() || chatStore.isStreaming"
               @click="handleSend"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M3.4 20.4l17.45-7.48a1 1 0 000-1.84L3.4 3.6a.993.993 0 00-1.39.91L2 9.12c0 .5.37.93.87.99L17 12 2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91z"/>
-              </svg>
+              <SvgIcon name="send" :size="18" />
             </button>
           </div>
         </div>
