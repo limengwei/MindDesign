@@ -1,19 +1,39 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
+import { useCanvasStore, type ImageDataSource } from '../stores/canvasStore'
 import { startMCP, stopMCP, isMCPRunning, getMCPPort, checkUpdate, downloadUpdate, installUpdate, type UpdateResult } from '../services/projectBridge'
 
 const configStore = useLLMConfigStore()
+const canvasStore = useCanvasStore()
 
 function handleSave() {
   configStore.saveToStorage()
+  // imageDataSource 已自动持久化（在 setImageDataSource 中）
 }
+
+const dataSourceOptions: Array<{ value: ImageDataSource; label: string; desc: string }> = [
+  { value: 'placehold', label: 'placehold.co（默认，离线可用）', desc: '适合本地与快速预览' },
+  { value: 'unsplash', label: 'Unsplash 关键词', desc: '在线真实图（需联网）' },
+  { value: 'local', label: '本地占位资源', desc: '项目 assets 目录' },
+]
+
+// Phase 5 · Task 19：主题选项
+const themeOptions: Array<{ id: string; value: boolean; label: string; desc: string }> = [
+  { id: 'dark', value: true, label: '🌙 暗色', desc: '深色背景，护眼' },
+  { id: 'light', value: false, label: '☀ 亮色', desc: '浅色背景，对比度高' },
+]
+
+const modKeyHint = computed(() => {
+  if (typeof navigator === 'undefined') return 'Ctrl'
+  return /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent) ? '⌘' : 'Ctrl'
+})
 
 const emit = defineEmits<{
   close: []
 }>()
 
-type TabType = 'api' | 'mcp' | 'about'
+type TabType = 'api' | 'data' | 'appearance' | 'mcp' | 'about'
 const activeTab = ref<TabType>('api')
 
 const mcpRunning = ref(false)
@@ -102,6 +122,8 @@ async function handleDownloadAndInstall() {
         <button
           v-for="tab in ([
             { key: 'api', label: 'API 配置' },
+            { key: 'data', label: '数据源' },
+            { key: 'appearance', label: '外观' },
             { key: 'mcp', label: 'MCP 服务' },
             { key: 'about', label: '关于' },
           ] as { key: TabType; label: string }[])"
@@ -158,6 +180,55 @@ async function handleDownloadAndInstall() {
           <span class="status-dot"></span>
           {{ configStore.isConfigured ? '已配置' : '未配置' }}
         </div>
+        </div>
+
+        <!-- 数据源 Tab -->
+        <div v-show="activeTab === 'data'" class="tab-content">
+        <p class="section-desc">选择设计稿中占位图片的数据源。修改后将作用于后续生成与导出。</p>
+        <div class="form-group">
+          <label>图片数据源</label>
+          <div class="radio-pill-group">
+            <label
+              v-for="opt in dataSourceOptions"
+              :key="opt.value"
+              :class="['data-source-pill', { active: canvasStore.imageDataSource === opt.value }]"
+            >
+              <input
+                type="radio"
+                :value="opt.value"
+                :checked="canvasStore.imageDataSource === opt.value"
+                @change="canvasStore.setImageDataSource(opt.value)"
+              />
+              <span class="ds-label">{{ opt.label }}</span>
+              <span class="ds-desc">{{ opt.desc }}</span>
+            </label>
+          </div>
+        </div>
+        </div>
+
+        <!-- 外观 Tab (Phase 5 · Task 19) -->
+        <div v-show="activeTab === 'appearance'" class="tab-content">
+          <p class="section-desc">外观设置仅影响 UI 主题，不影响导出 HTML。</p>
+          <div class="form-group">
+            <label>主题</label>
+            <div class="radio-pill-group">
+              <label
+                v-for="opt in themeOptions"
+                :key="opt.id"
+                :class="['data-source-pill', { active: canvasStore.isDarkMode === opt.value }]"
+              >
+                <input
+                  type="radio"
+                  :value="opt.value"
+                  :checked="canvasStore.isDarkMode === opt.value"
+                  @change="canvasStore.setDarkMode(opt.value)"
+                />
+                <span class="ds-label">{{ opt.label }}</span>
+                <span class="ds-desc">{{ opt.desc }}</span>
+              </label>
+            </div>
+            <p class="hint" style="margin-top: 12px;">快捷键：<kbd>{{ modKeyHint }}+/</kbd> 切换主题</p>
+          </div>
         </div>
 
         <!-- MCP 服务 Tab -->
@@ -278,6 +349,13 @@ async function handleDownloadAndInstall() {
 .mcp-config-hint { display: flex; flex-direction: column; gap: 6px; }
 .code-block { font-size: var(--font-xs); background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 10px 12px; color: var(--text-secondary); margin: 0; white-space: pre; overflow-x: auto; font-family: 'Consolas', 'Monaco', monospace; line-height: 1.5; }
 .form-group input:disabled { opacity: 0.5; cursor: not-allowed; }
+.radio-pill-group { display: flex; flex-direction: column; gap: 6px; }
+.data-source-pill { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: var(--radius-md); border: 1px solid var(--border-default); cursor: pointer; transition: all var(--transition-fast); }
+.data-source-pill:hover { border-color: var(--border-hover); background: var(--bg-hover); }
+.data-source-pill.active { border-color: var(--color-primary); background: rgba(79, 70, 229, 0.1); }
+.data-source-pill input { display: none; }
+.ds-label { font-size: var(--font-sm); font-weight: 500; color: var(--text-primary); }
+.ds-desc { font-size: var(--font-xs); color: var(--text-muted); }
 .update-section { display: flex; flex-direction: column; gap: 10px; }
 .update-info { display: flex; flex-direction: column; gap: 4px; font-size: var(--font-sm); color: var(--text-secondary); }
 .update-new { color: var(--color-primary-light); font-weight: 600; }

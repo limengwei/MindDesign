@@ -317,6 +317,7 @@ export async function downloadUpdate(
   downloadURL: string,
 ): Promise<string> {
   await ensureLoaded()
+  // @ts-ignore - DownloadUpdate 第二个参数是 wails 自动注入的 progress 回调
   return await UpdateService!.DownloadUpdate(downloadURL)
 }
 

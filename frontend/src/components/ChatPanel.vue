@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useChatStore, type Session } from '../stores/chatStore'
 import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM, type DesignCritique, type PreflightData } from '../ai/chat'
@@ -7,8 +7,15 @@ import { BUILT_IN_SKILLS, getSkillById, SKILL_CATEGORIES, type DesignSkill } fro
 import { buildPreflightFollowUpPrompt } from '../prompts/preflight'
 import { isBlueprintEmpty, type ProductBlueprint } from '../prompts/blueprint'
 import { saveProject } from '../stores/autoSave'
-import { DESIGN_SPEC_LABELS, getDesignSpecById } from '../prompts/designSpecs'
+import { migrateDesignSpec } from '../prompts/designSpecs'
+import { getDirectionById } from '../prompts/directions'
+import { buildBrandAssetFromSpec, type BrandAsset } from '../prompts/brandAssets'
+import { analyzeBrandWithLLM } from '../prompts/brandAnalyzer'
+import { useLLMConfigStore } from '../stores/llmConfigStore'
+import { runQaCheck, formatQaResult } from '../utils/qaCheck'
+import { useClipboardImages, useClipboardImageListener } from '../composables/useClipboardImages'
 import DesignSpecEditor from './DesignSpecEditor.vue'
+import QaPanel from './QaPanel.vue'
 
 const props = defineProps<{
   collapsed: boolean
@@ -31,20 +38,60 @@ const showBlueprintPanel = ref(false)
 const isRebuildingBlueprint = ref(false)
 const showSkillSelector = ref(false)
 const showSpecEditor = ref(false)
+const showBrandAnalyzer = ref(false)
+const brandAnalyzerInput = ref('')
+const brandAnalyzerLogoData = ref<string | null>(null)
+const brandAnalyzerBusy = ref(false)
+const brandAnalyzerError = ref<string | null>(null)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+
+// Phase 4 · Task 20：参考图（dataURL 列表）
+const referenceImages = ref<string[]>([])
+const isDragOver = ref(false)
+// Phase 4 · Task 15：QA 报告追加到下一条消息
+const pendingQaReport = ref<string | null>(null)
+// Phase 4 · Task 17：组件库下拉
+const showComponentLibrary = ref(false)
 
 const activeSkill = computed<DesignSkill | null>(() => {
   const id = canvasStore.activeSkillId
   return id ? getSkillById(id) ?? null : null
 })
 
+const activeSpec = computed(() => canvasStore.getActiveSpec())
+
 const currentSpecLabel = computed(() => {
-  const spec = getDesignSpecById(canvasStore.designSpecId)
-  return spec ? spec.name : (canvasStore.designSpecId === 'none' ? '未使用规范' : '自定义')
+  const spec = activeSpec.value
+  if (spec) return spec.name
+  return canvasStore.designSpecId === 'none' ? '未使用规范' : '自定义'
 })
 
 const currentSpecColors = computed(() => {
-  return getDesignSpecById(canvasStore.designSpecId)?.colors ?? null
+  return activeSpec.value?.colors ?? null
+})
+
+const activeDirection = computed(() => getDirectionById(canvasStore.activeDirectionId))
+const directionLabel = computed(() => activeDirection.value
+  ? `${activeDirection.value.emoji} ${activeDirection.value.name}`
+  : null)
+
+/** 当前规范的"5 步品牌资产卡片"数据（v2 字段派生） */
+const brandAsset = computed<BrandAsset | null>(() => {
+  const spec = activeSpec.value
+  if (!spec) return null
+  return buildBrandAssetFromSpec(migrateDesignSpec(spec))
+})
+/** 5 步资产的可视化"标题"（用于渲染摘要卡片） */
+const brandAssetSteps = computed(() => {
+  const asset = brandAsset.value
+  if (!asset) return null
+  return [
+    { key: 'colors', title: '1. 色彩', icon: '🎨', preview: asset.colors },
+    { key: 'type', title: '2. 字体', icon: '🔤', preview: asset.typography },
+    { key: 'spacing', title: '3. 间距', icon: '📐', preview: asset.spacing },
+    { key: 'components', title: '4. 组件', icon: '🧩', preview: asset.components },
+    { key: 'layout', title: '5. 布局', icon: '🗂', preview: asset.layout },
+  ]
 })
 
 function selectSkill(skill: DesignSkill) {
@@ -58,6 +105,14 @@ function selectSkill(skill: DesignSkill) {
 }
 
 function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
+  // Phase 4 · Task 17：合并组件库所有组件 + 用户"已选"组件
+  // - 库内组件：name + html（让 LLM 知道可复用）
+  // - 已选组件：id + name + 简短描述（突出"用户当前选定的"）
+  const all = canvasStore.components.map(c => ({ id: c.id, name: c.name, html: c.html }))
+  const selected = pendingComponents.value.map(c => {
+    const stripped = c.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+    return { id: c.id, name: c.name, snippet: stripped.slice(0, 80) }
+  })
   return {
     pageType: canvasStore.pageType,
     colorScheme: canvasStore.colorScheme,
@@ -65,9 +120,16 @@ function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
     customDesignContent: canvasStore.customDesignContent,
     history: [] as Array<{ role: string; content: string }>,
     selectedHtml,
+    selectedElement: canvasStore.selectedElement,
     skill: activeSkill.value,
     isFirstMessage,
     blueprint: canvasStore.productBlueprint,
+    direction: activeDirection.value,
+    brandAsset: brandAsset.value,
+    components: all,
+    selectedComponents: selected.length > 0 ? selected : undefined,
+    referenceImages: referenceImages.value.length > 0 ? [...referenceImages.value] : undefined,
+    qaReport: pendingQaReport.value ?? undefined,
   }
 }
 
@@ -251,6 +313,177 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+// Phase 4 · Task 20：图片拖拽 / 粘贴处理
+function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => resolve(reader.result as string)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
+async function handleDrop(e: DragEvent) {
+  e.preventDefault()
+  isDragOver.value = false
+  const files = Array.from(e.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'))
+  for (const f of files) {
+    if (referenceImages.value.length >= 4) break  // 最多 4 张
+    const dataUrl = await readFileAsDataURL(f)
+    referenceImages.value.push(dataUrl)
+  }
+}
+function handleDragOver(e: DragEvent) {
+  e.preventDefault()
+  isDragOver.value = true
+}
+function handleDragLeave(_e: DragEvent) {
+  isDragOver.value = false
+}
+function removeImage(i: number) {
+  referenceImages.value.splice(i, 1)
+}
+
+async function onPaste(e: ClipboardEvent) {
+  const items = e.clipboardData?.items
+  if (!items) return
+  for (const it of Array.from(items)) {
+    if (it.type.startsWith('image/')) {
+      const file = it.getAsFile()
+      if (!file) continue
+      e.preventDefault()
+      if (referenceImages.value.length >= 4) return
+      const dataUrl = await readFileAsDataURL(file)
+      referenceImages.value.push(dataUrl)
+      return
+    }
+  }
+}
+
+// Phase 4 · Task 15：按规范修正
+async function handleQaFix(report: string) {
+  if (!inputText.value.trim()) inputText.value = '请按质检报告修正以下问题，并保持原有设计风格。'
+  pendingQaReport.value = report
+  // 自动发送
+  await doGenerate(inputText.value)
+  pendingQaReport.value = null
+  inputText.value = ''
+}
+
+// Phase 4 · Task 15：单 issue 修正
+async function handleQaFixOne(issue: { section: 'dom' | 'token' | 'a11y'; message: string }) {
+  const prefix = `[按规范修正] 【${issue.section.toUpperCase()}】 ${issue.message}\n请输出修正后的完整 HTML。`
+  inputText.value = prefix
+  pendingQaReport.value = formatQaResult(runQaCheck(latestHtml.value, activeSpec.value))
+  await doGenerate(inputText.value)
+  pendingQaReport.value = null
+  inputText.value = ''
+}
+
+// Phase 4 · Task 17：插入组件到 prompt
+function insertComponent(name: string, html: string) {
+  const snippet = `\n[参考组件 ${name}]\n${html}\n`
+  inputText.value = (inputText.value || '') + snippet
+  showComponentLibrary.value = false
+  nextTick(() => textareaRef.value?.focus())
+}
+
+// Phase 4 · Task 15：当前选中卡片的最新 HTML（供 QaPanel 实时检测）
+const latestHtml = computed(() => {
+  const id = canvasStore.selectedCardId
+  if (id) {
+    const card = canvasStore.cards.find(c => c.id === id)
+    if (card?.html) return card.html
+  }
+  // 退而求其次：最后一张有 html 的卡片
+  for (let i = canvasStore.cards.length - 1; i >= 0; i--) {
+    if (canvasStore.cards[i]?.html) return canvasStore.cards[i].html
+  }
+  return ''
+})
+
+// Phase 4 · Task 15：实时跟踪 latestHtml 变化，更新 latestQaResult（任务规约：
+// "watch currentHtml 调用 runQaCheck"）
+const latestQaResult = computed(() => runQaCheck(latestHtml.value, activeSpec.value))
+const latestQaReport = computed(() => formatQaResult(latestQaResult.value))
+
+/** 任务规约：watch currentHtml 变化时记录一次（用于埋点/调试） */
+watch(latestHtml, (val) => {
+  if (val) {
+    const r = runQaCheck(val, activeSpec.value)
+    // 控制台埋点，方便 QA 排错
+    if (r.dom.issues.length + r.token.issues.length + r.a11y.issues.length > 0) {
+      // eslint-disable-next-line no-console
+      console.debug('[QA] 检测到', r.dom.issues.length, 'DOM /', r.token.issues.length, 'Token /', r.a11y.issues.length, 'A11y 问题')
+    }
+  }
+})
+
+onMounted(() => {
+  if (!props.collapsed) {
+    window.addEventListener('paste', onPaste)
+  }
+  window.addEventListener('md:insert-component', onInsertComponent as EventListener)
+})
+onUnmounted(() => {
+  window.removeEventListener('paste', onPaste)
+  window.removeEventListener('md:insert-component', onInsertComponent as EventListener)
+})
+watch(() => props.collapsed, (v) => {
+  if (v) window.removeEventListener('paste', onPaste)
+  else window.addEventListener('paste', onPaste)
+})
+
+// Phase 4 · Task 17：把来自组件库的组件写入待注入的组件清单
+const pendingComponents = ref<Array<{ id: string; name: string; html: string }>>([])
+function onInsertComponent(e: CustomEvent<{ id: string; name: string; html: string }>) {
+  pendingComponents.value.push(e.detail)
+  // 同步追加到输入框
+  inputText.value = (inputText.value ? inputText.value + '\n' : '') + `[插入组件] ${e.detail.name}`
+  if (!showComponentChips.value) showComponentChips.value = true
+}
+const showComponentChips = ref(false)
+function removePendingComponent(idx: number) {
+  pendingComponents.value.splice(idx, 1)
+  if (pendingComponents.value.length === 0) showComponentChips.value = false
+}
+
+// Phase 5 · Task 20：全局 paste/drop 监听 → 派发 `clipboard-image` 事件
+useClipboardImages()
+
+// Phase 5 · Task 20：收到 `clipboard-image` 事件时插入"📋 粘贴图片"占位消息
+//  - 图片本身仍由本地 onPaste/handleDrop 写入 referenceImages（避免重复）
+//  - 占位消息让用户直观看到"已附加图片"
+useClipboardImageListener((dataUrl) => {
+  // 去重：本地 handler 已添加过则跳过
+  if (referenceImages.value.includes(dataUrl)) {
+    addClipboardPlaceholder('📋 粘贴图片（已附加到下一条消息）')
+    return
+  }
+  // ChatPanel 折叠时本地 onPaste 不注册；这里兜底写入 refImages
+  if (props.collapsed) {
+    if (referenceImages.value.length < 4) {
+      referenceImages.value.push(dataUrl)
+    }
+  }
+  addClipboardPlaceholder('📋 粘贴图片（已附加到下一条消息）')
+})
+
+function addClipboardPlaceholder(text: string) {
+  // 确保有 session
+  if (!chatStore.activeSession) {
+    chatStore.createSession('已附加图片')
+  }
+  // 占位消息（不计入 assistant "生成" 流程）
+  if (chatStore.activeSession) {
+    chatStore.activeSession.messages.push({
+      role: 'user',
+      content: text,
+      timestamp: new Date().toISOString(),
+    })
+  }
+}
+
 function autoResize() {
   const el = textareaRef.value
   if (!el) return
@@ -275,6 +508,49 @@ function formatTime(iso: string) {
   const hh = String(d.getHours()).padStart(2, '0')
   const mm = String(d.getMinutes()).padStart(2, '0')
   return `${hh}:${mm}`
+}
+
+function handleLogoFile(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    brandAnalyzerLogoData.value = (reader.result as string) || null
+  }
+  reader.readAsDataURL(file)
+}
+
+async function handleBrandAnalyzerSubmit() {
+  const text = brandAnalyzerInput.value.trim()
+  if (!text || brandAnalyzerBusy.value) return
+  const llmConfigStore = useLLMConfigStore()
+  if (!llmConfigStore.isConfigured) {
+    brandAnalyzerError.value = '请先在设置中配置 AI 服务。'
+    return
+  }
+  brandAnalyzerBusy.value = true
+  brandAnalyzerError.value = null
+  try {
+    const spec = await analyzeBrandWithLLM({
+      config: llmConfigStore.getConfig(),
+      input: { rawInput: text, logoDataUrl: brandAnalyzerLogoData.value || undefined },
+    })
+    if (!spec) {
+      brandAnalyzerError.value = '品牌分析失败：AI 未返回有效 DesignSpec v2。'
+      return
+    }
+    canvasStore.addCustomDesignSpec(spec)
+    // 立即选用
+    canvasStore.setDesignSpecId(spec.id)
+    showBrandAnalyzer.value = false
+    brandAnalyzerInput.value = ''
+    brandAnalyzerLogoData.value = null
+    chatStore.addAssistantMessage(`🎉 已从品牌描述生成规范：${spec.name}，可继续描述界面需求。`)
+  } catch (err) {
+    brandAnalyzerError.value = '品牌分析失败：' + ((err as Error).message || String(err))
+  } finally {
+    brandAnalyzerBusy.value = false
+  }
 }
 </script>
 
@@ -319,6 +595,69 @@ function formatTime(iso: string) {
     </div>
 
     <div v-else-if="!collapsed" class="chat-messages">
+      <div v-if="brandAsset && brandAssetSteps" class="spec-summary">
+        <div class="spec-summary-header">
+          <div class="spec-summary-title">
+            <span class="spec-summary-emoji">🎯</span>
+            <span>规范摘要</span>
+            <span class="spec-summary-name">{{ currentSpecLabel }}</span>
+          </div>
+          <div v-if="directionLabel" class="spec-summary-direction">{{ directionLabel }}</div>
+        </div>
+        <div class="spec-summary-steps">
+          <div
+            v-for="step in brandAssetSteps"
+            :key="step.key"
+            class="spec-summary-step"
+          >
+            <div class="spec-step-head">
+              <span class="spec-step-icon">{{ step.icon }}</span>
+              <span class="spec-step-title">{{ step.title }}</span>
+            </div>
+            <div class="spec-step-body">
+              <template v-if="step.key === 'colors'">
+                <div class="spec-color-row">
+                  <span class="spec-color-cdot" :style="{ background: (step.preview as any).primary }"></span>
+                  <span class="spec-color-cdot" :style="{ background: (step.preview as any).secondary }"></span>
+                  <span class="spec-color-cdot" :style="{ background: (step.preview as any).accent }"></span>
+                  <span class="spec-color-cdot" :style="{ background: (step.preview as any).background }"></span>
+                </div>
+                <div class="spec-step-meta">{{ brandAsset?.meta.industry || '通用' }} · {{ brandAsset?.meta.tags.length ? brandAsset?.meta.tags.join(' / ') : 'no tags' }}</div>
+              </template>
+              <template v-else-if="step.key === 'type'">
+                <div class="spec-step-line">H1 {{ (step.preview as any).h1Size }}px · Body {{ (step.preview as any).bodySize }}px</div>
+                <div class="spec-step-meta font-meta">{{ (step.preview as any).fontStack }}</div>
+              </template>
+              <template v-else-if="step.key === 'spacing'">
+                <div class="spec-step-line">base {{ (step.preview as any).base }}px · density {{ brandAsset?.meta.density }}</div>
+                <div class="spec-step-meta">[{{ ((step.preview as any).scale as number[]).join(' · ') }}]</div>
+              </template>
+              <template v-else-if="step.key === 'components'">
+                <div class="spec-step-line">button · {{ (step.preview as any).button.shape }} · h{{ (step.preview as any).button.height }}</div>
+                <div class="spec-step-line">card r={{ (step.preview as any).card.radius }} p={{ (step.preview as any).card.padding }}</div>
+              </template>
+              <template v-else>
+                <div class="spec-step-line">maxW {{ (step.preview as any).maxWidth }} · {{ (step.preview as any).columns }} 列 · hero {{ (step.preview as any).heroRatio }}</div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="spec-summary-actions">
+          <button class="spec-summary-btn" @click="showBrandAnalyzer = true">🪄 从品牌 URL/Logo 生成</button>
+          <button class="spec-summary-btn secondary" @click="showSpecEditor = true">⚙ 调整规范</button>
+        </div>
+        <!-- Phase 4 · Task 15：质量检查折叠区（在"规范摘要"下方） -->
+        <QaPanel
+          v-if="latestHtml"
+          class="spec-qa"
+          :html="latestHtml"
+          :spec="activeSpec"
+          :busy="chatStore.isStreaming"
+          @fix-by-spec="handleQaFix"
+          @fix-one="handleQaFixOne"
+          @refresh="() => {}"
+        />
+      </div>
       <div v-if="!chatStore.activeSession" class="chat-empty">
         <div class="empty-icon">✨</div>
         <p>描述你想要的界面</p>
@@ -450,12 +789,53 @@ function formatTime(iso: string) {
 
   <div class="chat-input-float">
     <div class="input-container">
-      <div class="input-wrapper">
+      <div
+        class="input-wrapper"
+        :class="{ 'is-drag-over': isDragOver }"
+        @drop="handleDrop"
+        @dragover="handleDragOver"
+        @dragleave="handleDragLeave"
+      >
+        <Transition name="fade">
+          <div v-if="canvasStore.selectedElement" class="selected-element-chip" :title="canvasStore.selectedElement.xpath">
+            <span class="chip-icon">🎯</span>
+            <span class="chip-label">已选中：</span>
+            <code class="chip-xpath">{{ canvasStore.selectedElement.xpath }}</code>
+            <button class="chip-clear" @click="canvasStore.setSelectedElement(null)" title="清除选择">×</button>
+          </div>
+        </Transition>
+
+        <!-- Phase 4 · Task 15：QA 面板（每帧 QA 检测通过 watch 触发） -->
+        <QaPanel
+          v-if="latestHtml"
+          :html="latestHtml"
+          :spec="activeSpec"
+          :busy="chatStore.isStreaming"
+          @fix-by-spec="handleQaFix"
+          @fix-one="handleQaFixOne"
+          @refresh="() => {}"
+        />
+
+        <!-- Phase 4 · Task 20：参考图预览 -->
+        <div v-if="referenceImages.length > 0" class="ref-images">
+          <div v-for="(img, i) in referenceImages" :key="i" class="ref-img">
+            <img :src="img" :alt="`ref-${i}`" />
+            <button class="ref-img-remove" @click="removeImage(i)" title="移除">×</button>
+          </div>
+        </div>
+
+        <!-- Phase 5 · Task 20：拖入 / 粘贴图片提示 -->
+        <div class="chat-input-hint">
+          <span>📎 拖入 / 粘贴图片</span>
+          <span class="chat-input-hint-sep">·</span>
+          <span>最多 4 张参考图</span>
+        </div>
+
         <textarea
           ref="textareaRef"
           v-model="inputText"
           class="chat-input"
-          :placeholder="activeSkill ? activeSkill.examplePrompt : '描述你想要的界面...'"
+          :placeholder="activeSkill ? activeSkill.examplePrompt : '描述你想要的界面... (可拖入图片 / ⌘V 粘贴)'"
           rows="3"
           :disabled="chatStore.isStreaming"
           @input="autoResize"
@@ -477,6 +857,35 @@ function formatTime(iso: string) {
               <span>{{ activeSkill.name }}</span>
               <button class="skill-chip-close" @click="canvasStore.setActiveSkillId(null)">&times;</button>
             </div>
+            <!-- Phase 4 · Task 17：组件库下拉 -->
+            <div class="comp-library-wrap">
+              <button
+                class="input-action-btn"
+                :class="{ active: showComponentLibrary || canvasStore.components.length > 0 }"
+                :title="`组件库 (${canvasStore.components.length})`"
+                @click="showComponentLibrary = !showComponentLibrary"
+              >🧩</button>
+              <div v-if="showComponentLibrary" class="comp-library-popover" @click.stop>
+                <div class="comp-lib-header">
+                  <span>组件库 ({{ canvasStore.components.length }})</span>
+                  <button class="chip-clear" @click="showComponentLibrary = false">×</button>
+                </div>
+                <div v-if="canvasStore.components.length === 0" class="comp-lib-empty">
+                  暂无组件。在画板上右键 → "另存为组件" 添加。
+                </div>
+                <div v-else class="comp-lib-list">
+                  <div
+                    v-for="c in canvasStore.components"
+                    :key="c.id"
+                    class="comp-lib-item"
+                    @click="insertComponent(c.name, c.html)"
+                  >
+                    <span class="comp-lib-name">🧩 {{ c.name }}</span>
+                    <span class="comp-lib-meta">{{ new Date(c.createdAt).toLocaleDateString() }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <button class="input-action-btn" :class="{ active: !!activeSkill }" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
             </button>
@@ -491,6 +900,7 @@ function formatTime(iso: string) {
             </button>
           </div>
         </div>
+        <div v-if="isDragOver" class="drop-hint">📥 拖入图片作为参考</div>
       </div>
     </div>
   </div>
@@ -528,6 +938,42 @@ function formatTime(iso: string) {
     v-if="showSpecEditor"
     @close="showSpecEditor = false"
   />
+
+  <div v-if="showBrandAnalyzer" class="brand-analyzer-overlay" @click.self="showBrandAnalyzer = false">
+    <div class="brand-analyzer-modal">
+      <div class="brand-analyzer-header">
+        <div class="brand-analyzer-title">🪄 从品牌 URL / Logo 生成 DesignSpec</div>
+        <button class="brand-analyzer-close" @click="showBrandAnalyzer = false">×</button>
+      </div>
+      <div class="brand-analyzer-body">
+        <label class="brand-analyzer-label">品牌 URL 或名称</label>
+        <input
+          v-model="brandAnalyzerInput"
+          class="brand-analyzer-input"
+          placeholder="例如：https://stripe.com 或 Stripe"
+          :disabled="brandAnalyzerBusy"
+        />
+        <label class="brand-analyzer-label">Logo 图片（可选）</label>
+        <input
+          type="file"
+          accept="image/*"
+          class="brand-analyzer-file"
+          :disabled="brandAnalyzerBusy"
+          @change="handleLogoFile"
+        />
+        <div v-if="brandAnalyzerLogoData" class="brand-analyzer-logo-preview">
+          <img :src="brandAnalyzerLogoData" alt="logo" />
+        </div>
+        <div v-if="brandAnalyzerError" class="brand-analyzer-error">⚠ {{ brandAnalyzerError }}</div>
+        <div class="brand-analyzer-actions">
+          <button class="brand-analyzer-submit" :disabled="brandAnalyzerBusy" @click="handleBrandAnalyzerSubmit">
+            {{ brandAnalyzerBusy ? '分析中...' : '开始分析' }}
+          </button>
+          <button class="brand-analyzer-cancel" :disabled="brandAnalyzerBusy" @click="showBrandAnalyzer = false">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -602,6 +1048,14 @@ function formatTime(iso: string) {
 .skill-chip-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
 .skill-chip-close:hover { color: var(--text-primary); }
 
+/* Phase 3：选中元素 chip */
+.selected-element-chip { display: flex; align-items: center; gap: 6px; padding: 4px 8px; margin: 0 0 6px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); border-radius: 8px; font-size: 11px; max-width: 100%; overflow: hidden; }
+.chip-icon { font-size: 12px; }
+.chip-label { color: var(--color-primary-light); white-space: nowrap; flex-shrink: 0; }
+.chip-xpath { color: #67e8f9; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.chip-clear { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
+.chip-clear:hover { color: #fff; }
+
 .chat-input-float { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: var(--z-input); width: 720px; max-width: calc(100vw - 40px); }
 .input-container { display: flex; flex-direction: column; gap: 0; }
 
@@ -644,6 +1098,29 @@ function formatTime(iso: string) {
 .send-btn:hover:not(:disabled) { background: var(--color-primary-hover); }
 .send-btn:disabled { background: #3a3a5c; cursor: not-allowed; }
 
+/* Phase 4 · Task 20：拖入 / 粘贴图片 */
+.is-drag-over { border: 2px dashed var(--color-primary) !important; background: rgba(129,140,248,0.05) !important; }
+.ref-images { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.ref-img { position: relative; width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-default); }
+.ref-img img { width: 100%; height: 100%; object-fit: cover; }
+.ref-img-remove { position: absolute; top: 0; right: 0; width: 18px; height: 18px; border-radius: 0 0 0 6px; background: rgba(0,0,0,0.7); color: #fff; border: none; font-size: 12px; cursor: pointer; line-height: 1; }
+.drop-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 8px 16px; background: rgba(129,140,248,0.95); color: #fff; border-radius: 6px; font-size: 13px; pointer-events: none; z-index: 5; }
+
+/* Phase 5 · Task 20：拖入 / 粘贴图片提示 */
+.chat-input-hint { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; color: var(--text-tertiary, #888); }
+.chat-input-hint-sep { opacity: 0.5; }
+
+/* Phase 4 · Task 17：组件库下拉 */
+.comp-library-wrap { position: relative; }
+.comp-library-popover { position: absolute; bottom: calc(100% + 8px); right: 0; width: 280px; max-height: 320px; overflow-y: auto; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 10; }
+.comp-lib-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border-default); font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.comp-lib-empty { padding: 16px; font-size: 12px; color: var(--text-muted); text-align: center; }
+.comp-lib-list { display: flex; flex-direction: column; }
+.comp-lib-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; transition: background 0.1s; }
+.comp-lib-item:hover { background: rgba(129,140,248,0.15); }
+.comp-lib-name { font-size: 12px; color: var(--text-primary); }
+.comp-lib-meta { font-size: 10px; color: var(--text-muted); }
+
 .blueprint-card { background: rgba(22, 33, 62, 0.9); border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
 .blueprint-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); }
 .blueprint-header:hover { background: rgba(255,255,255,0.03); }
@@ -664,4 +1141,44 @@ function formatTime(iso: string) {
 .blueprint-rebuild-btn { width: 100%; padding: 7px; border-radius: 8px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.15s ease; font-family: inherit; margin-top: 4px; }
 .blueprint-rebuild-btn:hover:not(:disabled) { border-color: var(--border-hover); color: var(--text-primary); }
 .blueprint-rebuild-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── 规范摘要（品牌资产 5 步卡片） ── */
+.spec-summary { margin: 10px 10px 6px; padding: 10px 12px; border-radius: 10px; background: rgba(40, 40, 70, 0.45); border: 1px solid var(--border-subtle); }
+.spec-summary-header { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.spec-summary-title { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.spec-summary-emoji { font-size: 14px; }
+.spec-summary-name { font-size: 11px; color: var(--color-primary-light); padding: 1px 6px; border-radius: 6px; background: rgba(94, 106, 210, 0.15); }
+.spec-summary-direction { font-size: 11px; color: var(--text-secondary); padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,0.06); }
+.spec-summary-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+.spec-summary-step { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 7px; }
+.spec-step-head { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-primary); font-weight: 500; }
+.spec-step-icon { font-size: 12px; }
+.spec-step-body { margin-top: 4px; }
+.spec-color-row { display: flex; gap: 3px; }
+.spec-color-cdot { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); }
+.spec-step-line { font-size: 10px; color: var(--text-secondary); line-height: 1.4; }
+.spec-step-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; word-break: break-all; }
+.font-meta { font-family: 'Cascadia Code', monospace; font-size: 9px; }
+.spec-summary-actions { display: flex; gap: 6px; margin-top: 8px; }
+.spec-summary-btn { flex: 1; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--color-primary-light); background: var(--color-primary); color: #fff; font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.spec-summary-btn.secondary { background: transparent; color: var(--text-primary); border-color: var(--border-hover); }
+.spec-summary-btn:hover { transform: translateY(-1px); }
+
+/* ── 品牌分析器弹窗 ── */
+.brand-analyzer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: var(--z-modal); }
+.brand-analyzer-modal { width: 420px; max-width: 92vw; background: var(--bg-elevated); border-radius: 12px; border: 1px solid var(--border-subtle); box-shadow: 0 10px 40px rgba(0,0,0,0.4); overflow: hidden; }
+.brand-analyzer-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); }
+.brand-analyzer-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.brand-analyzer-close { background: transparent; border: none; color: var(--text-secondary); font-size: 20px; cursor: pointer; line-height: 1; padding: 0; }
+.brand-analyzer-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.brand-analyzer-label { font-size: 12px; color: var(--text-secondary); }
+.brand-analyzer-input, .brand-analyzer-file { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-subtle); background: rgba(0,0,0,0.2); color: var(--text-primary); font-size: 13px; font-family: inherit; box-sizing: border-box; }
+.brand-analyzer-input:focus, .brand-analyzer-file:focus { outline: 1px solid var(--color-primary-light); }
+.brand-analyzer-logo-preview { max-height: 80px; padding: 6px; background: rgba(255,255,255,0.05); border-radius: 6px; display: flex; justify-content: center; }
+.brand-analyzer-logo-preview img { max-height: 60px; max-width: 100%; object-fit: contain; }
+.brand-analyzer-error { color: #ef4444; font-size: 12px; padding: 6px 8px; background: rgba(239,68,68,0.08); border-radius: 6px; }
+.brand-analyzer-actions { display: flex; gap: 8px; margin-top: 4px; }
+.brand-analyzer-submit { flex: 1; padding: 8px 12px; border-radius: 6px; border: none; background: var(--color-primary); color: #fff; font-size: 13px; cursor: pointer; font-family: inherit; }
+.brand-analyzer-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.brand-analyzer-cancel { padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); font-size: 13px; cursor: pointer; font-family: inherit; }
 </style>

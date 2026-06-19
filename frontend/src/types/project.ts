@@ -1,4 +1,4 @@
-import type { CanvasCard, PageType, ColorScheme, DesignSpecId } from '../stores/canvasStore'
+import type { CanvasCard, PageType, ColorScheme } from '../stores/canvasStore'
 import type { Session } from '../stores/chatStore'
 import type { ProductBlueprint } from '../prompts/blueprint'
 
@@ -13,7 +13,7 @@ export interface ProjectMeta {
   canvas: {
     pageType: PageType
     colorScheme: ColorScheme
-    designSpecId?: DesignSpecId
+    designSpecId?: string
     customDesignContent?: string
     viewport: {
       zoom: number

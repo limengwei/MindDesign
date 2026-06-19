@@ -13,7 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const canvasStore = useCanvasStore()
-const localSpecId = ref<DesignSpecId>(canvasStore.designSpecId)
+const localSpecId = ref<string>(canvasStore.designSpecId)
 const localCustomContent = ref(canvasStore.customDesignContent)
 const showCustomEditor = ref(localSpecId.value === 'custom')
 
@@ -23,10 +23,10 @@ const currentSpec = computed(() => {
 })
 
 const currentLabel = computed(() => {
-  return DESIGN_SPEC_LABELS[localSpecId.value] || '选择设计规范'
+  return (DESIGN_SPEC_LABELS as Record<string, string>)[localSpecId.value] || '选择设计规范'
 })
 
-function selectSpec(id: DesignSpecId) {
+function selectSpec(id: string) {
   localSpecId.value = id
   showCustomEditor.value = id === 'custom'
 }

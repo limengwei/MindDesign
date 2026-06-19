@@ -14,6 +14,123 @@ import (
 	"time"
 )
 
+// currentProjectFormatVersion 是 project_service.go 写出的项目 JSON schema 版本。
+// 项目 JSON 的 formatVersion 字段小于该值时，migrateProjectV2 会在加载/保存路径上静默迁移。
+const currentProjectFormatVersion = 4
+
+// migrateProjectV2 把任意旧版本（< 4）的项目 JSON 迁移到 v4 格式。
+// 设计原则：
+//  1. 不破坏旧字段（保留 cards / designSpecId 等，仅"追加" v2 字段），保证双向回读；
+//  2. 输入非法时直接返回原 raw，不抛错（避免阻塞项目打开）；
+//  3. 已经是 v4 的输入原样返回。
+//
+// 迁移要点（v3 → v4）：
+//   - canvas.cards → canvas.pages
+//     每个 card 变成一个 page：
+//     { id: card.id, name: card.label, pageType: 'app',
+//       variants: [{ id: card.id+"-v1", html: card.html, screenshot: card.screenshot, createdAt: "" }],
+//       links: [] }
+//   - canvas.designSpecId → canvas.designSystem.activeSpecId（保留旧字段以兼容回读）
+//   - formatVersion 写为 4
+func migrateProjectV2(raw []byte) ([]byte, error) {
+	if len(raw) == 0 {
+		return raw, nil
+	}
+
+	// 解析为通用 map 以便安全探测/改写任意 schema
+	var doc map[string]interface{}
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		// 解析失败时不要阻塞旧文件打开，原样返回
+		return raw, nil
+	}
+
+	// 探测当前 formatVersion（缺失视为 0，触发迁移）
+	var fv float64
+	if v, ok := doc["formatVersion"]; ok {
+		switch n := v.(type) {
+		case float64:
+			fv = n
+		case int:
+			fv = float64(n)
+		case int64:
+			fv = float64(n)
+		}
+	}
+
+	if fv >= float64(currentProjectFormatVersion) {
+		// 已是最新（或更高），不需要迁移；但仍标准化 formatVersion 字段类型
+		return raw, nil
+	}
+
+	canvasRaw, _ := doc["canvas"].(map[string]interface{})
+	if canvasRaw == nil {
+		canvasRaw = map[string]interface{}{}
+		doc["canvas"] = canvasRaw
+	}
+
+	// 1) cards → pages（仅当 pages 缺失时执行，避免覆盖新写入）
+	if _, hasPages := canvasRaw["pages"]; !hasPages {
+		if cardsRaw, ok := canvasRaw["cards"].([]interface{}); ok {
+			pages := make([]interface{}, 0, len(cardsRaw))
+			for _, c := range cardsRaw {
+				card, ok := c.(map[string]interface{})
+				if !ok {
+					continue
+				}
+				id, _ := card["id"].(string)
+				if id == "" {
+					continue
+				}
+				label, _ := card["label"].(string)
+				html, _ := card["html"].(string)
+				screenshot, _ := card["screenshot"].(string)
+				pageType, _ := card["pageType"].(string)
+				if pageType == "" {
+					pageType = "app"
+				}
+				pages = append(pages, map[string]interface{}{
+					"id":       id,
+					"name":     label,
+					"pageType": pageType,
+					"variants": []interface{}{
+						map[string]interface{}{
+							"id":         id + "-v1",
+							"html":       html,
+							"screenshot": screenshot,
+							"createdAt":  "",
+						},
+					},
+					"links": []interface{}{},
+				})
+			}
+			canvasRaw["pages"] = pages
+		} else {
+			canvasRaw["pages"] = []interface{}{}
+		}
+	}
+
+	// 2) canvas.designSystem.activeSpecId ← canvas.designSpecId（保留旧字段以兼容回读）
+	if _, hasDesignSystem := canvasRaw["designSystem"]; !hasDesignSystem {
+		designSystem := map[string]interface{}{}
+		if specId, ok := canvasRaw["designSpecId"].(string); ok && specId != "" {
+			designSystem["activeSpecId"] = specId
+		} else {
+			designSystem["activeSpecId"] = ""
+		}
+		canvasRaw["designSystem"] = designSystem
+	}
+
+	// 3) 写回 formatVersion: 4
+	doc["formatVersion"] = currentProjectFormatVersion
+
+	out, err := json.Marshal(doc)
+	if err != nil {
+		// 序列化失败时退回原内容，避免破坏数据
+		return raw, nil
+	}
+	return out, nil
+}
+
 type RecentProject struct {
 	Path         string    `json:"path"`
 	Name         string    `json:"name"`
@@ -70,7 +187,12 @@ func (s *ProjectService) CreateProject(name string, projectJson string, sessions
 	id := generateId()
 	projPath := projectPath(projectsDir, id)
 
-	if err := os.WriteFile(projPath, []byte(projectJson), 0644); err != nil {
+	// 创建项目时也走一遍 migrateProjectV2，确保新写入的文件即为 v4 schema
+	migrated, err := migrateProjectV2([]byte(projectJson))
+	if err != nil {
+		migrated = []byte(projectJson)
+	}
+	if err := os.WriteFile(projPath, migrated, 0644); err != nil {
 		return "", err
 	}
 	if sessionsJson != "" {
@@ -95,7 +217,7 @@ func (s *ProjectService) CreateProject(name string, projectJson string, sessions
 			ColorScheme  string `json:"colorScheme"`
 		} `json:"canvas"`
 	}
-	json.Unmarshal([]byte(projectJson), &parsed)
+	json.Unmarshal(migrated, &parsed)
 
 	parsedName := parsed.Meta.Name
 	if parsedName == "" {
@@ -119,7 +241,12 @@ func (s *ProjectService) WriteProjectFiles(path string, projectJson string, sess
 	dir := filepath.Dir(path)
 	base := strings.TrimSuffix(filepath.Base(path), ".project.json")
 
-	if err := os.WriteFile(path, []byte(projectJson), 0644); err != nil {
+	// 写入时统一使用 v4 schema：强制走一遍 migrateProjectV2，确保 formatVersion: 4 写盘
+	migrated, err := migrateProjectV2([]byte(projectJson))
+	if err != nil {
+		migrated = []byte(projectJson)
+	}
+	if err := os.WriteFile(path, migrated, 0644); err != nil {
 		return err
 	}
 	if sessionsJson != "" {
@@ -146,7 +273,7 @@ func (s *ProjectService) WriteProjectFiles(path string, projectJson string, sess
 			ColorScheme  string `json:"colorScheme"`
 		} `json:"canvas"`
 	}
-	json.Unmarshal([]byte(projectJson), &parsed)
+	json.Unmarshal(migrated, &parsed)
 	var createdAt time.Time
 	if parsed.Meta.CreatedAt != "" {
 		createdAt, _ = time.Parse(time.RFC3339, parsed.Meta.CreatedAt)
@@ -277,6 +404,12 @@ func (s *ProjectService) ReadProject(path string) (string, error) {
 			return "", nil
 		}
 		return "", err
+	}
+
+	// 读取时静默迁移：formatVersion < 4 的项目文件自动升级到 v4 schema（cards→pages、designSpec→designSystem）
+	// 失败时退回原内容，确保旧项目一定能被打开
+	if migrated, mErr := migrateProjectV2(projectData); mErr == nil {
+		projectData = migrated
 	}
 
 	sessionsData, _ := os.ReadFile(filepath.Join(dir, base+".sessions.json"))

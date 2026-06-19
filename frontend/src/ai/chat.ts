@@ -1,8 +1,9 @@
 import type { PageType } from '../prompts/page-types'
 import type { ColorScheme } from '../prompts/colors'
-import type { DesignSpecId } from '../prompts/designSpecs'
 import type { DesignSkill } from '../prompts/skills'
 import type { ProductBlueprint } from '../prompts/blueprint'
+import type { VisualDirection } from '../prompts/directions'
+import type { BrandAsset } from '../prompts/brandAssets'
 import { extractBlueprintUpdate } from '../prompts/blueprint'
 import { buildSystemPrompt } from '../prompts/system'
 import { searchIcons, searchIconsToolDefinition } from './tools'
@@ -34,6 +35,21 @@ export interface PreflightData {
   questions: PreflightQuestion[]
 }
 
+/** Phase 3：变体（来自 LLM 的 VARIANTS 块） */
+export interface VariantResult {
+  name?: string
+  dimension?: 'colors' | 'layout' | 'tone' | 'mixed'
+  html: string
+  critique?: string
+}
+
+/** Phase 3：局部元素修改（来自 LLM 的 ELEMENT_DIFF 块） */
+export interface ElementDiff {
+  xpath?: string
+  oldHtml: string
+  newHtml: string
+}
+
 export interface LLMResult {
   content: string
   html: string | null
@@ -41,6 +57,10 @@ export interface LLMResult {
   critique?: DesignCritique | null
   preflight?: PreflightData | null
   blueprintUpdate?: { action: string; blueprint: ProductBlueprint } | null
+  /** Phase 3：变体（仅在调用"生成 N 个变体"时填充） */
+  variants?: VariantResult[] | null
+  /** Phase 3：元素级 diff（仅在"局部修改模式"下填充） */
+  elementDiff?: ElementDiff | null
 }
 
 const TOOLS: ToolDefinition[] = [
@@ -73,6 +93,8 @@ function extractHTML(text: string): string | null {
   let cleaned = text.replace(/<!-- DESIGN_CRITIQUE[\s\S]*?DESIGN_CRITIQUE -->/g, '')
   cleaned = cleaned.replace(/<!-- PREFLIGHT[\s\S]*?PREFLIGHT -->/g, '')
   cleaned = cleaned.replace(/<!-- BLUEPRINT_UPDATE[\s\S]*?BLUEPRINT_UPDATE -->/g, '')
+  cleaned = cleaned.replace(/<!-- VARIANTS[\s\S]*?VARIANTS -->/g, '')
+  cleaned = cleaned.replace(/<!-- ELEMENT_DIFF[\s\S]*?ELEMENT_DIFF -->/g, '')
   const md = cleaned.match(/```html?\s*([\s\S]*?)```/)
   if (md) cleaned = md[1]
   const md2 = cleaned.match(/```\s*([\s\S]*?)```/)
@@ -110,6 +132,45 @@ function extractPreflight(text: string): PreflightData | null {
   }
 }
 
+/** Phase 3：从 VARIANTS 块抽取多个变体 */
+function extractVariants(text: string): VariantResult[] | null {
+  const match = text.match(/<!-- VARIANTS\s*([\s\S]*?)\s*VARIANTS -->/)
+  if (!match) return null
+  try {
+    const data = JSON.parse(match[1].trim())
+    if (Array.isArray(data)) {
+      return data.map((v: any) => ({
+        name: v.name,
+        dimension: v.dimension,
+        html: String(v.html || ''),
+        critique: v.critique,
+      })).filter(v => !!v.html)
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+/** Phase 3：从 ELEMENT_DIFF 块抽取单元素 diff */
+function extractElementDiff(text: string): ElementDiff | null {
+  const match = text.match(/<!-- ELEMENT_DIFF\s*([\s\S]*?)\s*ELEMENT_DIFF -->/)
+  if (!match) return null
+  try {
+    const data = JSON.parse(match[1].trim())
+    if (data && typeof data.oldHtml === 'string' && typeof data.newHtml === 'string') {
+      return {
+        xpath: data.xpath,
+        oldHtml: data.oldHtml,
+        newHtml: data.newHtml,
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 function stripDSML(text: string): string {
   if (!text.includes('DSML')) return text
   const pipe = '[\\|\uFF5C]'
@@ -138,16 +199,73 @@ function parseDSMLToolCalls(text: string): { name: string; args: string }[] | nu
   return calls.length > 0 ? calls : null
 }
 
+/** 局部修改模式系统指令 */
+const ELEMENT_DIFF_PROTOCOL = `
+## 局部修改模式
+
+用户已选中元素（xpath: {xpath}）。**只修改这个元素及其就近样式**：
+
+- 严禁重排整页布局（不动其它元素的 HTML 结构）
+- 严禁删除/重命名其它元素
+- 输出必须包含被修改元素的 outerHTML（替换前/后两个版本）
+- 替换前后两个 outerHTML 的 diff 行数 < 10 行
+
+输出格式：
+
+<!-- ELEMENT_DIFF
+{
+  "xpath": "...",
+  "oldHtml": "<原 outerHTML>",
+  "newHtml": "<新 outerHTML>"
+}
+ELEMENT_DIFF -->
+
+接着给出完整的新 HTML（包含修改后的元素）。
+`
+
+/** 变体生成模式系统指令 */
+const VARIANTS_PROTOCOL = `
+## 变体生成模式
+
+为该画板生成 3 个变体，差异维度：颜色 / 布局骨架 / 文案语气。
+
+每个变体输出一份独立 HTML，并附上名称（变体 1 / 变体 2 / 变体 3）与 dimension。
+
+输出格式（在 HTML 之后）：
+
+<!-- VARIANTS
+[
+  { "name": "变体 1", "dimension": "colors", "html": "<!DOCTYPE html>...完整 HTML...", "critique": "一句话点评" },
+  { "name": "变体 2", "dimension": "layout", "html": "...", "critique": "..." },
+  { "name": "变体 3", "dimension": "tone", "html": "...", "critique": "..." }
+]
+VARIANTS -->
+`
+
 export interface SendMessageOptions {
   pageType: PageType
   colorScheme: ColorScheme
-  designSpecId?: DesignSpecId
+  designSpecId?: string
   customDesignContent?: string
   history: Array<{ role: string; content: string }>
   selectedHtml?: string
+  /** Phase 3：用户已选中的元素（局部修改模式） */
+  selectedElement?: { outerHTML: string; xpath: string; preview: string } | null
   skill?: DesignSkill | null
   isFirstMessage?: boolean
   blueprint?: ProductBlueprint | null
+  direction?: VisualDirection | null
+  brandAsset?: BrandAsset | null
+  /** Phase 3：是否使用变体生成模式（替换单 HTML 输出为多 variants 块） */
+  variantsMode?: boolean
+  /** Phase 4 · Task 17：组件清单（注入到 system prompt） */
+  components?: { id?: string; name: string; html: string }[] | null
+  /** Phase 4 · Task 17：用户"已选"组件（id + name + 简短描述，注入到 system prompt） */
+  selectedComponents?: { id: string; name: string; snippet: string }[] | null
+  /** Phase 4 · Task 20：参考图（dataURL 列表） */
+  referenceImages?: string[]
+  /** Phase 4 · Task 15：QA 报告追加（把 QA 结果追加到 system prompt） */
+  qaReport?: string | null
 }
 
 const MAX_TOOL_ROUNDS = 8
@@ -160,10 +278,54 @@ function callLLM(config: LLMConfig, messages: ChatMessage[], tools?: ToolDefinit
   return callOpenAICompatible(config, messages, tools)
 }
 
+/** 局部修改：在整页 HTML 上应用 ELEMENT_DIFF（基于 outerHTML 精确替换） */
+export function applyElementDiffToHtml(fullHtml: string, diff: ElementDiff): string {
+  if (!fullHtml || !diff?.oldHtml || !diff?.newHtml) return fullHtml
+  // 简单策略：oldHtml 在 fullHtml 中精确匹配则替换
+  const idx = fullHtml.indexOf(diff.oldHtml)
+  if (idx < 0) return fullHtml
+  return fullHtml.substring(0, idx) + diff.newHtml + fullHtml.substring(idx + diff.oldHtml.length)
+}
+
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
-  const systemPrompt = buildSystemPrompt(options.pageType, options.colorScheme, options.designSpecId, options.customDesignContent, options.skill, options.isFirstMessage, options.blueprint)
+  let systemPrompt = buildSystemPrompt(
+    options.pageType,
+    options.colorScheme,
+    options.designSpecId,
+    options.customDesignContent,
+    options.skill,
+    options.isFirstMessage,
+    options.blueprint,
+    options.direction,
+    options.brandAsset,
+    options.components ?? null,
+  )
+
+  // Phase 4 · Task 17：把用户"已选"组件清单追加到 system prompt
+  if (options.selectedComponents && options.selectedComponents.length > 0) {
+    systemPrompt += '\n\n## 当前用户已选组件清单（请优先使用）\n' +
+      options.selectedComponents
+        .map(c => `- [id=${c.id}] ${c.name}：${c.snippet}`)
+        .join('\n')
+  }
+
+  // Phase 3：局部修改模式 / 变体模式追加系统指令
+  const extraProtocols: string[] = []
+  if (options.selectedElement) {
+    extraProtocols.push(ELEMENT_DIFF_PROTOCOL.replace('{xpath}', options.selectedElement.xpath || '(未提供)'))
+  }
+  if (options.variantsMode) {
+    extraProtocols.push(VARIANTS_PROTOCOL)
+  }
+  // Phase 4 · Task 15：QA 报告追加
+  if (options.qaReport) {
+    extraProtocols.push(`## 自动质检反馈\n\n系统对你的设计稿进行了 DOM/Token/A11y 三类质检，请根据以下问题修正：\n\n${options.qaReport}\n\n请输出一份修正后的完整 HTML（不要 markdown 包裹）。`)
+  }
+  if (extraProtocols.length > 0) {
+    systemPrompt = systemPrompt + '\n\n' + extraProtocols.join('\n\n')
+  }
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -178,6 +340,26 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
       role: 'assistant',
       content: '好的，我已经了解了你当前的设计稿，请告诉我你想要做哪些修改。',
     })
+  }
+
+  if (options.selectedElement) {
+    messages.push({
+      role: 'user',
+      content: `我选中了页面中的一个元素（xpath: ${options.selectedElement.xpath}）：\n\n\`\`\`html\n${options.selectedElement.outerHTML}\n\`\`\`\n\n请只修改这个元素。`,
+    })
+  }
+
+  // Phase 4 · Task 20：参考图
+  if (options.referenceImages && options.referenceImages.length > 0) {
+    for (const dataUrl of options.referenceImages) {
+      messages.push({
+        role: 'user',
+        content: [
+          { type: 'text', text: '以下是一张参考图，请在生成 HTML 前先分析它（主色 / 布局骨架 / 关键组件）：' },
+          { type: 'image_url', image_url: { url: dataUrl } },
+        ] as any,
+      })
+    }
   }
 
   messages.push({ role: 'user', content: userText })
@@ -242,24 +424,37 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
       continue
     }
 
-    const html = extractHTML(stripDSML(finalContent))
+    let html = extractHTML(stripDSML(finalContent))
     const critique = extractCritique(finalContent)
     const preflight = extractPreflight(finalContent)
     const blueprintUpdate = extractBlueprintUpdate(finalContent)
-    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html, 'critique:', !!critique, 'preflight:', !!preflight, 'blueprint:', !!blueprintUpdate)
-    if (!html && finalContent) {
-      console.log('[LLM] raw content (first 500):', finalContent.slice(0, 500))
+    const elementDiff = extractElementDiff(finalContent)
+    const variants = options.variantsMode ? extractVariants(finalContent) : null
+    console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html, 'variants:', variants?.length ?? 0)
+
+    // Phase 3：局部修改：若只有 elementDiff 没有新 HTML，回退用旧 html
+    if (options.selectedElement && elementDiff && !html && options.selectedHtml) {
+      html = applyElementDiffToHtml(options.selectedHtml, elementDiff)
     }
 
     // LLM 输出了 critique/blueprint 但没有 HTML，追问一轮让它补充
-    if (!html && !preflight && round < MAX_TOOL_ROUNDS - 1) {
+    if (!html && !preflight && !variants && !options.variantsMode && round < MAX_TOOL_ROUNDS - 1) {
       console.log('[LLM] round', round, 'no HTML found, asking model to output HTML')
       messages.push({ role: 'assistant', content: finalContent })
       messages.push({ role: 'user', content: '你的回复中没有包含 HTML 设计稿。请直接输出完整的 HTML 文件（以 <!DOCTYPE html> 开头），不需要重复设计评审和蓝图。' })
       continue
     }
 
-    return { content: html ? '已为你生成了设计稿。' : finalContent, html, screenshot: '', critique, preflight, blueprintUpdate }
+    return {
+      content: html ? '已为你生成了设计稿。' : finalContent,
+      html,
+      screenshot: '',
+      critique,
+      preflight,
+      blueprintUpdate,
+      variants,
+      elementDiff,
+    }
   }
 
   // 达到最大轮次，用最后一条 assistant 消息的内容
@@ -270,8 +465,19 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
   const critique = extractCritique(lastContent)
   const preflight = extractPreflight(lastContent)
   const blueprintUpdate = extractBlueprintUpdate(lastContent)
+  const elementDiff = extractElementDiff(lastContent)
+  const variants = options.variantsMode ? extractVariants(lastContent) : null
   console.log('[LLM] max rounds reached, content length:', lastContent.length, 'html extracted:', !!html)
-  return { content: html ? '已为你生成了设计稿。' : lastContent, html, screenshot: '', critique, preflight, blueprintUpdate }
+  return {
+    content: html ? '已为你生成了设计稿。' : lastContent,
+    html,
+    screenshot: '',
+    critique,
+    preflight,
+    blueprintUpdate,
+    variants,
+    elementDiff,
+  }
 }
 
 export async function sendMessageToLLM(
@@ -283,8 +489,17 @@ export async function sendMessageToLLM(
   if (configStore.isConfigured) {
     try {
       const result = await callRealLLM(userText, options)
-      if (result.html || result.preflight) return result
-      return { content: result.content || 'AI 已回复，但未能生成设计稿，请重试。', html: null, screenshot: '', critique: result.critique, preflight: result.preflight, blueprintUpdate: result.blueprintUpdate }
+      if (result.html || result.preflight || (options.variantsMode && result.variants)) return result
+      return {
+        content: result.content || 'AI 已回复，但未能生成设计稿，请重试。',
+        html: null,
+        screenshot: '',
+        critique: result.critique,
+        preflight: result.preflight,
+        blueprintUpdate: result.blueprintUpdate,
+        variants: result.variants,
+        elementDiff: result.elementDiff,
+      }
     } catch (err) {
       const msg = (err as Error).message || String(err)
       return { content: `❌ API 错误: ${msg}`, html: null, screenshot: '' }

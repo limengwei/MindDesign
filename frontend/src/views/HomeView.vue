@@ -3,6 +3,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getRecentProjects, createProject, readProject, writeProjectFiles, updateProjectMeta, deleteProject, type RecentProject } from '../services/projectBridge'
 import { useLLMConfigStore } from '../stores/llmConfigStore'
+import { useCanvasStore } from '../stores/canvasStore'
+import { importSharePackage, type ShareableProjectData } from '../utils/sharePackage'
 import WindowControls from '../components/WindowControls.vue'
 import DesignSpecSelector from '../components/DesignSpecSelector.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
@@ -11,21 +13,77 @@ import {
   DESIGN_SPEC_LABELS,
   getDesignSpecById,
 } from '../prompts/designSpecs'
+import { VISUAL_DIRECTIONS, type VisualDirection } from '../prompts/directions'
 
 const router = useRouter()
 const llmConfigStore = useLLMConfigStore()
+const canvasStore = useCanvasStore()
 const projects = ref<RecentProject[]>([])
 const loading = ref(true)
 const showCreateForm = ref(false)
 const showSettingsPanel = ref(false)
 const projectName = ref('')
 const pageType = ref('app')
-const designSpecId = ref<DesignSpecId>('none')
+const designSpecId = ref<string>('none')
 const customSpecName = ref('')
 const customSpecContent = ref('')
 const showCustomImport = ref(false)
 const savedCustomSpecs = ref<{ name: string; content: string }[]>([])
 const selectedCustomSpecIndex = ref(-1)
+const activeDirectionId = ref<string | null>(null)
+const visualDirections: VisualDirection[] = VISUAL_DIRECTIONS
+
+// Phase 4 · Task 18：分享包导入
+const shareImport = ref<ShareableProjectData | null>(null)
+const importingShare = ref(false)
+const importError = ref('')
+const shareFileInput = ref<HTMLInputElement | null>(null)
+
+function triggerShareImport() {
+  importError.value = ''
+  shareFileInput.value?.click()
+}
+
+async function onShareFileChange(e: Event) {
+  const target = e.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) return
+  if (!file.name.endsWith('.mindshare')) {
+    importError.value = '请选择 .mindshare 文件'
+    target.value = ''
+    return
+  }
+  importingShare.value = true
+  try {
+    const data = await importSharePackage(file)
+    shareImport.value = data
+    importError.value = ''
+    const proj = (data.project as any) || {}
+    if (proj.name) projectName.value = String(proj.name) + '（分享）'
+    if (proj.pageType && ['app', 'web', 'desktop'].includes(proj.pageType)) {
+      pageType.value = proj.pageType
+    }
+    if (proj.designSpec?.id) designSpecId.value = proj.designSpec.id
+  } catch (err) {
+    importError.value = '解析失败：' + ((err as Error).message || String(err))
+  } finally {
+    importingShare.value = false
+    target.value = ''
+  }
+}
+
+function getDirectionSwatches(dir: VisualDirection): string[] {
+  return [dir.colors.primary, dir.colors.accent, dir.colors.background, dir.colors.text]
+}
+
+function getDirectionCardStyle(dir: VisualDirection) {
+  return {
+    '--dir-bg': dir.colors.background,
+    '--dir-fg': dir.colors.text,
+    '--dir-primary': dir.colors.primary,
+    '--dir-accent': dir.colors.accent,
+  } as Record<string, string>
+}
 
 const pageTypes = [
   { value: 'app', label: '📱 移动 App', width: '375px' },
@@ -101,7 +159,7 @@ const showEditForm = ref(false)
 const editingProject = ref<RecentProject | null>(null)
 const editName = ref('')
 const editPageType = ref('app')
-const editDesignSpecId = ref<DesignSpecId>('none')
+const editDesignSpecId = ref<string>('none')
 const showDeleteConfirm = ref(false)
 const deleting = ref(false)
 const saving = ref(false)
@@ -110,7 +168,7 @@ function startEdit(project: RecentProject) {
   editingProject.value = project
   editName.value = project.name
   editPageType.value = project.pageType || 'app'
-  editDesignSpecId.value = (project.designSpecId || 'none') as DesignSpecId
+  editDesignSpecId.value = (project.designSpecId || 'none')
   showEditForm.value = true
 }
 
@@ -189,6 +247,37 @@ async function handleCreate() {
   creating.value = true
   try {
     const name = projectName.value || '未命名项目'
+    // 同步视觉方向到 canvasStore（让 Design 视图直接拿到）
+    canvasStore.setActiveDirectionId(activeDirectionId.value)
+
+    // Phase 4 · Task 18：分享包恢复
+    if (shareImport.value) {
+      const sessions = (shareImport.value.sessions as any[]) || []
+      const cards = (shareImport.value.cards as any[]) || []
+      const project = (shareImport.value.project as any) || {}
+      const projectJson = JSON.stringify({
+        formatVersion: 3,
+        meta: {
+          name,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          appVersion: '1.0.0',
+        },
+        canvas: {
+          pageType: pageType.value,
+          designSpecId: designSpecId.value,
+          customDesignContent: project?.designSpec?.id ? '' : '',
+          activeDirectionId: null,
+          viewport: { zoom: 1, scrollX: 0, scrollY: 0 },
+        },
+      })
+      const cardsJson = JSON.stringify({ cards })
+      const sessionsJson = JSON.stringify({ sessions })
+      const path = await createProject(name, projectJson, sessionsJson, cardsJson)
+      router.push({ name: 'design', query: { path } })
+      return
+    }
+
     const projectJson = JSON.stringify({
       formatVersion: 3,
       meta: {
@@ -201,6 +290,7 @@ async function handleCreate() {
         pageType: pageType.value,
         designSpecId: designSpecId.value,
         customDesignContent: getCustomContent(),
+        activeDirectionId: activeDirectionId.value,
         viewport: { zoom: 1, scrollX: 0, scrollY: 0 },
       },
     })
@@ -459,7 +549,29 @@ onUnmounted(() => {
 
     <div v-if="showCreateForm" class="dialog-overlay" @click.self="showCreateForm = false">
       <div class="dialog dialog-create">
-        <h2 class="dialog-title">新建项目</h2>
+        <h2 class="dialog-title">{{ shareImport ? '从分享包恢复' : '新建项目' }}</h2>
+
+        <div v-if="!shareImport" class="form-group import-share-group">
+          <button class="btn btn-secondary import-share-btn" :disabled="importingShare" @click="triggerShareImport">
+            📥 导入 .mindshare 分享包
+          </button>
+          <input
+            ref="shareFileInput"
+            type="file"
+            accept=".mindshare"
+            style="display:none"
+            @change="onShareFileChange"
+          />
+          <p v-if="importingShare" class="hint">解析中…</p>
+          <p v-if="importError" class="hint error">⚠ {{ importError }}</p>
+        </div>
+
+        <div v-if="shareImport" class="share-preview">
+          <div class="share-row">📦 已加载分享包：<strong>{{ ((shareImport as any).project?.name) || '未命名' }}</strong></div>
+          <div class="share-row">画板数：{{ Array.isArray(shareImport.sessions) ? shareImport.sessions.length : 0 }}</div>
+          <div class="share-row">组件数：{{ Array.isArray(shareImport.components) ? shareImport.components.length : 0 }}</div>
+          <button class="btn btn-secondary" @click="shareImport = null">取消导入</button>
+        </div>
 
         <div class="form-group">
           <label>项目名称</label>
@@ -483,6 +595,31 @@ onUnmounted(() => {
             >
               <div class="option-label">{{ pt.label }}</div>
               <div class="option-hint">{{ pt.width }}</div>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>视觉方向 <span class="label-hint">（可选，影响整体观感）</span></label>
+          <div class="direction-grid">
+            <button
+              v-for="dir in visualDirections"
+              :key="dir.id"
+              :class="['direction-card', { active: activeDirectionId === dir.id }]"
+              :style="getDirectionCardStyle(dir)"
+              @click="activeDirectionId = activeDirectionId === dir.id ? null : dir.id"
+            >
+              <div class="direction-emoji">{{ dir.emoji }}</div>
+              <div class="direction-name">{{ dir.name }}</div>
+              <div class="direction-desc">{{ dir.description }}</div>
+              <div class="direction-swatches">
+                <span
+                  v-for="(c, i) in getDirectionSwatches(dir)"
+                  :key="i"
+                  class="swatch"
+                  :style="{ background: c }"
+                ></span>
+              </div>
             </button>
           </div>
         </div>
@@ -623,4 +760,14 @@ onUnmounted(() => {
 .import-hint a { color: var(--color-primary-light); text-decoration: none; }
 .import-hint a:hover { text-decoration: underline; }
 .textarea { resize: vertical; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: var(--font-base); line-height: 1.5; }
+.label-hint { font-weight: 400; color: var(--text-muted); font-size: var(--font-sm); }
+.direction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+.direction-card { background: var(--bg-surface); border: 2px solid var(--border-default); border-radius: 12px; padding: 12px 14px; cursor: pointer; text-align: left; transition: all var(--transition-normal); color: var(--text-primary); display: flex; flex-direction: column; gap: 6px; min-height: 130px; }
+.direction-card:hover { border-color: var(--dir-primary, var(--color-primary-light)); transform: translateY(-1px); }
+.direction-card.active { border-color: var(--dir-primary, var(--color-primary-light)); background: linear-gradient(135deg, var(--bg-elevated), color-mix(in srgb, var(--dir-primary, var(--color-primary-light)) 10%, var(--bg-elevated))); }
+.direction-emoji { font-size: 24px; line-height: 1; }
+.direction-name { font-size: var(--font-md); font-weight: 600; color: var(--text-primary); }
+.direction-desc { font-size: var(--font-xs); color: var(--text-muted); line-height: 1.4; flex: 1; }
+.direction-swatches { display: flex; gap: 4px; margin-top: 4px; }
+.swatch { width: 16px; height: 16px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.18); }
 </style>

@@ -2,12 +2,15 @@ import type { PageType } from './page-types'
 import type { ColorScheme } from './colors'
 import type { DesignSpecId } from './designSpecs'
 import type { DesignSkill } from './skills'
+import type { VisualDirection } from './directions'
+import type { BrandAsset } from './brandAssets'
 import { PREFLIGHT_SYSTEM_ADDON } from './preflight'
 import { BLUEPRINT_PROTOCOL, buildBlueprintPromptSection, type ProductBlueprint } from './blueprint'
 import { PAGE_TYPE_CONSTRAINTS } from './page-types'
 import { ICON_CONSTRAINTS } from './icons'
 import { COLOR_CONSTRAINTS } from './colors'
 import { buildDesignSpecPrompt } from './designSpecs'
+import { brandAssetToPromptJSON } from './brandAssets'
 
 const DESIGN_CONSTRAINTS = `
 ## 设计硬约束（必须严格遵守）
@@ -75,19 +78,50 @@ DESIGN_CRITIQUE -->
 - 如果某个维度得分低于 3 分，必须在 suggestions 中说明原因和改进方法
 `
 
+const REFERENCE_IMAGE_PROTOCOL = `
+## 参考图分析模式
+
+当用户提供参考图（拖拽、粘贴或附加图片）时，你必须：
+1. 先用一段简短的中文（不超过 5 行）描述对参考图的视觉观察：
+   - 主色（≤ 4 个 HEX 值）
+   - 布局骨架（如：左导航 + 主内容 + 右侧栏 / 单列瀑布 / 卡片网格）
+   - 关键组件（如：Hero、卡片、表单、Tab 栏等）
+2. 在生成的 HTML 中尽量保留其结构骨架与配色思路
+3. 描述放在 HTML 之前，作为单独的段落
+`
+
+const COMPONENT_PRIORITY_PROTOCOL = `
+## 组件优先
+
+当用户组件库非空时（见上方"组件清单"段），请**优先复用**已存在的组件；如需新组件，请先询问用户或明确说明"新增组件"。生成的 HTML 应当尽可能与已有组件风格保持一致。
+`
+
 export function buildSystemPrompt(
   pageType: PageType,
   colorScheme: ColorScheme,
-  designSpecId: DesignSpecId = 'none',
+  designSpecId: string = 'none',
   customDesignContent?: string,
   skill?: DesignSkill | null,
   isFirstMessage?: boolean,
   blueprint?: ProductBlueprint | null,
+  direction?: VisualDirection | null,
+  brandAsset?: BrandAsset | null,
+  components?: { name: string; html: string }[] | null,
 ): string {
   const designSpecSection = buildDesignSpecPrompt(designSpecId, customDesignContent)
   const skillSection = skill?.systemPromptAddons ? `\n${skill.systemPromptAddons}\n` : ''
   const preflightSection = (skill?.preflightEnabled && isFirstMessage) ? `\n${PREFLIGHT_SYSTEM_ADDON}\n` : ''
   const blueprintSection = blueprint ? buildBlueprintPromptSection(blueprint) : ''
+  // 视觉方向补充：未指定 DesignSpec（或与方向叠加时）追加方向 addon
+  const directionSection = direction ? `\n## 视觉方向：${direction.name}\n${direction.systemPromptAddon}\n` : ''
+  // 品牌资产（结构化 token JSON）：优先级低于 designSpec.fullPrompt（叙述式），高于内置默认
+  const brandAssetSection = brandAsset
+    ? `\n## 品牌资产（结构化 token）\n\n以下是该规范的结构化 token，**必须严格按这些数值生成 CSS**：\n\n\`\`\`json\n${brandAssetToPromptJSON(brandAsset)}\n\`\`\`\n`
+    : ''
+  // 组件清单（Phase 4 · Task 17）
+  const componentsSection = (components && components.length > 0)
+    ? `\n## 组件清单\n\n项目已有以下组件，请在生成新页面时优先复用：\n${components.map((c, i) => `${i + 1}. **${c.name}** —— \`\`\`html\n${c.html}\n\`\`\``).join('\n\n')}\n`
+    : ''
 
   return `你是 MindDesign 的 AI 设计师助手。你通过自然语言对话为用户生成 UI 设计稿。
 
@@ -152,6 +186,7 @@ ${PAGE_TYPE_CONSTRAINTS[pageType]}
 
 ${COLOR_CONSTRAINTS[colorScheme]}
 ${designSpecSection ? '\n' + designSpecSection + '\n' : ''}${skillSection}
+${directionSection}${brandAssetSection}
 ${DESIGN_CONSTRAINTS}
 ## 技术规范
 
@@ -165,6 +200,8 @@ ${preflightSection}
 ${CRITIQUE_PROTOCOL}
 ${BLUEPRINT_PROTOCOL}
 ${blueprintSection}
+${componentsSection ? componentsSection + '\n' : ''}${componentsSection ? COMPONENT_PRIORITY_PROTOCOL + '\n' : ''}
+${REFERENCE_IMAGE_PROTOCOL}
 ## 示例输出
 
 用户："设计一个登录页面"

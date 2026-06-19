@@ -7,13 +7,19 @@ import { ScrollBar } from '@leafer-in/scroll'
 import { toPng } from 'html-to-image'
 import { DotGrid } from './dotGrid'
 import SvgIcon from '../components/SvgIcon.vue'
-import { useCanvasStore, type CanvasCard } from '../stores/canvasStore'
+import VersionHistory from '../components/VersionHistory.vue'
+import ComponentLibrary from '../components/ComponentLibrary.vue'
+import { useCanvasStore, type CanvasCard, type Page, type Link } from '../stores/canvasStore'
 import { saveProject } from '../stores/autoSave'
 import { fetchProxiedImage } from '../services/projectBridge'
+import { sendMessageToLLM } from '../ai/chat'
+import { remapImageUrls } from '../services/dataSource'
 
 const emit = defineEmits<{
   exportCard: [cardId: string]
   previewCard: [cardId: string]
+  exportPngCurrent: []
+  newPage: []
 }>()
 
 const confirmState = ref<{ show: boolean; cardId: string; message: string }>({
@@ -57,6 +63,34 @@ let breathRafId = 0
 let renderVersion = 0
 let appTapEventId: any = null
 const cardEventIds = new Map<string, any>()
+
+// Phase 3：用于画板 iframe 选择
+const selectionIframeRef = ref<HTMLIFrameElement | null>(null)
+const showHotspots = ref(false)  // Alt 按下时显示
+const contextMenu = ref<{ show: boolean; x: number; y: number; xpath: string; preview: string }>({
+  show: false, x: 0, y: 0, xpath: '', preview: '',
+})
+const hotspotsByPage = ref<Map<string, Group>>(new Map())
+// 元素选择高亮（覆盖在 iframe 上）
+const hoverHighlight = ref<{ x: number; y: number; w: number; h: number } | null>(null)
+const selectHighlight = ref<{ x: number; y: number; w: number; h: number; xpath: string; preview: string } | null>(null)
+// 链接到画板菜单
+const linkTargetMenu = ref<{ show: boolean; x: number; y: number; xpath: string } | null>(null)
+// 变体对话框
+const variantsModal = ref<{ show: boolean; pageId: string; busy: boolean; error: string | null }>({
+  show: false, pageId: '', busy: false, error: null,
+})
+const variantsList = ref<Array<{ html: string; screenshot: string; name?: string; dimension?: string; critique?: string }>>([])
+// 当前 hover 的元素 xpath（用于 hover 高亮）
+const hoverXpath = ref('')
+// Phase 4：版本历史弹窗
+const versionHistory = ref<{ show: boolean; pageId: string }>({ show: false, pageId: '' })
+// Phase 4：另存为组件对话框
+const saveComponent = ref<{ show: boolean; html: string; defaultName: string; source: 'page' | 'selection' }>({ show: false, html: '', defaultName: '', source: 'page' })
+const componentNameInput = ref('')
+const componentCategoryInput = ref('')
+// Phase 4：组件库面板
+const showComponentLibrary = ref(false)
 
 onMounted(() => {
   if (!containerRef.value) return
@@ -103,10 +137,27 @@ onMounted(() => {
   })
   resizeObserver.observe(containerRef.value)
 
+  // Alt 键按下显示 hotspots
+  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keyup', onKeyUp)
+
   nextTick(() => {
     if (canvasStore.cards.length > 0) renderAll()
   })
 })
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.altKey && !showHotspots.value) {
+    showHotspots.value = true
+    renderAll() // 重渲染以叠加 hotspot
+  }
+}
+function onKeyUp(e: KeyboardEvent) {
+  if (!e.altKey && showHotspots.value) {
+    showHotspots.value = false
+    renderAll()
+  }
+}
 
 onUnmounted(() => {
   if (breathRafId) { cancelAnimationFrame(breathRafId); breathRafId = 0 }
@@ -116,6 +167,8 @@ onUnmounted(() => {
   cardEventIds.clear()
   if (app && appTapEventId) { app.off_(appTapEventId); appTapEventId = null }
   app?.destroy(); app = null; treeLayer = null; skyLayer = null
+  window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keyup', onKeyUp)
 })
 
 const iconCache = new Map<string, string>()
@@ -136,6 +189,11 @@ async function fetchIconSvg(name: string): Promise<string> {
 
 async function replaceIcons(html: string): Promise<string> {
   let processed = html.replace(/<link[^>]*fonts\.googleapis\.com[^>]*>/gi, '')
+
+  // Phase 3：根据当前数据源重映射图片 URL
+  if (canvasStore.imageDataSource) {
+    processed = remapImageUrls(processed, { type: canvasStore.imageDataSource })
+  }
 
   const parser = new DOMParser()
   const doc = parser.parseFromString(processed, 'text/html')
@@ -378,7 +436,7 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
 
   const label = new Text({ text: card.label, fontSize: 14, fill: '#ffffff', y: -22 })
   label.id = '__label__'
-  
+
   wrapper.add(frame)
   wrapper.add(label)
   frame.hitSelf = true
@@ -386,6 +444,11 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
   const oldCardEvtId = cardEventIds.get(card.id)
   if (oldCardEvtId) frame.off_(oldCardEvtId)
   const eventId = frame.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  // 右键菜单
+  frame.on_(PointerEvent.MENU, (e: any) => {
+    e?.preventDefault?.()
+    showContextMenuForPage(card.id, e?.x ?? 0, e?.y ?? 0)
+  })
   cardEventIds.set(card.id, eventId)
 
   return wrapper
@@ -451,6 +514,9 @@ async function renderAll(shouldZoom = false) {
       cardGroups.delete(id)
     }
   }
+  // 清理 hotspots
+  for (const [, g] of hotspotsByPage.value) g.remove()
+  hotspotsByPage.value.clear()
 
   const genId = canvasStore.generatingCardId
   const screenshotQueue: CanvasCard[] = []
@@ -466,6 +532,11 @@ async function renderAll(shouldZoom = false) {
     }
   }
 
+  // Phase 3：Alt 按下时叠加 hotspot 框
+  if (showHotspots.value) {
+    renderHotspots()
+  }
+
   if (genId) startBreathAnimation()
   if (shouldZoom && cardGroups.size > 0) {
     setTimeout(() => { if (renderVersion === v) treeLayer?.zoom('fit', 40) }, 600)
@@ -474,6 +545,41 @@ async function renderAll(shouldZoom = false) {
   for (const card of screenshotQueue) {
     if (renderVersion !== v) return
     await renderCard(card, card.id === canvasStore.selectedCardId, false)
+  }
+}
+
+/** 渲染所有 page 的 hotspots（Alt 按下时） */
+function renderHotspots() {
+  if (!treeLayer) return
+  for (const card of canvasStore.cards) {
+    const links = canvasStore.getOutgoingLinks(card.id)
+    if (links.length === 0) continue
+    const wrapper = cardGroups.get(card.id)
+    if (!wrapper) continue
+    const group = new Group({})
+    for (const link of links) {
+      const target = canvasStore.pages.find(p => p.id === link.toPageId)
+      if (!target) continue
+      const rect = new Rect({
+        x: link.hotspot.x, y: link.hotspot.y,
+        width: link.hotspot.w, height: link.hotspot.h,
+        fill: 'rgba(34,211,238,0.15)',
+        stroke: '#22d3ee',
+        strokeWidth: 2,
+        dashPattern: [4, 4],
+        cornerRadius: 4,
+      })
+      ;(rect as any).id = `__link__${link.fromSelector}__${link.toPageId}`
+      group.add(rect)
+      const arrow = new Text({
+        text: `→ ${target.name}`,
+        fontSize: 12, fill: '#22d3ee',
+        x: link.hotspot.x, y: link.hotspot.y - 16,
+      })
+      group.add(arrow)
+    }
+    wrapper.add(group)
+    hotspotsByPage.value.set(card.id, group)
   }
 }
 
@@ -637,6 +743,389 @@ const selectedCard = computed(() => {
   return canvasStore.cards.find(c => c.id === canvasStore.selectedCardId) ?? null
 })
 
+// ── Phase 3：多画板 tabs ──
+const currentPages = computed<Page[]>(() => canvasStore.pages)
+const currentPage = computed<Page | null>(() => canvasStore.getCurrentPage())
+
+function switchToPage(id: string) {
+  canvasStore.setCurrentPage(id)
+  canvasStore.selectCard(id)
+  renderAll()
+  nextTick(() => {
+    const card = canvasStore.cards.find(c => c.id === id)
+    if (card) panToCard(card)
+  })
+}
+
+function handleAddPage() {
+  const p = canvasStore.addPage({ name: `画板 ${canvasStore.pages.length + 1}` })
+  // 同步加一个 card（向前兼容）
+  const dims = p.size
+  const card: CanvasCard = {
+    id: p.id, label: p.name, html: '', screenshot: '',
+    x: 0, y: 0, width: dims.width, height: dims.height,
+  }
+  // 直接 push 到 cards，让 renderAll 接管
+  // 用 addCard-style 操作避免破坏双轨
+  const lastCard = canvasStore.cards[canvasStore.cards.length - 1]
+  const gap = 60
+  card.x = lastCard ? lastCard.x + lastCard.width + gap : 0
+  canvasStore.cards.push(card)
+  canvasStore.selectCard(card.id)
+  renderAll()
+}
+
+function handleRemovePage(id: string) {
+  if (canvasStore.pages.length <= 1) {
+    alert('至少保留一个画板')
+    return
+  }
+  if (!confirm('确定删除该画板？')) return
+  canvasStore.removePage(id)
+  renderAll()
+}
+
+const editingPageName = ref<{ id: string; value: string } | null>(null)
+function startRenamePage(id: string) {
+  const p = canvasStore.pages.find(pg => pg.id === id)
+  if (!p) return
+  editingPageName.value = { id, value: p.name }
+  nextTick(() => {
+    const input = document.querySelector('.page-name-input') as HTMLInputElement
+    input?.focus(); input?.select()
+  })
+}
+function finishRenamePage() {
+  if (!editingPageName.value) return
+  const { id, value } = editingPageName.value
+  if (value.trim()) {
+    canvasStore.renamePage(id, value.trim())
+    // 同步 card label
+    const card = canvasStore.cards.find(c => c.id === id)
+    if (card) card.label = value.trim()
+  }
+  editingPageName.value = null
+  renderAll()
+}
+
+function pageIncomingCount(id: string): number {
+  return canvasStore.getIncomingLinksCount(id)
+}
+
+// ── Phase 3：右键菜单 ──
+function showContextMenuForPage(pageId: string, x: number, y: number) {
+  canvasStore.setCurrentPage(pageId)
+  contextMenu.value = {
+    show: true,
+    x: Math.max(20, Math.min(x, (containerRef.value?.clientWidth ?? 600) - 220)),
+    y: Math.max(20, y - 60),
+    xpath: '',
+    preview: '',
+  }
+}
+function closeContextMenu() { contextMenu.value.show = false }
+
+// Phase 4：查看历史
+function handleViewHistory() {
+  const pageId = canvasStore.currentPageId
+  if (!pageId) return
+  contextMenu.value.show = false
+  versionHistory.value = { show: true, pageId }
+}
+function closeVersionHistory() { versionHistory.value = { show: false, pageId: '' } }
+
+// Phase 4 · Task 17：从组件库"插入到 prompt"：把组件名+html 注入到全局事件
+//   监听者（ChatPanel）会读取并把组件清单写入 system prompt
+function onInsertComponentToPrompt(c: { id: string; name: string; html: string }) {
+  window.dispatchEvent(new CustomEvent('md:insert-component', { detail: c }))
+  showComponentLibrary.value = false
+}
+
+// Phase 4：另存为组件（画板整体）
+function handleSaveAsComponent() {
+  const page = currentPage.value
+  if (!page) return
+  contextMenu.value.show = false
+  saveComponent.value = {
+    show: true,
+    html: page.html,
+    defaultName: page.name || '新组件',
+    source: 'page',
+  }
+  componentNameInput.value = page.name || '新组件'
+  componentCategoryInput.value = ''
+}
+
+// Phase 4：另存为组件（选中元素）
+function handleSaveSelectionAsComponent() {
+  const sel = canvasStore.selectedElement
+  if (!sel) {
+    alert('请先选中画板上的一个元素（点击画板内任意元素）')
+    return
+  }
+  contextMenu.value.show = false
+  saveComponent.value = {
+    show: true,
+    html: sel.outerHTML,
+    defaultName: `${currentPage.value?.name || '组件'}-片段`,
+    source: 'selection',
+  }
+  componentNameInput.value = `${currentPage.value?.name || '组件'}-片段`
+  componentCategoryInput.value = ''
+}
+function closeSaveComponent() { saveComponent.value = { show: false, html: '', defaultName: '', source: 'page' } }
+function confirmSaveComponent() {
+  const name = componentNameInput.value.trim()
+  if (!name) return
+  const cat = componentCategoryInput.value.trim() || undefined
+  const c = canvasStore.addComponent({
+    name,
+    html: saveComponent.value.html,
+    designSpecId: canvasStore.designSpecId,
+    ...(cat ? { props: { __category: cat } } : {}),
+  })
+  if (cat && c) (c as any).category = cat
+  closeSaveComponent()
+  alert(`组件 "${name}" 已加入组件库`)
+}
+
+// Phase 4：拖拽组件到画布 → 实例化（注入到当前画板）
+function onContainerDragOver(e: DragEvent) {
+  if (!e.dataTransfer) return
+  const types = Array.from(e.dataTransfer.types || [])
+  if (types.includes('application/x-md-component')) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+  }
+}
+async function onContainerDrop(e: DragEvent) {
+  if (!e.dataTransfer) return
+  const compId = e.dataTransfer.getData('application/x-md-component')
+  if (!compId) return
+  e.preventDefault()
+  const comp = canvasStore.getComponent(compId)
+  if (!comp) return
+  const page = currentPage.value
+  if (!page) return
+  // 任务规约：instantiate(componentId) → 将组件 HTML 注入到当前画板
+  // 简单策略：把组件 html 追加到当前 page.html 末尾
+  const injected = injectComponentHtml(page.html, comp.html)
+  if (injected) {
+    canvasStore.updateCardContent(page.id, injected, page.screenshot)
+    await saveProject()
+    alert(`已注入组件：${comp.name}`)
+  }
+}
+
+function injectComponentHtml(pageHtml: string, compHtml: string): string {
+  if (!compHtml) return pageHtml
+  // 若 compHtml 已经是完整 HTML 文档（含 <!DOCTYPE / <html>），则整体替换 body
+  if (/<!DOCTYPE/i.test(compHtml) || /<html[\s>]/i.test(compHtml)) {
+    // 抽取 <body> 内的内容
+    const bodyMatch = compHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)
+    const inner = bodyMatch ? bodyMatch[1] : compHtml
+    if (/<body[^>]*>/i.test(pageHtml)) {
+      return pageHtml.replace(/<body([^>]*)>([\s\S]*)<\/body>/i, (_m, attrs, body) => `<body${attrs}>${body}\n${inner}\n</body>`)
+    }
+    return pageHtml + '\n' + inner
+  }
+  // 否则直接 append 到 </body> 前 / 末尾
+  if (/<\/body>/i.test(pageHtml)) {
+    return pageHtml.replace(/<\/body>/i, compHtml + '\n</body>')
+  }
+  return pageHtml + '\n' + compHtml
+}
+
+// ── Phase 3：变体生成 ──
+async function handleGenerateVariants() {
+  const pageId = canvasStore.currentPageId
+  if (!pageId) return
+  const page = canvasStore.pages.find(p => p.id === pageId)
+  if (!page) return
+  contextMenu.value.show = false
+  variantsModal.value = { show: true, pageId, busy: true, error: null }
+  variantsList.value = []
+  try {
+    const res = await sendMessageToLLM(
+      '请为该画板生成 3 个变体，差异维度：颜色 / 布局骨架 / 文案语气。',
+      {
+        pageType: canvasStore.pageType,
+        colorScheme: canvasStore.colorScheme,
+        designSpecId: canvasStore.designSpecId,
+        customDesignContent: canvasStore.customDesignContent,
+        history: [],
+        selectedHtml: page.html,
+        blueprint: canvasStore.productBlueprint,
+        direction: null,
+        brandAsset: null,
+        variantsMode: true,
+      },
+    )
+    if (res.variants && res.variants.length > 0) {
+      variantsList.value = res.variants.map(v => ({
+        html: v.html,
+        screenshot: '',
+        name: v.name,
+        dimension: v.dimension,
+        critique: v.critique,
+      }))
+      // 异步生成截图
+      for (let i = 0; i < variantsList.value.length; i++) {
+        const v = variantsList.value[i]
+        const r = await htmlToScreenshot(v.html)
+        v.screenshot = r.dataUrl
+        variantsList.value[i] = { ...v, screenshot: r.dataUrl }
+      }
+    } else {
+      variantsModal.value.error = 'AI 未返回有效变体'
+    }
+  } catch (e) {
+    variantsModal.value.error = '生成失败：' + ((e as Error).message || String(e))
+  } finally {
+    variantsModal.value.busy = false
+  }
+}
+
+async function adoptVariant(index: number) {
+  const v = variantsList.value[index]
+  const pageId = variantsModal.value.pageId
+  if (!v || !pageId) return
+  const variant = canvasStore.addVariant(pageId, v.html, v.screenshot, {
+    dimension: (v.dimension as any) || undefined,
+    critique: v.critique,
+  })
+  if (variant) {
+    canvasStore.adoptVariant(pageId, variant.id)
+    // 触发 card 截图刷新
+    const card = canvasStore.cards.find(c => c.id === pageId)
+    if (card) {
+      card.html = v.html
+      card.screenshot = v.screenshot
+      await renderCard(card, true, false)
+    }
+  }
+  variantsModal.value.show = false
+  await saveProject()
+}
+
+function closeVariantsModal() {
+  if (variantsModal.value.busy) return
+  variantsModal.value.show = false
+}
+
+// ── Phase 3：DOM 选择 iframe ──
+const showSelectionIframe = computed(() => {
+  return !!(currentPage.value && currentPage.value.html && canvasStore.selectedCardId === currentPage.value.id)
+})
+const selectionSrcdoc = computed(() => {
+  if (!currentPage.value) return ''
+  let html = currentPage.value.html
+  // 注入 hover/selected 高亮样式
+  const style = `
+    <style>
+      .__md_hover__ { outline: 2px dashed #93c5fd !important; outline-offset: -1px; cursor: pointer; }
+      .__md_selected__ { outline: 2px solid #22d3ee !important; outline-offset: -1px; }
+      body { background: #fff; }
+    </style>`
+  if (html.includes('</head>')) {
+    return html.replace('</head>', style + '</head>')
+  }
+  return style + html
+})
+
+function getIframeDoc(): Document | null {
+  return selectionIframeRef.value?.contentDocument ?? null
+}
+
+function elementToXpath(el: Element): string {
+  if (!el || el === el.ownerDocument.body) return '/html/body'
+  const parts: string[] = []
+  let cur: Element | null = el
+  while (cur && cur !== el.ownerDocument.documentElement) {
+    let part = cur.tagName.toLowerCase()
+    const parent: Element | null = cur.parentElement
+    if (parent) {
+      const same = Array.from(parent.children).filter(c => c.tagName === cur!.tagName)
+      if (same.length > 1) {
+        const idx = same.indexOf(cur) + 1
+        part += `[${idx}]`
+      }
+    }
+    parts.unshift(part)
+    cur = parent
+  }
+  return '/' + parts.join('/')
+}
+
+function onIframeMouseMove(e: MouseEvent) {
+  const doc = getIframeDoc()
+  if (!doc) return
+  const target = e.target as Element | null
+  if (!target || target === doc.body || target === doc.documentElement) {
+    hoverHighlight.value = null
+    return
+  }
+  // 跳过我们自己注入的高亮元素
+  if ((target as HTMLElement).classList?.contains('__md_hover__')) return
+  const rect = target.getBoundingClientRect()
+  hoverHighlight.value = { x: rect.left, y: rect.top, w: rect.width, h: rect.height }
+  hoverXpath.value = elementToXpath(target)
+}
+
+function onIframeMouseLeave() {
+  hoverHighlight.value = null
+}
+
+function onIframeClick(e: MouseEvent) {
+  const doc = getIframeDoc()
+  if (!doc) return
+  const target = e.target as Element | null
+  if (!target || target === doc.body || target === doc.documentElement) {
+    canvasStore.setSelectedElement(null)
+    selectHighlight.value = null
+    return
+  }
+  e.preventDefault()
+  e.stopPropagation()
+  const rect = target.getBoundingClientRect()
+  const xpath = elementToXpath(target)
+  selectHighlight.value = { x: rect.left, y: rect.top, w: rect.width, h: rect.height, xpath, preview: (target.outerHTML || '').slice(0, 200) }
+  canvasStore.setSelectedElement({ outerHTML: target.outerHTML, xpath, preview: selectHighlight.value.preview })
+}
+
+function clearSelection() {
+  canvasStore.setSelectedElement(null)
+  selectHighlight.value = null
+}
+
+// ── Phase 3：链接到画板菜单 ──
+function showLinkTargetMenu(x: number, y: number, xpath: string) {
+  if (!xpath) return
+  linkTargetMenu.value = { show: true, x, y, xpath }
+}
+function closeLinkTargetMenu() { linkTargetMenu.value = null }
+function linkToPage(targetId: string) {
+  if (!linkTargetMenu.value) return
+  const { xpath } = linkTargetMenu.value
+  const sourceId = canvasStore.currentPageId
+  if (!sourceId) return
+  // 默认 hotspot：使用选中的 selectHighlight 的位置
+  const hot = selectHighlight.value
+    ? { x: selectHighlight.value.x, y: selectHighlight.value.y, w: selectHighlight.value.w, h: selectHighlight.value.h }
+    : { x: 0, y: 0, w: 200, h: 40 }
+  const link: Link = { fromSelector: xpath, toPageId: targetId, hotspot: hot }
+  canvasStore.addLink(sourceId, link)
+  closeLinkTargetMenu()
+  closeContextMenu()
+  renderAll()
+  saveProject()
+}
+
+function handleAddHotspotFromMenu() {
+  if (!contextMenu.value.xpath) return
+  showLinkTargetMenu(contextMenu.value.x + 180, contextMenu.value.y, contextMenu.value.xpath)
+}
+
 const copyTooltip = ref('')
 
 async function copyCardId() {
@@ -672,6 +1161,8 @@ function finishEditLabel() {
   if (newLabel === selectedCard.value.label) return
   selectedCard.value.label = newLabel
   updateCardLabelText(selectedCard.value.id, newLabel)
+  // 同步到 page
+  canvasStore.renamePage(selectedCard.value.id, newLabel)
   saveProject()
 }
 
@@ -687,7 +1178,68 @@ function updateCardLabelText(cardId: string, label: string) {
 
 <template>
   <div class="canvas-wrapper">
-    <div ref="containerRef" class="canvas-container"></div>
+    <!-- Phase 3：画板切换 tabs -->
+    <div class="page-tabs">
+      <div class="page-tabs-strip">
+        <div
+          v-for="p in currentPages"
+          :key="p.id"
+          :class="['page-tab', { active: p.id === currentPage?.id }]"
+          @click="switchToPage(p.id)"
+          @dblclick="startRenamePage(p.id)"
+        >
+          <input
+            v-if="editingPageName && editingPageName.id === p.id"
+            v-model="editingPageName.value"
+            class="page-name-input"
+            @blur="finishRenamePage"
+            @keydown.enter="finishRenamePage"
+            @keydown.escape="editingPageName = null"
+            @click.stop
+          />
+          <template v-else>
+            <div class="page-tab-thumb">
+              <img v-if="p.screenshot" :src="p.screenshot" :alt="p.name" />
+              <div v-else class="page-tab-thumb-empty">{{ p.name.charAt(0) }}</div>
+              <span v-if="pageIncomingCount(p.id) > 0" class="page-tab-badge" :title="`${pageIncomingCount(p.id)} 个入站链接`">{{ pageIncomingCount(p.id) }}</span>
+            </div>
+            <span class="page-tab-name">{{ p.name }}</span>
+          </template>
+        </div>
+        <button class="page-tab-add" @click="handleAddPage" title="新增画板">+</button>
+      </div>
+    </div>
+
+    <div
+      ref="containerRef"
+      class="canvas-container"
+      @dragover="onContainerDragOver"
+      @drop="onContainerDrop"
+    ></div>
+
+    <!-- Phase 3：DOM 选择 iframe（叠加在画板上） -->
+    <div v-if="showSelectionIframe" class="selection-iframe-wrap" :style="{ width: pageWidth + 'px', height: pageHeight + 'px' }">
+      <iframe
+        ref="selectionIframeRef"
+        :srcdoc="selectionSrcdoc"
+        class="selection-iframe"
+        sandbox="allow-same-origin"
+        @mousemove="onIframeMouseMove"
+        @mouseleave="onIframeMouseLeave"
+        @click="onIframeClick"
+      />
+      <div
+        v-if="hoverHighlight"
+        class="selection-hover-highlight"
+        :style="{ left: hoverHighlight.x + 'px', top: hoverHighlight.y + 'px', width: hoverHighlight.w + 'px', height: hoverHighlight.h + 'px' }"
+      />
+      <div
+        v-if="selectHighlight"
+        class="selection-select-highlight"
+        :style="{ left: selectHighlight.x + 'px', top: selectHighlight.y + 'px', width: selectHighlight.w + 'px', height: selectHighlight.h + 'px' }"
+        :title="selectHighlight.xpath"
+      />
+    </div>
 
     <div v-if="selectedCard" class="action-bar">
       <input
@@ -702,8 +1254,19 @@ function updateCardLabelText(cardId: string, label: string) {
       <button class="action-btn action-preview" @click="emit('previewCard', selectedCard!.id)"><SvgIcon name="visibility" :size="16" class="action-icon" />预览</button>
       <button class="action-btn action-export" @click="emit('exportCard', selectedCard!.id)"><SvgIcon name="file_export" :size="16" class="action-icon" />导出</button>
       <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><SvgIcon name="refresh" :size="16" class="action-icon" />刷新</button>
+      <button class="action-btn action-variants" @click="handleGenerateVariants" title="生成 3 个变体">🎨 变体</button>
       <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><SvgIcon name="delete" :size="16" class="action-icon" />删除</button>
     </div>
+
+    <!-- Phase 3：选中元素信息条 -->
+    <Transition name="slide">
+      <div v-if="selectHighlight" class="selection-info-bar">
+        <span class="selection-info-icon">🎯</span>
+        <span class="selection-info-xpath" :title="selectHighlight.xpath">{{ selectHighlight.xpath }}</span>
+        <button class="selection-info-link" @click="showLinkTargetMenu(0, 0, selectHighlight.xpath)" title="链接到画板">🔗 链接到</button>
+        <button class="selection-info-clear" @click="clearSelection" title="清除选择">×</button>
+      </div>
+    </Transition>
 
     <Transition name="slide">
       <div v-if="selectedCard" class="card-id-bar">
@@ -718,6 +1281,7 @@ function updateCardLabelText(cardId: string, label: string) {
 
     <div v-if="!selectedCard" class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
+      <span v-if="showHotspots" class="canvas-info-hint">· Alt 显示热区</span>
     </div>
 
     <div v-if="confirmState.show" class="confirm-overlay" @click.self="cancelDelete">
@@ -732,20 +1296,160 @@ function updateCardLabelText(cardId: string, label: string) {
         </div>
       </div>
     </div>
+
+    <!-- Phase 3：画板右键菜单 -->
+    <div
+      v-if="contextMenu.show"
+      class="context-menu"
+      :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
+      @click.stop
+    >
+      <div class="context-menu-item" @click="handleGenerateVariants">🎨 生成 3 个变体</div>
+      <div class="context-menu-item" @click="handleAddHotspotFromMenu">🔗 添加跳转链接</div>
+      <div class="context-menu-item" @click="handleSaveAsComponent">🧩 另存为组件（整页）</div>
+      <div class="context-menu-item" @click="handleSaveSelectionAsComponent">✂ 另存为组件（选中元素）</div>
+      <div class="context-menu-sep"></div>
+      <div class="context-menu-item" @click="handleViewHistory">📜 查看历史</div>
+      <div class="context-menu-item" @click="showComponentLibrary = true">📚 打开组件库</div>
+      <div class="context-menu-sep"></div>
+      <div class="context-menu-item danger" @click="() => { closeContextMenu(); if (canvasStore.currentPageId) handleRemovePage(canvasStore.currentPageId) }">🗑 删除画板</div>
+    </div>
+
+    <!-- Phase 3：链接目标菜单 -->
+    <div
+      v-if="linkTargetMenu && linkTargetMenu.show"
+      class="link-target-menu"
+      :style="{ left: (linkTargetMenu.x + 200) + 'px', top: linkTargetMenu.y + 'px' }"
+      @click.stop
+    >
+      <div class="link-target-header">链接到画板</div>
+      <div
+        v-for="p in currentPages.filter(pg => pg.id !== canvasStore.currentPageId)"
+        :key="p.id"
+        class="link-target-item"
+        @click="linkToPage(p.id)"
+      >
+        <div class="link-target-thumb"><img v-if="p.screenshot" :src="p.screenshot" :alt="p.name" /></div>
+        <span>{{ p.name }}</span>
+      </div>
+      <div v-if="currentPages.length <= 1" class="link-target-empty">至少需要两个画板</div>
+      <div class="link-target-cancel" @click="closeLinkTargetMenu">取消</div>
+    </div>
+
+    <!-- Phase 3：变体对话框 -->
+    <div v-if="variantsModal.show" class="variants-modal-overlay" @click.self="closeVariantsModal">
+      <div class="variants-modal">
+        <div class="variants-modal-header">
+          <h3>🎨 3 个变体</h3>
+          <button class="variants-modal-close" @click="closeVariantsModal">×</button>
+        </div>
+        <div class="variants-modal-body">
+          <div v-if="variantsModal.busy" class="variants-loading">
+            <span class="dot-spin"></span>
+            <span class="dot-spin"></span>
+            <span class="dot-spin"></span>
+            <p>正在生成变体…</p>
+          </div>
+          <div v-else-if="variantsModal.error" class="variants-error">⚠ {{ variantsModal.error }}</div>
+          <div v-else class="variants-grid">
+            <div v-for="(v, i) in variantsList" :key="i" class="variant-card">
+              <div class="variant-thumb">
+                <img v-if="v.screenshot" :src="v.screenshot" :alt="v.name || `变体 ${i+1}`" />
+                <div v-else class="variant-thumb-empty">生成中…</div>
+              </div>
+              <div class="variant-meta">
+                <div class="variant-name">{{ v.name || `变体 ${i+1}` }}</div>
+                <div v-if="v.dimension" class="variant-dim">{{ v.dimension }}</div>
+                <div v-if="v.critique" class="variant-critique">{{ v.critique }}</div>
+                <button class="variant-adopt-btn" @click="adoptVariant(i)">采纳为正式画板</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4：版本历史弹窗 -->
+    <VersionHistory
+      v-if="versionHistory.show"
+      :page-id="versionHistory.pageId"
+      @close="closeVersionHistory"
+    />
+
+    <!-- Phase 4：另存为组件对话框 -->
+    <div v-if="saveComponent.show" class="save-comp-overlay" @click.self="closeSaveComponent">
+      <div class="save-comp-modal">
+        <div class="save-comp-header">
+          <h3>🧩 {{ saveComponent.source === 'selection' ? '另存为组件（选中元素）' : '另存为组件（整页）' }}</h3>
+          <button class="save-comp-close" @click="closeSaveComponent">×</button>
+        </div>
+        <div class="save-comp-body">
+          <label class="save-comp-label">组件名称</label>
+          <input
+            v-model="componentNameInput"
+            class="save-comp-input"
+            placeholder="如：PrimaryButton、CardHeader"
+            @keyup.enter="confirmSaveComponent"
+          />
+          <label class="save-comp-label" style="margin-top:10px">分类（可选，如"按钮 / 卡片 / 导航"）</label>
+          <input
+            v-model="componentCategoryInput"
+            class="save-comp-input"
+            placeholder="按钮 / 卡片 / 导航 / ..."
+            @keyup.enter="confirmSaveComponent"
+          />
+          <p class="save-comp-hint">当前{{ saveComponent.source === 'selection' ? '选中元素的 outerHTML' : '画板的完整 HTML' }}会被保存到组件库，可在 prompt 中复用。</p>
+          <div class="save-comp-actions">
+            <button class="btn btn-secondary" @click="closeSaveComponent">取消</button>
+            <button class="btn btn-primary" :disabled="!componentNameInput.trim()" @click="confirmSaveComponent">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4：组件库面板 -->
+    <ComponentLibrary
+      v-if="showComponentLibrary"
+      @close="showComponentLibrary = false"
+      @insert-to-prompt="onInsertComponentToPrompt"
+    />
   </div>
 </template>
 
 <style scoped>
 .canvas-wrapper { position: absolute; inset: 0; background: var(--bg-canvas); overflow: hidden; }
 .canvas-container { position: relative; width: 100%; height: 100%; }
-.canvas-info { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: var(--font-xs); color: var(--text-muted); border-radius: var(--radius-sm); pointer-events: none; z-index: var(--z-canvas); }
+
+/* Phase 3：page tabs */
+.page-tabs { position: absolute; top: 56px; left: 12px; z-index: 9; display: flex; align-items: center; gap: 4px; max-width: 60vw; overflow-x: auto; padding: 4px 8px; background: rgba(22,33,62,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; backdrop-filter: blur(8px); }
+.page-tabs-strip { display: flex; align-items: center; gap: 6px; }
+.page-tab { position: relative; display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 8px; background: rgba(255,255,255,0.04); border: 1px solid transparent; cursor: pointer; transition: all 0.15s; user-select: none; max-width: 160px; }
+.page-tab:hover { background: rgba(255,255,255,0.08); }
+.page-tab.active { background: rgba(129,140,248,0.2); border-color: rgba(129,140,248,0.5); }
+.page-tab-thumb { position: relative; width: 28px; height: 36px; border-radius: 4px; overflow: hidden; background: #0f0f23; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.page-tab-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.page-tab-thumb-empty { font-size: 12px; color: #818cf8; font-weight: 600; }
+.page-tab-badge { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #22d3ee; color: #0f172a; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.page-tab-name { font-size: 12px; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-name-input { font-size: 12px; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(129,140,248,0.5); background: rgba(0,0,0,0.2); color: #e2e8f0; outline: none; width: 100px; font-family: inherit; }
+.page-tab-add { width: 28px; height: 36px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); color: #94a3b8; cursor: pointer; font-size: 16px; line-height: 1; }
+.page-tab-add:hover { background: rgba(129,140,248,0.15); color: #a5b4fc; }
+
+/* Phase 3：DOM 选择 iframe */
+.selection-iframe-wrap { position: absolute; pointer-events: auto; z-index: 5; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.selection-iframe { width: 100%; height: 100%; border: none; background: transparent; }
+.selection-hover-highlight { position: absolute; pointer-events: none; border: 2px dashed #93c5fd; z-index: 6; }
+.selection-select-highlight { position: absolute; pointer-events: none; border: 2px solid #22d3ee; z-index: 7; }
+
+.canvas-info { position: absolute; top: 108px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: var(--font-xs); color: var(--text-muted); border-radius: var(--radius-sm); pointer-events: none; z-index: var(--z-canvas); }
+.canvas-info-hint { color: #22d3ee; margin-left: 4px; }
 .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
 .confirm-dialog { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 20px 24px; min-width: 280px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-default); }
 .confirm-body { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 .confirm-icon { font-size: 20px; }
 .confirm-text { font-size: var(--font-md); color: var(--text-primary); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
-.action-bar { position: absolute; top: 52px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(22,33,62,0.92); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.action-bar { position: absolute; top: 108px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(22,33,62,0.92); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; backdrop-filter: blur(8px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
 .action-label { font-size: 13px; color: #a5b4fc; margin-right: 4px; white-space: nowrap; max-width: 120px; overflow: hidden; text-overflow: ellipsis; cursor: default; }
 .action-label:hover { background: rgba(165, 180, 252, 0.1); border-radius: 4px; }
 .card-name-input { font-size: 13px; color: #a5b4fc; background: rgba(165, 180, 252, 0.1); border: 1px solid rgba(165, 180, 252, 0.3); border-radius: 4px; padding: 1px 6px; outline: none; width: 120px; margin-right: 4px; font-family: inherit; }
@@ -756,15 +1460,85 @@ function updateCardLabelText(cardId: string, label: string) {
 .action-preview { background: rgba(59,130,246,0.85); }
 .action-export { background: rgba(16,185,129,0.85); }
 .action-refresh { background: rgba(79,70,229,0.85); }
+.action-variants { background: rgba(236,72,153,0.85); }
 .action-delete { background: rgba(239,68,68,0.85); }
 
-.card-id-bar { position: absolute; top: 88px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 3px 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; backdrop-filter: blur(8px); }
+.card-id-bar { position: absolute; top: 144px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 3px 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; backdrop-filter: blur(8px); }
 .card-id-label { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 .card-id-value { font-size: 11px; color: var(--text-secondary); font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; user-select: all; }
 .card-id-copy-btn { position: relative; border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 2px; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
 .card-id-copy-btn:hover { color: var(--color-primary-light); background: rgba(129, 140, 248, 0.1); }
 .copy-tooltip { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #34d399; white-space: nowrap; background: rgba(15, 23, 42, 0.9); padding: 2px 8px; border-radius: 4px; pointer-events: none; }
 
+/* Phase 3：selection info bar */
+.selection-info-bar { position: absolute; top: 178px; left: 50%; transform: translateX(-50%); z-index: 11; display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: rgba(15, 23, 42, 0.92); border: 1px solid #22d3ee; border-radius: 6px; backdrop-filter: blur(8px); }
+.selection-info-icon { font-size: 12px; }
+.selection-info-xpath { font-size: 11px; color: #a5b4fc; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.selection-info-link, .selection-info-clear { border: none; background: rgba(34,211,238,0.18); color: #67e8f9; padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+.selection-info-clear { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+
 .slide-enter-active, .slide-leave-active { transition: all 0.2s ease; }
 .slide-enter-from, .slide-leave-to { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+
+/* Phase 3：context menu */
+.context-menu { position: absolute; z-index: 50; min-width: 200px; background: rgba(22,33,62,0.96); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.context-menu-item { padding: 8px 12px; font-size: 13px; color: #e2e8f0; cursor: pointer; border-radius: 4px; }
+.context-menu-item:hover { background: rgba(129,140,248,0.15); }
+.context-menu-item.danger { color: #fca5a5; }
+.context-menu-item.danger:hover { background: rgba(239,68,68,0.15); }
+.context-menu-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
+
+/* Phase 3：link target menu */
+.link-target-menu { position: absolute; z-index: 51; min-width: 200px; max-width: 260px; background: rgba(22,33,62,0.96); border: 1px solid rgba(34,211,238,0.3); border-radius: 8px; padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+.link-target-header { padding: 6px 10px; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.06); }
+.link-target-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12px; color: #e2e8f0; cursor: pointer; border-radius: 4px; }
+.link-target-item:hover { background: rgba(34,211,238,0.15); }
+.link-target-thumb { width: 20px; height: 24px; border-radius: 3px; overflow: hidden; background: #0f0f23; flex-shrink: 0; }
+.link-target-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.link-target-empty { padding: 12px; font-size: 11px; color: var(--text-muted); text-align: center; }
+.link-target-cancel { padding: 6px 10px; font-size: 11px; color: var(--text-muted); cursor: pointer; text-align: right; border-top: 1px solid rgba(255,255,255,0.06); }
+.link-target-cancel:hover { color: #fff; }
+
+/* Phase 3：variants modal */
+.variants-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.variants-modal { background: var(--bg-elevated); border-radius: 12px; width: 1000px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border-default); box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
+.variants-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-default); }
+.variants-modal-header h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.variants-modal-close { width: 28px; height: 28px; border: none; background: var(--border-default); border-radius: 50%; font-size: 18px; cursor: pointer; color: var(--text-secondary); }
+.variants-modal-close:hover { background: #3a3a5c; color: #fff; }
+.variants-modal-body { padding: 20px; flex: 1; overflow: auto; }
+.variants-loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 40px; color: var(--text-muted); }
+.dot-spin { width: 10px; height: 10px; border-radius: 50%; background: #818cf8; animation: blink 1.4s infinite both; display: inline-block; margin: 0 4px; }
+.dot-spin:nth-child(2) { animation-delay: 0.2s; }
+.dot-spin:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+.variants-error { color: #fca5a5; background: rgba(239,68,68,0.1); padding: 12px; border-radius: 6px; }
+.variants-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.variant-card { display: flex; flex-direction: column; border-radius: 10px; overflow: hidden; border: 1px solid var(--border-default); background: var(--bg-surface); }
+.variant-thumb { width: 100%; aspect-ratio: 3 / 4; background: #0f0f23; overflow: hidden; }
+.variant-thumb img { width: 100%; height: 100%; object-fit: contain; background: #fff; }
+.variant-thumb-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); font-size: 12px; }
+.variant-meta { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+.variant-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+.variant-dim { font-size: 11px; color: var(--color-primary-light); padding: 1px 6px; border-radius: 4px; background: rgba(129,140,248,0.15); display: inline-block; width: fit-content; }
+.variant-critique { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+.variant-adopt-btn { margin-top: 6px; padding: 6px 12px; border-radius: 6px; border: none; background: var(--color-primary); color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; }
+.variant-adopt-btn:hover { background: var(--color-primary-hover); }
+
+/* Phase 4：另存为组件对话框 */
+.save-comp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.save-comp-modal { width: 440px; max-width: 92vw; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 12px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
+.save-comp-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-default); }
+.save-comp-header h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.save-comp-close { width: 28px; height: 28px; border-radius: 50%; background: var(--border-default); color: var(--text-secondary); border: none; font-size: 16px; cursor: pointer; }
+.save-comp-body { padding: 20px; }
+.save-comp-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+.save-comp-input { width: 100%; padding: 8px 12px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; box-sizing: border-box; }
+.save-comp-input:focus { border-color: var(--color-primary); }
+.save-comp-hint { font-size: 11px; color: var(--text-muted); margin: 8px 0 16px; line-height: 1.5; }
+.save-comp-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.btn { padding: 6px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; border: 1px solid transparent; }
+.btn-secondary { background: transparent; border-color: var(--border-default); color: var(--text-secondary); }
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

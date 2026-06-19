@@ -1,37 +1,47 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SvgIcon from './SvgIcon.vue'
+import { useCanvasStore } from '../stores/canvasStore'
 import {
   BUILT_IN_DESIGN_SPECS,
   DESIGN_SPEC_LABELS,
+  migrateDesignSpec,
   type DesignSpecId,
   type DesignSpec,
 } from '../prompts/designSpecs'
 
 const props = defineProps<{
-  modelValue: DesignSpecId
+  modelValue: string
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: DesignSpecId]
+  'update:modelValue': [value: string]
 }>()
 
+const canvasStore = useCanvasStore()
 const showModal = ref(false)
 
-const selectedSpec = computed<DesignSpec | null>(() => {
-  if (props.modelValue === 'none' || props.modelValue === 'custom') return null
-  return BUILT_IN_DESIGN_SPECS.find(s => s.id === props.modelValue) || null
-})
+// 列表项：以 v2 形态展示（每个 spec 走一遍迁移，UI 层永远拿到 v2 字段）
+const specListV2 = computed<DesignSpec[]>(() => BUILT_IN_DESIGN_SPECS.map(s => migrateDesignSpec(s as DesignSpec)))
+
+// 通过 canvasStore.getActiveSpec 解析当前选中的 spec（兼容自定义）
+const selectedSpec = computed<DesignSpec | null>(() => canvasStore.getActiveSpec())
 
 const triggerLabel = computed(() => {
-  return DESIGN_SPEC_LABELS[props.modelValue] || '选择设计规范'
+  if (props.modelValue === 'none') return DESIGN_SPEC_LABELS.none
+  if (props.modelValue === 'custom') return DESIGN_SPEC_LABELS.custom
+  const builtin = DESIGN_SPEC_LABELS[props.modelValue as DesignSpecId]
+  if (builtin) return builtin
+  // 自定义规范
+  const custom = canvasStore.customDesignSpecs.find(s => s.id === props.modelValue)
+  return custom ? `✨ ${custom.name}` : '选择设计规范'
 })
 
 function openModal() {
   showModal.value = true
 }
 
-function select(id: DesignSpecId) {
+function select(id: string) {
   emit('update:modelValue', id)
   showModal.value = false
 }
@@ -94,11 +104,11 @@ function openSource(e: MouseEvent, url: string) {
               <div class="grid-section">
                 <div class="spec-grid">
                   <div
-                    v-for="spec in BUILT_IN_DESIGN_SPECS"
+                    v-for="spec in specListV2"
                     :key="spec.id"
                     class="spec-card"
                     :class="{ active: modelValue === spec.id }"
-                    @click="select(spec.id as DesignSpecId)"
+                    @click="select(spec.id)"
                   >
                     <button class="spec-card-link" @click="openSource($event, spec.source)" title="查看源站">
                       <SvgIcon name="open_in_new" :size="14" />
@@ -111,6 +121,31 @@ function openSource(e: MouseEvent, url: string) {
                     </div>
                     <div class="spec-card-name">{{ spec.name }}</div>
                     <div class="spec-card-tag">{{ spec.category }}</div>
+                    <div class="spec-card-desc">{{ spec.description }}</div>
+                    <div v-if="modelValue === spec.id" class="spec-card-check">✓</div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="canvasStore.customDesignSpecs.length" class="grid-section">
+                <div class="grid-section-title">✨ 自定义规范（{{ canvasStore.customDesignSpecs.length }}）</div>
+                <div class="spec-grid">
+                  <div
+                    v-for="spec in canvasStore.customDesignSpecs"
+                    :key="spec.id"
+                    class="spec-card custom-spec-card"
+                    :class="{ active: modelValue === spec.id }"
+                    @click="select(spec.id)"
+                  >
+                    <button class="spec-card-remove" @click.stop="canvasStore.removeCustomDesignSpec(spec.id)" title="删除自定义规范">×</button>
+                    <div class="spec-card-colors">
+                      <span class="cdot" :style="{ backgroundColor: spec.colors.primary }"></span>
+                      <span class="cdot" :style="{ backgroundColor: spec.colors.background }"></span>
+                      <span class="cdot" :style="{ backgroundColor: spec.colors.surface }"></span>
+                      <span class="cdot" :style="{ backgroundColor: spec.colors.accent }"></span>
+                    </div>
+                    <div class="spec-card-name">{{ spec.name }}</div>
+                    <div class="spec-card-tag">{{ spec.industry || spec.category || 'Custom' }}</div>
                     <div class="spec-card-desc">{{ spec.description }}</div>
                     <div v-if="modelValue === spec.id" class="spec-card-check">✓</div>
                   </div>
@@ -159,6 +194,10 @@ function openSource(e: MouseEvent, url: string) {
 .modal-close img { width: 18px; height: 18px; filter: invert(1); }
 .modal-body { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
 .grid-section { margin: 16px 0; }
+.grid-section-title { font-size: var(--font-sm); color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; padding-left: 4px; }
+.spec-card-remove { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: rgba(239,68,68,0.2); color: #ef4444; font-size: 14px; cursor: pointer; line-height: 1; padding: 0; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s, background 0.15s; z-index: 2; }
+.custom-spec-card:hover .spec-card-remove { opacity: 1; }
+.spec-card-remove:hover { background: #ef4444; color: #fff; }
 .spec-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
 .spec-card { position: relative; padding: 14px; border: 1px solid var(--border-default); border-radius: 10px; background: var(--bg-surface); cursor: pointer; transition: all var(--transition-fast); }
 .spec-card:hover { border-color: #3a3a5c; background: #1a1a3e; }
