@@ -189,7 +189,7 @@ function openSource(e: MouseEvent, url: string) {
 .modal { background: var(--bg-elevated); border-radius: var(--radius-xl); width: 700px; max-width: 92vw; max-height: 80vh; display: flex; flex-direction: column; box-shadow: var(--shadow-xl); border: 1px solid var(--border-default); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 16px; border-bottom: 1px solid var(--border-default); flex-shrink: 0; }
 .modal-title { font-size: var(--font-xl); font-weight: 600; color: var(--text-primary); margin: 0; }
-.modal-close { background: none; border: none; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); transition: background var(--transition-fast); display: flex; align-items: center; justify-content: center; opacity: 0.5; }
+.modal-close {color: white; background: none; border: none; cursor: pointer; padding: 4px; border-radius: var(--radius-sm); transition: background var(--transition-fast); display: flex; align-items: center; justify-content: center; opacity: 0.5; }
 .modal-close:hover { background: var(--border-default); opacity: 1; }
 .modal-close img { width: 18px; height: 18px; filter: invert(1); }
 .modal-body { padding: 16px 24px 24px; overflow-y: auto; flex: 1; }
@@ -210,7 +210,7 @@ function openSource(e: MouseEvent, url: string) {
 .spec-card-desc { font-size: var(--font-xs); color: var(--text-muted); margin-top: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .spec-card-info { flex: 1; min-width: 0; }
 .spec-card-body { display: flex; align-items: center; gap: 12px; }
-.spec-card-link { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; z-index: 2; }
+.spec-card-link {color: white; position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; padding: 4px; border-radius: 4px; opacity: 0; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; z-index: 2; }
 .spec-card:hover .spec-card-link { opacity: 0.5; }
 .spec-card-link:hover { opacity: 1 !important; background: rgba(129,140,248,0.15); }
 .spec-card-link img { width: 16px; height: 16px; filter: invert(1); }

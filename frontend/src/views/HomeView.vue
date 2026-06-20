@@ -7,6 +7,7 @@ import { useCanvasStore } from '../stores/canvasStore'
 import { importSharePackage, type ShareableProjectData } from '../utils/sharePackage'
 import WindowControls from '../components/WindowControls.vue'
 import DesignSpecSelector from '../components/DesignSpecSelector.vue'
+import SvgIcon from '../components/SvgIcon.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
 import {
   type DesignSpecId,
@@ -446,7 +447,7 @@ onUnmounted(() => {
           title="API 设置"
           @click="showSettingsPanel = true"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg>
+          <SvgIcon name="settings" :size="16" />
         </button>
         <WindowControls />
       </div>
@@ -467,7 +468,7 @@ onUnmounted(() => {
         <div class="card-header">
           <div class="card-icon" :style="getCardIconStyle(project)">{{ project.name.charAt(0) }}</div>
           <button class="card-edit-btn" @click.stop="startEdit(project)" title="编辑项目">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+            <SvgIcon name="edit" :size="16" />
           </button>
         </div>
         <div class="card-name">{{ project.name }}</div>

@@ -12,6 +12,7 @@ import CanvasWrapper from '../canvas/CanvasWrapper.vue'
 import ExportDialog from '../components/ExportDialog.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
 import VersionHistory from '../components/VersionHistory.vue'
+import SvgIcon from '../components/SvgIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -173,7 +174,7 @@ function closePreview() {
       <div class="preview-topbar">
         <span class="preview-title">全屏预览</span>
         <button class="preview-close-btn" @click="closePreview">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <SvgIcon name="close" :size="20" />
         </button>
       </div>
       <div ref="previewContainerRef" class="preview-container">
