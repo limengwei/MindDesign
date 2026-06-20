@@ -1,4 +1,69 @@
 const STORAGE_KEY = 'minddesign:autosave'
+const SCREENSHOT_STORAGE_PREFIX = 'minddesign:autosave:screenshots:'
+
+/** 设计稿快照缓存（设计稿预览图）
+ *  三层结构：
+ *  1. 内存 Map<path, Map<id, dataUrl>>：同会话内最快命中
+ *  2. Wails 模式：PNG 文件持久化（appDir/screenshots/{basename}/*.png）
+ *  3. 浏览器模式：localStorage 持久化（key = SCREENSHOT_STORAGE_PREFIX + path）
+ *  写：内存 + 持久层同步更新
+ *  读：内存 → 持久层（仅取请求的 id 集合），避免打开项目时重新生成截图
+ */
+const screenshotMemoryCache: Map<string, Map<string, string>> = new Map()
+
+function getMemoryScreenshots(path: string): Map<string, string> {
+  let m = screenshotMemoryCache.get(path)
+  if (!m) {
+    m = new Map<string, string>()
+    screenshotMemoryCache.set(path, m)
+  }
+  return m
+}
+
+function loadMemoryScreenshots(path: string, cardIds: string[]): Record<string, string> {
+  const mem = screenshotMemoryCache.get(path)
+  if (!mem) return {}
+  const out: Record<string, string> = {}
+  for (const id of cardIds) {
+    const v = mem.get(id)
+    if (v) out[id] = v
+  }
+  return out
+}
+
+function loadLocalStorageScreenshots(path: string): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(SCREENSHOT_STORAGE_PREFIX + path)
+    if (!raw) return {}
+    const obj = JSON.parse(raw) as Record<string, string>
+    return obj && typeof obj === 'object' ? obj : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveLocalStorageScreenshots(path: string, screenshots: Record<string, string>) {
+  try {
+    localStorage.setItem(SCREENSHOT_STORAGE_PREFIX + path, JSON.stringify(screenshots))
+  } catch (e) {
+    // localStorage 容量可能不足（截图 base64 很大），失败时仅记录，不再抛出
+    console.warn('[projectBridge] failed to persist screenshots to localStorage:', e)
+  }
+}
+
+function cleanupLocalStorageScreenshots(path: string, keepIds: string[]) {
+  try {
+    const keep = new Set(keepIds)
+    const current = loadLocalStorageScreenshots(path)
+    const next: Record<string, string> = {}
+    for (const id of Object.keys(current)) {
+      if (keep.has(id)) next[id] = current[id]
+    }
+    localStorage.setItem(SCREENSHOT_STORAGE_PREFIX + path, JSON.stringify(next))
+  } catch (e) {
+    console.warn('[projectBridge] failed to cleanup localStorage screenshots:', e)
+  }
+}
 
 // @ts-ignore
 type ProjectServiceType = typeof import('../../bindings/changeme/projectservice')
@@ -158,24 +223,76 @@ export async function updateProjectMeta(
 
 export async function saveCardScreenshots(path: string, screenshots: Record<string, string>): Promise<void> {
   await ensureLoaded()
+  // 1) 同步写入内存缓存（同会话内随时可命中）
+  const mem = getMemoryScreenshots(path)
+  for (const [id, dataUrl] of Object.entries(screenshots)) {
+    if (dataUrl) mem.set(id, dataUrl)
+  }
+  // 2) 持久化
   if (ProjectService) {
     await (ProjectService as any).SaveCardScreenshots(path, JSON.stringify(screenshots))
+  } else {
+    // 浏览器模式：把全部当前截图（旧的 + 本次新写）合并写回 localStorage
+    const merged = loadLocalStorageScreenshots(path)
+    for (const [id, dataUrl] of Object.entries(screenshots)) {
+      if (dataUrl) merged[id] = dataUrl
+    }
+    saveLocalStorageScreenshots(path, merged)
   }
 }
 
 export async function loadCardScreenshots(path: string, cardIds: string[]): Promise<Record<string, string>> {
   await ensureLoaded()
-  if (ProjectService) {
-    const json = await (ProjectService as any).LoadCardScreenshots(path, JSON.stringify(cardIds))
-    return JSON.parse(json) as Record<string, string>
+  // 1) 内存缓存优先（命中即返回，避免序列化与磁盘/存储 IO）
+  const result: Record<string, string> = loadMemoryScreenshots(path, cardIds)
+  const missing: string[] = []
+  for (const id of cardIds) {
+    if (!result[id]) missing.push(id)
   }
-  return {}
+  if (missing.length === 0) return result
+
+  // 2) 回源到持久层
+  let persisted: Record<string, string> = {}
+  if (ProjectService) {
+    try {
+      const json = await (ProjectService as any).LoadCardScreenshots(path, JSON.stringify(missing))
+      persisted = JSON.parse(json) as Record<string, string>
+    } catch {
+      persisted = {}
+    }
+  } else {
+    const all = loadLocalStorageScreenshots(path)
+    for (const id of missing) {
+      if (all[id]) persisted[id] = all[id]
+    }
+  }
+
+  // 3) 把持久层结果回填到内存（后续同会话访问直接命中）
+  if (Object.keys(persisted).length > 0) {
+    const mem = getMemoryScreenshots(path)
+    for (const [id, dataUrl] of Object.entries(persisted)) {
+      if (dataUrl) mem.set(id, dataUrl)
+    }
+  }
+
+  return { ...result, ...persisted }
 }
 
 export async function cleanupCardScreenshots(path: string, cardIds: string[]): Promise<void> {
   await ensureLoaded()
+  // 1) 同步清理内存缓存
+  const mem = screenshotMemoryCache.get(path)
+  if (mem) {
+    const keep = new Set(cardIds)
+    for (const id of Array.from(mem.keys())) {
+      if (!keep.has(id)) mem.delete(id)
+    }
+  }
+  // 2) 清理持久层
   if (ProjectService) {
     await (ProjectService as any).CleanupCardScreenshots(path, JSON.stringify(cardIds))
+  } else {
+    cleanupLocalStorageScreenshots(path, cardIds)
   }
 }
 

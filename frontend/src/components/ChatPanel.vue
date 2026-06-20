@@ -120,7 +120,6 @@ function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
     customDesignContent: canvasStore.customDesignContent,
     history: [] as Array<{ role: string; content: string }>,
     selectedHtml,
-    selectedElement: canvasStore.selectedElement,
     skill: activeSkill.value,
     isFirstMessage,
     blueprint: canvasStore.productBlueprint,
@@ -796,15 +795,6 @@ async function handleBrandAnalyzerSubmit() {
         @dragover="handleDragOver"
         @dragleave="handleDragLeave"
       >
-        <Transition name="fade">
-          <div v-if="canvasStore.selectedElement" class="selected-element-chip" :title="canvasStore.selectedElement.xpath">
-            <span class="chip-icon">🎯</span>
-            <span class="chip-label">已选中：</span>
-            <code class="chip-xpath">{{ canvasStore.selectedElement.xpath }}</code>
-            <button class="chip-clear" @click="canvasStore.setSelectedElement(null)" title="清除选择">×</button>
-          </div>
-        </Transition>
-
         <!-- Phase 4 · Task 15：QA 面板（每帧 QA 检测通过 watch 触发） -->
         <QaPanel
           v-if="latestHtml"
@@ -1048,11 +1038,7 @@ async function handleBrandAnalyzerSubmit() {
 .skill-chip-close { background: none; border: none; color: rgba(255,255,255,0.5); cursor: pointer; font-size: 14px; padding: 0 2px; line-height: 1; }
 .skill-chip-close:hover { color: var(--text-primary); }
 
-/* Phase 3：选中元素 chip */
-.selected-element-chip { display: flex; align-items: center; gap: 6px; padding: 4px 8px; margin: 0 0 6px; background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.3); border-radius: 8px; font-size: 11px; max-width: 100%; overflow: hidden; }
-.chip-icon { font-size: 12px; }
-.chip-label { color: var(--color-primary-light); white-space: nowrap; flex-shrink: 0; }
-.chip-xpath { color: #67e8f9; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+/* chip 关闭按钮（组件库复用） */
 .chip-clear { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; line-height: 1; padding: 0 4px; flex-shrink: 0; }
 .chip-clear:hover { color: #fff; }
 

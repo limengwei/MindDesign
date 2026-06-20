@@ -9,7 +9,7 @@ import { DotGrid } from './dotGrid'
 import SvgIcon from '../components/SvgIcon.vue'
 import VersionHistory from '../components/VersionHistory.vue'
 import ComponentLibrary from '../components/ComponentLibrary.vue'
-import { useCanvasStore, type CanvasCard, type Page, type Link } from '../stores/canvasStore'
+import { useCanvasStore, type CanvasCard, type Page } from '../stores/canvasStore'
 import { saveProject } from '../stores/autoSave'
 import { fetchProxiedImage } from '../services/projectBridge'
 import { sendMessageToLLM } from '../ai/chat'
@@ -31,8 +31,8 @@ function showConfirm(cardId: string) {
 }
 
 async function confirmDelete() {
-  const cardId = confirmState.value.cardId
   confirmState.value.show = false
+  const cardId = confirmState.value.cardId
   const group = cardGroups.get(cardId)
   if (group) {
     group.remove()
@@ -64,29 +64,19 @@ let renderVersion = 0
 let appTapEventId: any = null
 const cardEventIds = new Map<string, any>()
 
-// Phase 3：用于画板 iframe 选择
-const selectionIframeRef = ref<HTMLIFrameElement | null>(null)
-const showHotspots = ref(false)  // Alt 按下时显示
-const contextMenu = ref<{ show: boolean; x: number; y: number; xpath: string; preview: string }>({
-  show: false, x: 0, y: 0, xpath: '', preview: '',
+// Phase 3：右键菜单
+const contextMenu = ref<{ show: boolean; x: number; y: number }>({
+  show: false, x: 0, y: 0,
 })
-const hotspotsByPage = ref<Map<string, Group>>(new Map())
-// 元素选择高亮（覆盖在 iframe 上）
-const hoverHighlight = ref<{ x: number; y: number; w: number; h: number } | null>(null)
-const selectHighlight = ref<{ x: number; y: number; w: number; h: number; xpath: string; preview: string } | null>(null)
-// 链接到画板菜单
-const linkTargetMenu = ref<{ show: boolean; x: number; y: number; xpath: string } | null>(null)
 // 变体对话框
 const variantsModal = ref<{ show: boolean; pageId: string; busy: boolean; error: string | null }>({
   show: false, pageId: '', busy: false, error: null,
 })
 const variantsList = ref<Array<{ html: string; screenshot: string; name?: string; dimension?: string; critique?: string }>>([])
-// 当前 hover 的元素 xpath（用于 hover 高亮）
-const hoverXpath = ref('')
 // Phase 4：版本历史弹窗
 const versionHistory = ref<{ show: boolean; pageId: string }>({ show: false, pageId: '' })
 // Phase 4：另存为组件对话框
-const saveComponent = ref<{ show: boolean; html: string; defaultName: string; source: 'page' | 'selection' }>({ show: false, html: '', defaultName: '', source: 'page' })
+const saveComponent = ref<{ show: boolean; html: string; defaultName: string; source: 'page' }>({ show: false, html: '', defaultName: '', source: 'page' })
 const componentNameInput = ref('')
 const componentCategoryInput = ref('')
 // Phase 4：组件库面板
@@ -100,7 +90,8 @@ onMounted(() => {
     tree: { type: 'design' },
     sky: {},
     zoom: { min: 0.02, max: 32 },
-    move: { holdSpaceKey: true, holdMiddleKey: true, dragEmpty: true, dragAnimate: 0.9 },
+    // 空白处左键拖拽平移画布；卡片本体不被 moveMode 接管，Frame TAP 监听可正常触发选中
+    move: { dragEmpty: true, dragAnimate: 0.9 },
     wheel: { zoomMode: true, zoomSpeed: 0.02 },
   })
 
@@ -137,27 +128,10 @@ onMounted(() => {
   })
   resizeObserver.observe(containerRef.value)
 
-  // Alt 键按下显示 hotspots
-  window.addEventListener('keydown', onKeyDown)
-  window.addEventListener('keyup', onKeyUp)
-
   nextTick(() => {
     if (canvasStore.cards.length > 0) renderAll()
   })
 })
-
-function onKeyDown(e: KeyboardEvent) {
-  if (e.altKey && !showHotspots.value) {
-    showHotspots.value = true
-    renderAll() // 重渲染以叠加 hotspot
-  }
-}
-function onKeyUp(e: KeyboardEvent) {
-  if (!e.altKey && showHotspots.value) {
-    showHotspots.value = false
-    renderAll()
-  }
-}
 
 onUnmounted(() => {
   if (breathRafId) { cancelAnimationFrame(breathRafId); breathRafId = 0 }
@@ -167,8 +141,6 @@ onUnmounted(() => {
   cardEventIds.clear()
   if (app && appTapEventId) { app.off_(appTapEventId); appTapEventId = null }
   app?.destroy(); app = null; treeLayer = null; skyLayer = null
-  window.removeEventListener('keydown', onKeyDown)
-  window.removeEventListener('keyup', onKeyUp)
 })
 
 const iconCache = new Map<string, string>()
@@ -443,7 +415,9 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
 
   const oldCardEvtId = cardEventIds.get(card.id)
   if (oldCardEvtId) frame.off_(oldCardEvtId)
-  const eventId = frame.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  const eventId = frame.on_(PointerEvent.TAP, (e: PointerEvent) => {
+    canvasStore.selectCard(card.id)
+  })
   // 右键菜单
   frame.on_(PointerEvent.MENU, (e: any) => {
     e?.preventDefault?.()
@@ -514,9 +488,6 @@ async function renderAll(shouldZoom = false) {
       cardGroups.delete(id)
     }
   }
-  // 清理 hotspots
-  for (const [, g] of hotspotsByPage.value) g.remove()
-  hotspotsByPage.value.clear()
 
   const genId = canvasStore.generatingCardId
   const screenshotQueue: CanvasCard[] = []
@@ -532,11 +503,6 @@ async function renderAll(shouldZoom = false) {
     }
   }
 
-  // Phase 3：Alt 按下时叠加 hotspot 框
-  if (showHotspots.value) {
-    renderHotspots()
-  }
-
   if (genId) startBreathAnimation()
   if (shouldZoom && cardGroups.size > 0) {
     setTimeout(() => { if (renderVersion === v) treeLayer?.zoom('fit', 40) }, 600)
@@ -545,41 +511,6 @@ async function renderAll(shouldZoom = false) {
   for (const card of screenshotQueue) {
     if (renderVersion !== v) return
     await renderCard(card, card.id === canvasStore.selectedCardId, false)
-  }
-}
-
-/** 渲染所有 page 的 hotspots（Alt 按下时） */
-function renderHotspots() {
-  if (!treeLayer) return
-  for (const card of canvasStore.cards) {
-    const links = canvasStore.getOutgoingLinks(card.id)
-    if (links.length === 0) continue
-    const wrapper = cardGroups.get(card.id)
-    if (!wrapper) continue
-    const group = new Group({})
-    for (const link of links) {
-      const target = canvasStore.pages.find(p => p.id === link.toPageId)
-      if (!target) continue
-      const rect = new Rect({
-        x: link.hotspot.x, y: link.hotspot.y,
-        width: link.hotspot.w, height: link.hotspot.h,
-        fill: 'rgba(34,211,238,0.15)',
-        stroke: '#22d3ee',
-        strokeWidth: 2,
-        dashPattern: [4, 4],
-        cornerRadius: 4,
-      })
-      ;(rect as any).id = `__link__${link.fromSelector}__${link.toPageId}`
-      group.add(rect)
-      const arrow = new Text({
-        text: `→ ${target.name}`,
-        fontSize: 12, fill: '#22d3ee',
-        x: link.hotspot.x, y: link.hotspot.y - 16,
-      })
-      group.add(arrow)
-    }
-    wrapper.add(group)
-    hotspotsByPage.value.set(card.id, group)
   }
 }
 
@@ -609,7 +540,9 @@ function renderCardPlaceholder(card: CanvasCard, selected: boolean, w: number, h
   wrapper.add(label)
   const oldCardEvtId = cardEventIds.get(card.id)
   if (oldCardEvtId) frame.off_(oldCardEvtId)
-  const eventId = frame.on_(PointerEvent.TAP, () => { canvasStore.selectCard(card.id) })
+  const eventId = frame.on_(PointerEvent.TAP, (e: PointerEvent) => {
+    canvasStore.selectCard(card.id)
+  })
   cardEventIds.set(card.id, eventId)
   if (treeLayer) treeLayer.add(wrapper)
   cardGroups.set(card.id, wrapper)
@@ -678,6 +611,26 @@ watch(
   () => { renderAll(false) },
 )
 
+/** 选中态切换：仅更新受影响卡片的描边样式（避免 renderAll 重建整张画布） */
+watch(
+  () => canvasStore.selectedCardId,
+  (newId, oldId) => {
+    const apply = (id: string | null, selected: boolean) => {
+      if (!id) return
+      const wrapper = cardGroups.get(id)
+      if (!wrapper) return
+      const frame = wrapper.children?.find(c => c instanceof Frame) as Frame | undefined
+      if (!frame) return
+      frame.set({
+        strokeWidth: selected ? 3 : 1,
+        stroke: selected ? '#22d3ee' : '#2a2a4a',
+      })
+    }
+    apply(oldId, false)
+    apply(newId, true)
+  },
+)
+
 watch(() => canvasStore.generatingCardId, (newId, oldId) => {
   if (!newId) {
     stopBreathAnimation()
@@ -692,23 +645,6 @@ watch(() => canvasStore.generatingCardId, (newId, oldId) => {
   if (card) {
     renderCard(card, card.id === canvasStore.selectedCardId, true)
     nextTick(() => panToCard(card))
-  }
-})
-
-watch(() => canvasStore.selectedCardId, (newId, oldId) => {
-  if (oldId) {
-    const oldWrapper = cardGroups.get(oldId)
-    const oldFrame = oldWrapper?.children?.find(c => c instanceof Frame) as Frame | undefined
-    if (oldFrame) {
-      oldFrame.set({ strokeWidth: 1, stroke: '#2a2a4a' })
-    }
-  }
-  if (newId) {
-    const wrapper = cardGroups.get(newId)
-    const frame = wrapper?.children?.find(c => c instanceof Frame) as Frame | undefined
-    if (frame) {
-      frame.set({ strokeWidth: 3, stroke: '#22d3ee' })
-    }
   }
 })
 
@@ -808,10 +744,6 @@ function finishRenamePage() {
   renderAll()
 }
 
-function pageIncomingCount(id: string): number {
-  return canvasStore.getIncomingLinksCount(id)
-}
-
 // ── Phase 3：右键菜单 ──
 function showContextMenuForPage(pageId: string, x: number, y: number) {
   canvasStore.setCurrentPage(pageId)
@@ -819,8 +751,6 @@ function showContextMenuForPage(pageId: string, x: number, y: number) {
     show: true,
     x: Math.max(20, Math.min(x, (containerRef.value?.clientWidth ?? 600) - 220)),
     y: Math.max(20, y - 60),
-    xpath: '',
-    preview: '',
   }
 }
 function closeContextMenu() { contextMenu.value.show = false }
@@ -853,24 +783,6 @@ function handleSaveAsComponent() {
     source: 'page',
   }
   componentNameInput.value = page.name || '新组件'
-  componentCategoryInput.value = ''
-}
-
-// Phase 4：另存为组件（选中元素）
-function handleSaveSelectionAsComponent() {
-  const sel = canvasStore.selectedElement
-  if (!sel) {
-    alert('请先选中画板上的一个元素（点击画板内任意元素）')
-    return
-  }
-  contextMenu.value.show = false
-  saveComponent.value = {
-    show: true,
-    html: sel.outerHTML,
-    defaultName: `${currentPage.value?.name || '组件'}-片段`,
-    source: 'selection',
-  }
-  componentNameInput.value = `${currentPage.value?.name || '组件'}-片段`
   componentCategoryInput.value = ''
 }
 function closeSaveComponent() { saveComponent.value = { show: false, html: '', defaultName: '', source: 'page' } }
@@ -1013,119 +925,6 @@ function closeVariantsModal() {
   variantsModal.value.show = false
 }
 
-// ── Phase 3：DOM 选择 iframe ──
-const showSelectionIframe = computed(() => {
-  return !!(currentPage.value && currentPage.value.html && canvasStore.selectedCardId === currentPage.value.id)
-})
-const selectionSrcdoc = computed(() => {
-  if (!currentPage.value) return ''
-  let html = currentPage.value.html
-  // 注入 hover/selected 高亮样式
-  const style = `
-    <style>
-      .__md_hover__ { outline: 2px dashed #93c5fd !important; outline-offset: -1px; cursor: pointer; }
-      .__md_selected__ { outline: 2px solid #22d3ee !important; outline-offset: -1px; }
-      body { background: #fff; }
-    </style>`
-  if (html.includes('</head>')) {
-    return html.replace('</head>', style + '</head>')
-  }
-  return style + html
-})
-
-function getIframeDoc(): Document | null {
-  return selectionIframeRef.value?.contentDocument ?? null
-}
-
-function elementToXpath(el: Element): string {
-  if (!el || el === el.ownerDocument.body) return '/html/body'
-  const parts: string[] = []
-  let cur: Element | null = el
-  while (cur && cur !== el.ownerDocument.documentElement) {
-    let part = cur.tagName.toLowerCase()
-    const parent: Element | null = cur.parentElement
-    if (parent) {
-      const same = Array.from(parent.children).filter(c => c.tagName === cur!.tagName)
-      if (same.length > 1) {
-        const idx = same.indexOf(cur) + 1
-        part += `[${idx}]`
-      }
-    }
-    parts.unshift(part)
-    cur = parent
-  }
-  return '/' + parts.join('/')
-}
-
-function onIframeMouseMove(e: MouseEvent) {
-  const doc = getIframeDoc()
-  if (!doc) return
-  const target = e.target as Element | null
-  if (!target || target === doc.body || target === doc.documentElement) {
-    hoverHighlight.value = null
-    return
-  }
-  // 跳过我们自己注入的高亮元素
-  if ((target as HTMLElement).classList?.contains('__md_hover__')) return
-  const rect = target.getBoundingClientRect()
-  hoverHighlight.value = { x: rect.left, y: rect.top, w: rect.width, h: rect.height }
-  hoverXpath.value = elementToXpath(target)
-}
-
-function onIframeMouseLeave() {
-  hoverHighlight.value = null
-}
-
-function onIframeClick(e: MouseEvent) {
-  const doc = getIframeDoc()
-  if (!doc) return
-  const target = e.target as Element | null
-  if (!target || target === doc.body || target === doc.documentElement) {
-    canvasStore.setSelectedElement(null)
-    selectHighlight.value = null
-    return
-  }
-  e.preventDefault()
-  e.stopPropagation()
-  const rect = target.getBoundingClientRect()
-  const xpath = elementToXpath(target)
-  selectHighlight.value = { x: rect.left, y: rect.top, w: rect.width, h: rect.height, xpath, preview: (target.outerHTML || '').slice(0, 200) }
-  canvasStore.setSelectedElement({ outerHTML: target.outerHTML, xpath, preview: selectHighlight.value.preview })
-}
-
-function clearSelection() {
-  canvasStore.setSelectedElement(null)
-  selectHighlight.value = null
-}
-
-// ── Phase 3：链接到画板菜单 ──
-function showLinkTargetMenu(x: number, y: number, xpath: string) {
-  if (!xpath) return
-  linkTargetMenu.value = { show: true, x, y, xpath }
-}
-function closeLinkTargetMenu() { linkTargetMenu.value = null }
-function linkToPage(targetId: string) {
-  if (!linkTargetMenu.value) return
-  const { xpath } = linkTargetMenu.value
-  const sourceId = canvasStore.currentPageId
-  if (!sourceId) return
-  // 默认 hotspot：使用选中的 selectHighlight 的位置
-  const hot = selectHighlight.value
-    ? { x: selectHighlight.value.x, y: selectHighlight.value.y, w: selectHighlight.value.w, h: selectHighlight.value.h }
-    : { x: 0, y: 0, w: 200, h: 40 }
-  const link: Link = { fromSelector: xpath, toPageId: targetId, hotspot: hot }
-  canvasStore.addLink(sourceId, link)
-  closeLinkTargetMenu()
-  closeContextMenu()
-  renderAll()
-  saveProject()
-}
-
-function handleAddHotspotFromMenu() {
-  if (!contextMenu.value.xpath) return
-  showLinkTargetMenu(contextMenu.value.x + 180, contextMenu.value.y, contextMenu.value.xpath)
-}
-
 const copyTooltip = ref('')
 
 async function copyCardId() {
@@ -1201,7 +1000,6 @@ function updateCardLabelText(cardId: string, label: string) {
             <div class="page-tab-thumb">
               <img v-if="p.screenshot" :src="p.screenshot" :alt="p.name" />
               <div v-else class="page-tab-thumb-empty">{{ p.name.charAt(0) }}</div>
-              <span v-if="pageIncomingCount(p.id) > 0" class="page-tab-badge" :title="`${pageIncomingCount(p.id)} 个入站链接`">{{ pageIncomingCount(p.id) }}</span>
             </div>
             <span class="page-tab-name">{{ p.name }}</span>
           </template>
@@ -1216,30 +1014,6 @@ function updateCardLabelText(cardId: string, label: string) {
       @dragover="onContainerDragOver"
       @drop="onContainerDrop"
     ></div>
-
-    <!-- Phase 3：DOM 选择 iframe（叠加在画板上） -->
-    <div v-if="showSelectionIframe" class="selection-iframe-wrap" :style="{ width: pageWidth + 'px', height: pageHeight + 'px' }">
-      <iframe
-        ref="selectionIframeRef"
-        :srcdoc="selectionSrcdoc"
-        class="selection-iframe"
-        sandbox="allow-same-origin"
-        @mousemove="onIframeMouseMove"
-        @mouseleave="onIframeMouseLeave"
-        @click="onIframeClick"
-      />
-      <div
-        v-if="hoverHighlight"
-        class="selection-hover-highlight"
-        :style="{ left: hoverHighlight.x + 'px', top: hoverHighlight.y + 'px', width: hoverHighlight.w + 'px', height: hoverHighlight.h + 'px' }"
-      />
-      <div
-        v-if="selectHighlight"
-        class="selection-select-highlight"
-        :style="{ left: selectHighlight.x + 'px', top: selectHighlight.y + 'px', width: selectHighlight.w + 'px', height: selectHighlight.h + 'px' }"
-        :title="selectHighlight.xpath"
-      />
-    </div>
 
     <div v-if="selectedCard" class="action-bar">
       <input
@@ -1258,16 +1032,6 @@ function updateCardLabelText(cardId: string, label: string) {
       <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><SvgIcon name="delete" :size="16" class="action-icon" />删除</button>
     </div>
 
-    <!-- Phase 3：选中元素信息条 -->
-    <Transition name="slide">
-      <div v-if="selectHighlight" class="selection-info-bar">
-        <span class="selection-info-icon">🎯</span>
-        <span class="selection-info-xpath" :title="selectHighlight.xpath">{{ selectHighlight.xpath }}</span>
-        <button class="selection-info-link" @click="showLinkTargetMenu(0, 0, selectHighlight.xpath)" title="链接到画板">🔗 链接到</button>
-        <button class="selection-info-clear" @click="clearSelection" title="清除选择">×</button>
-      </div>
-    </Transition>
-
     <Transition name="slide">
       <div v-if="selectedCard" class="card-id-bar">
         <span class="card-id-label">ID:</span>
@@ -1281,7 +1045,6 @@ function updateCardLabelText(cardId: string, label: string) {
 
     <div v-if="!selectedCard" class="canvas-info">
       {{ canvasStore.cards.length }} 个设计稿 | {{ pageWidth }} × {{ pageHeight }}
-      <span v-if="showHotspots" class="canvas-info-hint">· Alt 显示热区</span>
     </div>
 
     <div v-if="confirmState.show" class="confirm-overlay" @click.self="cancelDelete">
@@ -1305,35 +1068,12 @@ function updateCardLabelText(cardId: string, label: string) {
       @click.stop
     >
       <div class="context-menu-item" @click="handleGenerateVariants">🎨 生成 3 个变体</div>
-      <div class="context-menu-item" @click="handleAddHotspotFromMenu">🔗 添加跳转链接</div>
       <div class="context-menu-item" @click="handleSaveAsComponent">🧩 另存为组件（整页）</div>
-      <div class="context-menu-item" @click="handleSaveSelectionAsComponent">✂ 另存为组件（选中元素）</div>
       <div class="context-menu-sep"></div>
       <div class="context-menu-item" @click="handleViewHistory">📜 查看历史</div>
       <div class="context-menu-item" @click="showComponentLibrary = true">📚 打开组件库</div>
       <div class="context-menu-sep"></div>
       <div class="context-menu-item danger" @click="() => { closeContextMenu(); if (canvasStore.currentPageId) handleRemovePage(canvasStore.currentPageId) }">🗑 删除画板</div>
-    </div>
-
-    <!-- Phase 3：链接目标菜单 -->
-    <div
-      v-if="linkTargetMenu && linkTargetMenu.show"
-      class="link-target-menu"
-      :style="{ left: (linkTargetMenu.x + 200) + 'px', top: linkTargetMenu.y + 'px' }"
-      @click.stop
-    >
-      <div class="link-target-header">链接到画板</div>
-      <div
-        v-for="p in currentPages.filter(pg => pg.id !== canvasStore.currentPageId)"
-        :key="p.id"
-        class="link-target-item"
-        @click="linkToPage(p.id)"
-      >
-        <div class="link-target-thumb"><img v-if="p.screenshot" :src="p.screenshot" :alt="p.name" /></div>
-        <span>{{ p.name }}</span>
-      </div>
-      <div v-if="currentPages.length <= 1" class="link-target-empty">至少需要两个画板</div>
-      <div class="link-target-cancel" @click="closeLinkTargetMenu">取消</div>
     </div>
 
     <!-- Phase 3：变体对话框 -->
@@ -1380,7 +1120,7 @@ function updateCardLabelText(cardId: string, label: string) {
     <div v-if="saveComponent.show" class="save-comp-overlay" @click.self="closeSaveComponent">
       <div class="save-comp-modal">
         <div class="save-comp-header">
-          <h3>🧩 {{ saveComponent.source === 'selection' ? '另存为组件（选中元素）' : '另存为组件（整页）' }}</h3>
+          <h3>🧩 另存为组件（整页）</h3>
           <button class="save-comp-close" @click="closeSaveComponent">×</button>
         </div>
         <div class="save-comp-body">
@@ -1398,7 +1138,7 @@ function updateCardLabelText(cardId: string, label: string) {
             placeholder="按钮 / 卡片 / 导航 / ..."
             @keyup.enter="confirmSaveComponent"
           />
-          <p class="save-comp-hint">当前{{ saveComponent.source === 'selection' ? '选中元素的 outerHTML' : '画板的完整 HTML' }}会被保存到组件库，可在 prompt 中复用。</p>
+          <p class="save-comp-hint">当前画板的完整 HTML 会被保存到组件库，可在 prompt 中复用。</p>
           <div class="save-comp-actions">
             <button class="btn btn-secondary" @click="closeSaveComponent">取消</button>
             <button class="btn btn-primary" :disabled="!componentNameInput.trim()" @click="confirmSaveComponent">保存</button>
@@ -1429,20 +1169,12 @@ function updateCardLabelText(cardId: string, label: string) {
 .page-tab-thumb { position: relative; width: 28px; height: 36px; border-radius: 4px; overflow: hidden; background: #0f0f23; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
 .page-tab-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .page-tab-thumb-empty { font-size: 12px; color: #818cf8; font-weight: 600; }
-.page-tab-badge { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #22d3ee; color: #0f172a; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 .page-tab-name { font-size: 12px; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .page-name-input { font-size: 12px; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(129,140,248,0.5); background: rgba(0,0,0,0.2); color: #e2e8f0; outline: none; width: 100px; font-family: inherit; }
 .page-tab-add { width: 28px; height: 36px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2); color: #94a3b8; cursor: pointer; font-size: 16px; line-height: 1; }
 .page-tab-add:hover { background: rgba(129,140,248,0.15); color: #a5b4fc; }
 
-/* Phase 3：DOM 选择 iframe */
-.selection-iframe-wrap { position: absolute; pointer-events: auto; z-index: 5; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-.selection-iframe { width: 100%; height: 100%; border: none; background: transparent; }
-.selection-hover-highlight { position: absolute; pointer-events: none; border: 2px dashed #93c5fd; z-index: 6; }
-.selection-select-highlight { position: absolute; pointer-events: none; border: 2px solid #22d3ee; z-index: 7; }
-
 .canvas-info { position: absolute; top: 108px; left: 50%; transform: translateX(-50%); padding: 4px 12px; background: rgba(22,33,62,0.8); font-size: var(--font-xs); color: var(--text-muted); border-radius: var(--radius-sm); pointer-events: none; z-index: var(--z-canvas); }
-.canvas-info-hint { color: #22d3ee; margin-left: 4px; }
 .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: var(--z-dialog); }
 .confirm-dialog { background: var(--bg-surface); border-radius: var(--radius-lg); padding: 20px 24px; min-width: 280px; box-shadow: var(--shadow-lg); border: 1px solid var(--border-default); }
 .confirm-body { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
@@ -1470,16 +1202,6 @@ function updateCardLabelText(cardId: string, label: string) {
 .card-id-copy-btn:hover { color: var(--color-primary-light); background: rgba(129, 140, 248, 0.1); }
 .copy-tooltip { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #34d399; white-space: nowrap; background: rgba(15, 23, 42, 0.9); padding: 2px 8px; border-radius: 4px; pointer-events: none; }
 
-/* Phase 3：selection info bar */
-.selection-info-bar { position: absolute; top: 178px; left: 50%; transform: translateX(-50%); z-index: 11; display: flex; align-items: center; gap: 8px; padding: 4px 12px; background: rgba(15, 23, 42, 0.92); border: 1px solid #22d3ee; border-radius: 6px; backdrop-filter: blur(8px); }
-.selection-info-icon { font-size: 12px; }
-.selection-info-xpath { font-size: 11px; color: #a5b4fc; font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.selection-info-link, .selection-info-clear { border: none; background: rgba(34,211,238,0.18); color: #67e8f9; padding: 2px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
-.selection-info-clear { background: rgba(255,255,255,0.08); color: var(--text-muted); }
-
-.slide-enter-active, .slide-leave-active { transition: all 0.2s ease; }
-.slide-enter-from, .slide-leave-to { opacity: 0; transform: translateX(-50%) translateY(-4px); }
-
 /* Phase 3：context menu */
 .context-menu { position: absolute; z-index: 50; min-width: 200px; background: rgba(22,33,62,0.96); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
 .context-menu-item { padding: 8px 12px; font-size: 13px; color: #e2e8f0; cursor: pointer; border-radius: 4px; }
@@ -1487,17 +1209,6 @@ function updateCardLabelText(cardId: string, label: string) {
 .context-menu-item.danger { color: #fca5a5; }
 .context-menu-item.danger:hover { background: rgba(239,68,68,0.15); }
 .context-menu-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
-
-/* Phase 3：link target menu */
-.link-target-menu { position: absolute; z-index: 51; min-width: 200px; max-width: 260px; background: rgba(22,33,62,0.96); border: 1px solid rgba(34,211,238,0.3); border-radius: 8px; padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-.link-target-header { padding: 6px 10px; font-size: 11px; color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.06); }
-.link-target-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; font-size: 12px; color: #e2e8f0; cursor: pointer; border-radius: 4px; }
-.link-target-item:hover { background: rgba(34,211,238,0.15); }
-.link-target-thumb { width: 20px; height: 24px; border-radius: 3px; overflow: hidden; background: #0f0f23; flex-shrink: 0; }
-.link-target-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.link-target-empty { padding: 12px; font-size: 11px; color: var(--text-muted); text-align: center; }
-.link-target-cancel { padding: 6px 10px; font-size: 11px; color: var(--text-muted); cursor: pointer; text-align: right; border-top: 1px solid rgba(255,255,255,0.06); }
-.link-target-cancel:hover { color: #fff; }
 
 /* Phase 3：variants modal */
 .variants-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }

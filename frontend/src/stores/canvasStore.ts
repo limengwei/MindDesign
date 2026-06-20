@@ -76,13 +76,6 @@ export interface Component {
 /** Phase 4 · Task 17 规约：ComponentInstance 别名（与 Component 同义） */
 export type ComponentInstance = Component
 
-/** Phase 3：画板跳转链接 */
-export interface Link {
-  fromSelector: string
-  toPageId: string
-  hotspot: { x: number; y: number; w: number; h: number }
-}
-
 /** Phase 3：画板（多页项目） */
 export interface Page {
   id: string
@@ -96,8 +89,6 @@ export interface Page {
   variants: Variant[]
   /** Phase 4：版本快照（最近 20 个） */
   versions: Version[]
-  /** 画板跳转链接 */
-  links: Link[]
   sessionId?: string
   parentId?: string
   createdAt: string
@@ -138,7 +129,6 @@ export function migrateCardsToPages(cards: CanvasCard[]): Page[] {
     screenshot: c.screenshot,
     variants: [],
     versions: [],
-    links: [],
     sessionId: c.sessionId,
     parentId: c.parentId,
     createdAt: now,
@@ -168,10 +158,6 @@ export const useCanvasStore = defineStore('canvas', () => {
   // ── Phase 3：Pages 模型 ──
   const pages = ref<Page[]>([])
   const currentPageId = ref<string | null>(null)
-  // Phase 3：当前选中的元素（局部修改用）
-  const selectedElement = ref<{ outerHTML: string; xpath: string; preview: string } | null>(null)
-  // Phase 3：当前画板右键菜单中选中的元素 xpath（用于热点链接）
-  const editingElementXpath = ref<string | null>(null)
   // Phase 3：图片数据源
   const imageDataSource = ref<ImageDataSource>('placehold')
 
@@ -315,10 +301,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     productBlueprint.value = { ...normalized, version: (normalized.version || 0) + 1, lastUpdated: new Date().toISOString() }
   }
   function setActiveDirectionId(id: string | null) { activeDirectionId.value = id }
-  function setSelectedElement(el: { outerHTML: string; xpath: string; preview: string } | null) {
-    selectedElement.value = el
-  }
-  function setEditingElementXpath(xpath: string | null) { editingElementXpath.value = xpath }
   function setImageDataSource(src: ImageDataSource) {
     imageDataSource.value = src
     try { localStorage.setItem(STORAGE_KEY_DATA_SOURCE, src) } catch { /* ignore */ }
@@ -423,7 +405,6 @@ export const useCanvasStore = defineStore('canvas', () => {
       screenshot: opts?.screenshot ?? '',
       variants: [],
       versions: [],
-      links: [],
       sessionId: opts?.sessionId,
       parentId: opts?.parentId,
       createdAt: now,
@@ -457,10 +438,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     if (currentPageId.value === id) {
       currentPageId.value = pages.value[0]?.id ?? null
       if (currentPageId.value) selectedCardId.value = currentPageId.value
-    }
-    // 清理指向此页的 links
-    for (const p of pages.value) {
-      p.links = p.links.filter(l => l.toPageId !== id)
     }
   }
 
@@ -655,33 +632,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     p.variants = p.variants.filter(v => v.id !== variantId)
   }
 
-  function addLink(pageId: string, link: Link) {
-    const p = pages.value.find(pg => pg.id === pageId)
-    if (!p) return
-    p.links.push(link)
-  }
-
-  function removeLink(pageId: string, fromSelector: string, toPageId: string) {
-    const p = pages.value.find(pg => pg.id === pageId)
-    if (!p) return
-    p.links = p.links.filter(l => !(l.fromSelector === fromSelector && l.toPageId === toPageId))
-  }
-
-  function getIncomingLinksCount(pageId: string): number {
-    let count = 0
-    for (const p of pages.value) {
-      for (const l of p.links) {
-        if (l.toPageId === pageId) count++
-      }
-    }
-    return count
-  }
-
-  function getOutgoingLinks(pageId: string): Link[] {
-    const p = pages.value.find(pg => pg.id === pageId)
-    return p?.links ?? []
-  }
-
   // 启动时尝试从 localStorage 恢复
   loadCustomDesignSpecs()
   // 写入持久化（与 add/remove 解耦，防止外部直接改 ref 而丢失同步）
@@ -711,8 +661,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     activeDirectionId.value = null
     pages.value = []
     currentPageId.value = null
-    selectedElement.value = null
-    editingElementXpath.value = null
     // 保留 customDesignSpecs（用户自建资产，不随项目重置）
     // 保留 imageDataSource（用户偏好，不随项目重置）
     // 保留 isDarkMode、components（用户偏好与库不随项目重置）
@@ -726,19 +674,18 @@ export const useCanvasStore = defineStore('canvas', () => {
     pageType, colorScheme, projectName, viewport, isGenerating, generatingCardId, currentFilePath, createdAt, designSpecId, customDesignContent, activeSkillId, productBlueprint,
     activeDirectionId, customDesignSpecs,
     // Phase 3
-    pages, currentPageId, selectedElement, editingElementXpath, imageDataSource,
+    pages, currentPageId, imageDataSource,
     // Phase 4
     isDarkMode, components,
     addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
     setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, setActiveSkillId, setProductBlueprint, updateProductBlueprint,
     setActiveDirectionId, addCustomDesignSpec, removeCustomDesignSpec, loadCustomDesignSpecs,
-    setSelectedElement, setEditingElementXpath, setImageDataSource,
+    setImageDataSource,
     getActiveSpec,
     // Phase 3: Pages
     addPage, removePage, renamePage, setCurrentPage, getCurrentPage, addPageFromCard,
-    addVariant, adoptVariant, removeVariant, addLink, removeLink,
-    getIncomingLinksCount, getOutgoingLinks,
+    addVariant, adoptVariant, removeVariant,
     // Phase 4: Versions + Components + Theme
     addVersion, rollbackToVersion, compareVersions,
     pushVersion, getVersionTimeline, copyVersionAsVariant,

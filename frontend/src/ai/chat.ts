@@ -43,13 +43,6 @@ export interface VariantResult {
   critique?: string
 }
 
-/** Phase 3：局部元素修改（来自 LLM 的 ELEMENT_DIFF 块） */
-export interface ElementDiff {
-  xpath?: string
-  oldHtml: string
-  newHtml: string
-}
-
 export interface LLMResult {
   content: string
   html: string | null
@@ -59,8 +52,6 @@ export interface LLMResult {
   blueprintUpdate?: { action: string; blueprint: ProductBlueprint } | null
   /** Phase 3：变体（仅在调用"生成 N 个变体"时填充） */
   variants?: VariantResult[] | null
-  /** Phase 3：元素级 diff（仅在"局部修改模式"下填充） */
-  elementDiff?: ElementDiff | null
 }
 
 const TOOLS: ToolDefinition[] = [
@@ -94,7 +85,6 @@ function extractHTML(text: string): string | null {
   cleaned = cleaned.replace(/<!-- PREFLIGHT[\s\S]*?PREFLIGHT -->/g, '')
   cleaned = cleaned.replace(/<!-- BLUEPRINT_UPDATE[\s\S]*?BLUEPRINT_UPDATE -->/g, '')
   cleaned = cleaned.replace(/<!-- VARIANTS[\s\S]*?VARIANTS -->/g, '')
-  cleaned = cleaned.replace(/<!-- ELEMENT_DIFF[\s\S]*?ELEMENT_DIFF -->/g, '')
   const md = cleaned.match(/```html?\s*([\s\S]*?)```/)
   if (md) cleaned = md[1]
   const md2 = cleaned.match(/```\s*([\s\S]*?)```/)
@@ -152,25 +142,6 @@ function extractVariants(text: string): VariantResult[] | null {
   }
 }
 
-/** Phase 3：从 ELEMENT_DIFF 块抽取单元素 diff */
-function extractElementDiff(text: string): ElementDiff | null {
-  const match = text.match(/<!-- ELEMENT_DIFF\s*([\s\S]*?)\s*ELEMENT_DIFF -->/)
-  if (!match) return null
-  try {
-    const data = JSON.parse(match[1].trim())
-    if (data && typeof data.oldHtml === 'string' && typeof data.newHtml === 'string') {
-      return {
-        xpath: data.xpath,
-        oldHtml: data.oldHtml,
-        newHtml: data.newHtml,
-      }
-    }
-    return null
-  } catch {
-    return null
-  }
-}
-
 function stripDSML(text: string): string {
   if (!text.includes('DSML')) return text
   const pipe = '[\\|\uFF5C]'
@@ -199,30 +170,6 @@ function parseDSMLToolCalls(text: string): { name: string; args: string }[] | nu
   return calls.length > 0 ? calls : null
 }
 
-/** 局部修改模式系统指令 */
-const ELEMENT_DIFF_PROTOCOL = `
-## 局部修改模式
-
-用户已选中元素（xpath: {xpath}）。**只修改这个元素及其就近样式**：
-
-- 严禁重排整页布局（不动其它元素的 HTML 结构）
-- 严禁删除/重命名其它元素
-- 输出必须包含被修改元素的 outerHTML（替换前/后两个版本）
-- 替换前后两个 outerHTML 的 diff 行数 < 10 行
-
-输出格式：
-
-<!-- ELEMENT_DIFF
-{
-  "xpath": "...",
-  "oldHtml": "<原 outerHTML>",
-  "newHtml": "<新 outerHTML>"
-}
-ELEMENT_DIFF -->
-
-接着给出完整的新 HTML（包含修改后的元素）。
-`
-
 /** 变体生成模式系统指令 */
 const VARIANTS_PROTOCOL = `
 ## 变体生成模式
@@ -249,8 +196,6 @@ export interface SendMessageOptions {
   customDesignContent?: string
   history: Array<{ role: string; content: string }>
   selectedHtml?: string
-  /** Phase 3：用户已选中的元素（局部修改模式） */
-  selectedElement?: { outerHTML: string; xpath: string; preview: string } | null
   skill?: DesignSkill | null
   isFirstMessage?: boolean
   blueprint?: ProductBlueprint | null
@@ -278,15 +223,6 @@ function callLLM(config: LLMConfig, messages: ChatMessage[], tools?: ToolDefinit
   return callOpenAICompatible(config, messages, tools)
 }
 
-/** 局部修改：在整页 HTML 上应用 ELEMENT_DIFF（基于 outerHTML 精确替换） */
-export function applyElementDiffToHtml(fullHtml: string, diff: ElementDiff): string {
-  if (!fullHtml || !diff?.oldHtml || !diff?.newHtml) return fullHtml
-  // 简单策略：oldHtml 在 fullHtml 中精确匹配则替换
-  const idx = fullHtml.indexOf(diff.oldHtml)
-  if (idx < 0) return fullHtml
-  return fullHtml.substring(0, idx) + diff.newHtml + fullHtml.substring(idx + diff.oldHtml.length)
-}
-
 async function callRealLLM(userText: string, options: SendMessageOptions): Promise<LLMResult> {
   const configStore = useLLMConfigStore()
   const config = configStore.getConfig()
@@ -310,21 +246,13 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
         .map(c => `- [id=${c.id}] ${c.name}：${c.snippet}`)
         .join('\n')
   }
-
-  // Phase 3：局部修改模式 / 变体模式追加系统指令
-  const extraProtocols: string[] = []
-  if (options.selectedElement) {
-    extraProtocols.push(ELEMENT_DIFF_PROTOCOL.replace('{xpath}', options.selectedElement.xpath || '(未提供)'))
-  }
+  // Phase 3：变体模式追加系统指令
   if (options.variantsMode) {
-    extraProtocols.push(VARIANTS_PROTOCOL)
+    systemPrompt = systemPrompt + '\n\n' + VARIANTS_PROTOCOL
   }
   // Phase 4 · Task 15：QA 报告追加
   if (options.qaReport) {
-    extraProtocols.push(`## 自动质检反馈\n\n系统对你的设计稿进行了 DOM/Token/A11y 三类质检，请根据以下问题修正：\n\n${options.qaReport}\n\n请输出一份修正后的完整 HTML（不要 markdown 包裹）。`)
-  }
-  if (extraProtocols.length > 0) {
-    systemPrompt = systemPrompt + '\n\n' + extraProtocols.join('\n\n')
+    systemPrompt = systemPrompt + '\n\n## 自动质检反馈\n\n系统对你的设计稿进行了 DOM/Token/A11y 三类质检，请根据以下问题修正：\n\n' + options.qaReport + '\n\n请输出一份修正后的完整 HTML（不要 markdown 包裹）。'
   }
 
   const messages: ChatMessage[] = [
@@ -339,13 +267,6 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     messages.push({
       role: 'assistant',
       content: '好的，我已经了解了你当前的设计稿，请告诉我你想要做哪些修改。',
-    })
-  }
-
-  if (options.selectedElement) {
-    messages.push({
-      role: 'user',
-      content: `我选中了页面中的一个元素（xpath: ${options.selectedElement.xpath}）：\n\n\`\`\`html\n${options.selectedElement.outerHTML}\n\`\`\`\n\n请只修改这个元素。`,
     })
   }
 
@@ -428,14 +349,8 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     const critique = extractCritique(finalContent)
     const preflight = extractPreflight(finalContent)
     const blueprintUpdate = extractBlueprintUpdate(finalContent)
-    const elementDiff = extractElementDiff(finalContent)
     const variants = options.variantsMode ? extractVariants(finalContent) : null
     console.log('[LLM] round', round, 'finalContent length:', finalContent.length, 'html extracted:', !!html, 'variants:', variants?.length ?? 0)
-
-    // Phase 3：局部修改：若只有 elementDiff 没有新 HTML，回退用旧 html
-    if (options.selectedElement && elementDiff && !html && options.selectedHtml) {
-      html = applyElementDiffToHtml(options.selectedHtml, elementDiff)
-    }
 
     // LLM 输出了 critique/blueprint 但没有 HTML，追问一轮让它补充
     if (!html && !preflight && !variants && !options.variantsMode && round < MAX_TOOL_ROUNDS - 1) {
@@ -452,8 +367,7 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
       critique,
       preflight,
       blueprintUpdate,
-      variants,
-      elementDiff,
+      variants
     }
   }
 
@@ -465,7 +379,6 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
   const critique = extractCritique(lastContent)
   const preflight = extractPreflight(lastContent)
   const blueprintUpdate = extractBlueprintUpdate(lastContent)
-  const elementDiff = extractElementDiff(lastContent)
   const variants = options.variantsMode ? extractVariants(lastContent) : null
   console.log('[LLM] max rounds reached, content length:', lastContent.length, 'html extracted:', !!html)
   return {
@@ -475,8 +388,7 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     critique,
     preflight,
     blueprintUpdate,
-    variants,
-    elementDiff,
+    variants
   }
 }
 
@@ -498,7 +410,6 @@ export async function sendMessageToLLM(
         preflight: result.preflight,
         blueprintUpdate: result.blueprintUpdate,
         variants: result.variants,
-        elementDiff: result.elementDiff,
       }
     } catch (err) {
       const msg = (err as Error).message || String(err)
