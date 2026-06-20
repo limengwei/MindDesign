@@ -5,7 +5,7 @@ import { useCanvasStore } from '../stores/canvasStore'
 import { sendMessageToLLM, type DesignCritique, type PreflightData } from '../ai/chat'
 import { BUILT_IN_SKILLS, getSkillById, SKILL_CATEGORIES, type DesignSkill } from '../prompts/skills'
 import { buildPreflightFollowUpPrompt } from '../prompts/preflight'
-import { isBlueprintEmpty, type ProductBlueprint } from '../prompts/blueprint'
+import { isBlueprintEmpty, type ProductBlueprint, type DecisionType, DECISION_TYPES, getDecisionTypeLabel } from '../prompts/blueprint'
 import { saveProject } from '../stores/autoSave'
 import { migrateDesignSpec } from '../prompts/designSpecs'
 import { getDirectionById } from '../prompts/directions'
@@ -284,6 +284,78 @@ async function handleRebuildBlueprint() {
 }
 
 const hasBlueprint = computed(() => !isBlueprintEmpty(canvasStore.productBlueprint))
+
+// ── 蓝图内联编辑状态 ──
+const editingFeature = ref<{ kind: 'confirmed' | 'planned'; id: string; text: string } | null>(null)
+const newFeatureText = ref<{ confirmed: string; planned: string }>({ confirmed: '', planned: '' })
+const editingDecision = ref<{ id: string; text: string; type: DecisionType } | null>(null)
+const newDecisionText = ref('')
+const newDecisionType = ref<DecisionType>('layout')
+const decisionTypeOptions = DECISION_TYPES.map((t) => ({ value: t, label: getDecisionTypeLabel(t) }))
+const editingDescription = ref(false)
+const descriptionDraft = ref('')
+
+function startEditDescription() {
+  descriptionDraft.value = canvasStore.productBlueprint.product?.description ?? ''
+  editingDescription.value = true
+}
+function saveEditDescription() {
+  canvasStore.updateProductDescription(descriptionDraft.value.trim())
+  editingDescription.value = false
+}
+function cancelEditDescription() { editingDescription.value = false }
+
+const decisionGroups = computed(() => {
+  const groups: { type: DecisionType; label: string; items: ProductBlueprint['designDecisions'] }[] = []
+  for (const t of DECISION_TYPES) {
+    const items = canvasStore.productBlueprint.designDecisions.filter((d) => d.type === t)
+    if (items.length) groups.push({ type: t, label: getDecisionTypeLabel(t), items })
+  }
+  return groups
+})
+
+function handleAddFeature(kind: 'confirmed' | 'planned') {
+  const text = newFeatureText.value[kind].trim()
+  if (!text) return
+  canvasStore.addFeature(kind, text)
+  newFeatureText.value[kind] = ''
+}
+function handleRemoveFeature(kind: 'confirmed' | 'planned', id: string) {
+  canvasStore.removeFeature(kind, id)
+  if (editingFeature.value?.kind === kind && editingFeature.value?.id === id) editingFeature.value = null
+}
+function startEditFeature(kind: 'confirmed' | 'planned', id: string, text: string) {
+  editingFeature.value = { kind, id, text }
+}
+function saveEditFeature() {
+  if (!editingFeature.value) return
+  const { kind, id, text } = editingFeature.value
+  canvasStore.updateFeature(kind, id, text)
+  editingFeature.value = null
+}
+function cancelEditFeature() { editingFeature.value = null }
+
+function handleAddDecision() {
+  const text = newDecisionText.value.trim()
+  if (!text) return
+  canvasStore.addDecision(text, newDecisionType.value)
+  newDecisionText.value = ''
+}
+function handleRemoveDecision(id: string) {
+  canvasStore.removeDecision(id)
+  if (editingDecision.value?.id === id) editingDecision.value = null
+}
+function startEditDecision(id: string, text: string, type: DecisionType) {
+  editingDecision.value = { id, text, type }
+}
+function saveEditDecision() {
+  if (!editingDecision.value) return
+  const { id, text, type } = editingDecision.value
+  canvasStore.updateDecision(id, { text, type })
+  editingDecision.value = null
+}
+function cancelEditDecision() { editingDecision.value = null }
+async function persistBlueprint() { await saveProject() }
 
 async function handleSend() {
   const text = inputText.value.trim()
@@ -698,17 +770,35 @@ async function handleBrandAnalyzerSubmit() {
         </div>
       </div>
 
+      <div v-if="!hasBlueprint" class="blueprint-empty-cta">
+        <span>📋 首次生成设计稿后将自动生成产品蓝图（汇总功能与设计决策，作为后续页面的一致性上下文）</span>
+      </div>
+
       <div v-if="hasBlueprint" class="blueprint-card">
         <div class="blueprint-header" @click="showBlueprintPanel = !showBlueprintPanel">
           <span>📋 产品蓝图 v{{ canvasStore.productBlueprint.version }}</span>
           <SvgIcon name="arrow_drop_down" :size="12" :style="{ transform: showBlueprintPanel ? 'rotate(180deg)' : '', transition: 'transform 0.2s' }" />
         </div>
         <div v-if="showBlueprintPanel" class="blueprint-body">
-          <div v-if="canvasStore.productBlueprint.product?.name" class="blueprint-section">
-            <div class="blueprint-section-title">产品概述</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.name">名称：{{ canvasStore.productBlueprint.product.name }}</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.category">类型：{{ canvasStore.productBlueprint.product.category }}</div>
-            <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.targetUsers">目标用户：{{ canvasStore.productBlueprint.product.targetUsers }}</div>
+          <div v-if="canvasStore.productBlueprint.product?.name || canvasStore.productBlueprint.product?.description" class="blueprint-section">
+            <div class="blueprint-section-title">
+              产品概述
+              <button v-if="!editingDescription" class="bp-icon-btn bp-icon-btn-inline" @click="startEditDescription" title="编辑描述">✏</button>
+            </div>
+            <div v-if="editingDescription" class="bp-edit-description">
+              <textarea v-model="descriptionDraft" class="bp-edit-textarea" rows="3" placeholder="一段话描述产品是什么、解决什么问题、核心价值主张"></textarea>
+              <div class="bp-edit-actions">
+                <button class="bp-icon-btn" @click="saveEditDescription">✓</button>
+                <button class="bp-icon-btn" @click="cancelEditDescription">✕</button>
+              </div>
+            </div>
+            <div v-else>
+              <div v-if="canvasStore.productBlueprint.product?.description" class="blueprint-field blueprint-description">{{ canvasStore.productBlueprint.product.description }}</div>
+              <div v-else class="blueprint-empty-hint">暂无产品描述，点 ✏ 添加</div>
+              <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.name">名称：{{ canvasStore.productBlueprint.product.name }}</div>
+              <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.category">类型：{{ canvasStore.productBlueprint.product.category }}</div>
+              <div class="blueprint-field" v-if="canvasStore.productBlueprint.product?.targetUsers">目标用户：{{ canvasStore.productBlueprint.product.targetUsers }}</div>
+            </div>
           </div>
           <div v-if="canvasStore.productBlueprint.visualSpec?.primaryColor" class="blueprint-section">
             <div class="blueprint-section-title">视觉规范</div>
@@ -723,16 +813,82 @@ async function handleBrandAnalyzerSubmit() {
               <span class="page-purpose">{{ p.purpose }}</span>
             </div>
           </div>
-          <div v-if="canvasStore.productBlueprint.features?.confirmed?.length" class="blueprint-section">
+
+          <!-- 已确认功能（内联可编辑） -->
+          <div class="blueprint-section">
             <div class="blueprint-section-title">已确认功能</div>
-            <div class="blueprint-tags">
-              <span v-for="f in canvasStore.productBlueprint.features.confirmed" :key="f" class="blueprint-tag">{{ f }}</span>
+            <div v-if="!canvasStore.productBlueprint.features.confirmed.length" class="blueprint-empty-hint">暂无</div>
+            <div v-for="f in canvasStore.productBlueprint.features.confirmed" :key="f.id" class="bp-item">
+              <template v-if="editingFeature?.kind === 'confirmed' && editingFeature?.id === f.id">
+                <input v-model="editingFeature.text" class="bp-edit-input" @keyup.enter="saveEditFeature" @keyup.esc="cancelEditFeature" />
+                <button class="bp-icon-btn" @click="saveEditFeature">✓</button>
+                <button class="bp-icon-btn" @click="cancelEditFeature">✕</button>
+              </template>
+              <template v-else>
+                <span class="bp-item-text" @dblclick="startEditFeature('confirmed', f.id, f.text)">{{ f.text }}</span>
+                <span v-if="f.manual" class="bp-manual-badge" title="手动维护">✋</span>
+                <button class="bp-icon-btn" @click="startEditFeature('confirmed', f.id, f.text)" title="编辑">✏</button>
+                <button class="bp-icon-btn" @click="handleRemoveFeature('confirmed', f.id)" title="删除">✕</button>
+              </template>
+            </div>
+            <div class="bp-add-row">
+              <input v-model="newFeatureText.confirmed" class="bp-add-input" placeholder="+ 添加功能" @keyup.enter="handleAddFeature('confirmed')" @change="persistBlueprint" />
             </div>
           </div>
-          <div v-if="canvasStore.productBlueprint.designDecisions?.length" class="blueprint-section">
-            <div class="blueprint-section-title">设计决策</div>
-            <div v-for="(d, i) in canvasStore.productBlueprint.designDecisions" :key="i" class="blueprint-decision">• {{ d }}</div>
+
+          <!-- 规划中功能（内联可编辑） -->
+          <div class="blueprint-section">
+            <div class="blueprint-section-title">规划中功能</div>
+            <div v-if="!canvasStore.productBlueprint.features.planned.length" class="blueprint-empty-hint">暂无</div>
+            <div v-for="f in canvasStore.productBlueprint.features.planned" :key="f.id" class="bp-item bp-item-planned">
+              <template v-if="editingFeature?.kind === 'planned' && editingFeature?.id === f.id">
+                <input v-model="editingFeature.text" class="bp-edit-input" @keyup.enter="saveEditFeature" @keyup.esc="cancelEditFeature" />
+                <button class="bp-icon-btn" @click="saveEditFeature">✓</button>
+                <button class="bp-icon-btn" @click="cancelEditFeature">✕</button>
+              </template>
+              <template v-else>
+                <span class="bp-item-text" @dblclick="startEditFeature('planned', f.id, f.text)">{{ f.text }}</span>
+                <span v-if="f.manual" class="bp-manual-badge" title="手动维护">✋</span>
+                <button class="bp-icon-btn" @click="startEditFeature('planned', f.id, f.text)" title="编辑">✏</button>
+                <button class="bp-icon-btn" @click="handleRemoveFeature('planned', f.id)" title="删除">✕</button>
+              </template>
+            </div>
+            <div class="bp-add-row">
+              <input v-model="newFeatureText.planned" class="bp-add-input" placeholder="+ 添加规划功能" @keyup.enter="handleAddFeature('planned')" @change="persistBlueprint" />
+            </div>
           </div>
+
+          <!-- 设计决策（按类型分组，内联可编辑） -->
+          <div class="blueprint-section">
+            <div class="blueprint-section-title">设计决策</div>
+            <div v-if="!decisionGroups.length && !canvasStore.productBlueprint.designDecisions.length" class="blueprint-empty-hint">暂无</div>
+            <div v-for="g in decisionGroups" :key="g.type" class="bp-decision-group">
+              <div class="bp-decision-group-title">{{ g.label }}</div>
+              <div v-for="d in g.items" :key="d.id" class="bp-item bp-decision-item">
+                <template v-if="editingDecision?.id === d.id">
+                  <input v-model="editingDecision.text" class="bp-edit-input bp-edit-input-wide" @keyup.enter="saveEditDecision" @keyup.esc="cancelEditDecision" />
+                  <select v-model="editingDecision.type" class="bp-type-select">
+                    <option v-for="o in decisionTypeOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                  </select>
+                  <button class="bp-icon-btn" @click="saveEditDecision">✓</button>
+                  <button class="bp-icon-btn" @click="cancelEditDecision">✕</button>
+                </template>
+                <template v-else>
+                  <span class="bp-item-text" @dblclick="startEditDecision(d.id, d.text, d.type)">{{ d.text }}</span>
+                  <span v-if="d.manual" class="bp-manual-badge" title="手动维护">✋</span>
+                  <button class="bp-icon-btn" @click="startEditDecision(d.id, d.text, d.type)" title="编辑">✏</button>
+                  <button class="bp-icon-btn" @click="handleRemoveDecision(d.id)" title="删除">✕</button>
+                </template>
+              </div>
+            </div>
+            <div class="bp-add-row bp-add-decision">
+              <select v-model="newDecisionType" class="bp-type-select">
+                <option v-for="o in decisionTypeOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+              </select>
+              <input v-model="newDecisionText" class="bp-add-input bp-add-input-wide" placeholder="添加设计决策" @keyup.enter="handleAddDecision" @change="persistBlueprint" />
+            </div>
+          </div>
+
           <button class="blueprint-rebuild-btn" :disabled="isRebuildingBlueprint" @click="handleRebuildBlueprint">
             {{ isRebuildingBlueprint ? '整理中...' : '🔄 重新整理蓝图' }}
           </button>
@@ -1039,6 +1195,15 @@ async function handleBrandAnalyzerSubmit() {
 .blueprint-section { margin-bottom: 10px; }
 .blueprint-section-title { font-size: 11px; font-weight: 600; color: var(--color-primary-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .blueprint-field { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+.blueprint-description { color: var(--text-primary); font-size: 12px; line-height: 1.6; margin-bottom: 4px; padding: 6px 8px; background: rgba(0,0,0,0.2); border-radius: 6px; }
+.bp-edit-description { display: flex; flex-direction: column; gap: 4px; }
+.bp-edit-textarea { background: rgba(0,0,0,0.3); border: 1px solid var(--border-hover); border-radius: 4px; color: var(--text-primary); font-size: 12px; padding: 6px 8px; font-family: inherit; resize: vertical; line-height: 1.5; }
+.bp-edit-textarea:focus { outline: none; border-color: var(--color-primary-light); }
+.bp-edit-actions { display: flex; gap: 6px; }
+.bp-icon-btn-inline { opacity: 0.4; padding: 0 2px; font-size: 10px; }
+.bp-icon-btn-inline:hover { opacity: 1; }
+.blueprint-empty-hint { font-size: 11px; color: var(--text-muted); font-style: italic; }
+.blueprint-empty-cta { background: rgba(22, 33, 62, 0.5); border: 1px dashed var(--border-subtle); border-radius: 10px; margin-bottom: 12px; padding: 10px 14px; font-size: 11px; color: var(--text-muted); line-height: 1.5; }
 .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
 .blueprint-page-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.8; }
 .page-status { font-size: 10px; flex-shrink: 0; }
@@ -1046,9 +1211,27 @@ async function handleBrandAnalyzerSubmit() {
 .page-status.planned { color: #f59e0b; }
 .page-name { color: var(--text-primary); font-weight: 500; }
 .page-purpose { color: var(--text-muted); }
-.blueprint-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.blueprint-tag { padding: 2px 8px; border-radius: 10px; background: rgba(79, 70, 229, 0.15); color: var(--color-primary-light); font-size: 11px; }
-.blueprint-decision { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+
+.bp-item { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-secondary); line-height: 1.6; padding: 2px 0; }
+.bp-item-planned .bp-item-text { color: var(--text-muted); }
+.bp-item-text { flex: 1; cursor: text; }
+.bp-item-text:hover { color: var(--text-primary); }
+.bp-manual-badge { font-size: 10px; opacity: 0.7; }
+.bp-icon-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 11px; padding: 0 2px; opacity: 0; transition: opacity 0.15s ease; font-family: inherit; }
+.bp-item:hover .bp-icon-btn { opacity: 0.7; }
+.bp-icon-btn:hover { opacity: 1; color: var(--text-primary); }
+.bp-edit-input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border-hover); border-radius: 4px; color: var(--text-primary); font-size: 11px; padding: 2px 4px; font-family: inherit; min-width: 0; }
+.bp-edit-input-wide { flex: 2; }
+.bp-type-select { background: rgba(0,0,0,0.3); border: 1px solid var(--border-hover); border-radius: 4px; color: var(--text-primary); font-size: 10px; padding: 1px 2px; font-family: inherit; }
+.bp-add-row { display: flex; gap: 4px; align-items: center; margin-top: 4px; }
+.bp-add-input { flex: 1; background: transparent; border: 1px dashed var(--border-subtle); border-radius: 4px; color: var(--text-secondary); font-size: 11px; padding: 3px 6px; font-family: inherit; min-width: 0; }
+.bp-add-input::placeholder { color: var(--text-muted); }
+.bp-add-input:focus { outline: none; border-color: var(--border-hover); border-style: solid; }
+.bp-add-input-wide { flex: 2; }
+.bp-add-decision { gap: 6px; }
+.bp-decision-group { margin-bottom: 6px; }
+.bp-decision-group-title { font-size: 10px; font-weight: 600; color: var(--color-primary-light); margin-bottom: 2px; opacity: 0.8; }
+
 .blueprint-rebuild-btn { width: 100%; padding: 7px; border-radius: 8px; border: 1px solid var(--border-subtle); background: transparent; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.15s ease; font-family: inherit; margin-top: 4px; }
 .blueprint-rebuild-btn:hover:not(:disabled) { border-color: var(--border-hover); color: var(--text-primary); }
 .blueprint-rebuild-btn:disabled { opacity: 0.5; cursor: not-allowed; }

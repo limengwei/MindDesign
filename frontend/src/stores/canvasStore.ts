@@ -5,13 +5,19 @@ import type { ColorScheme } from '../prompts/colors'
 import type { DesignSpec, DesignSpecId } from '../prompts/designSpecs'
 import { getDesignSpecById } from '../prompts/designSpecs'
 import type { SkillCategory } from '../prompts/skills'
-import type { ProductBlueprint } from '../prompts/blueprint'
-import { createEmptyBlueprint, normalizeBlueprint } from '../prompts/blueprint'
+import type { ProductBlueprint, DecisionType } from '../prompts/blueprint'
+import {
+  createEmptyBlueprint,
+  normalizeBlueprint,
+  mergeBlueprint,
+  isBlueprintEmpty,
+  genId,
+} from '../prompts/blueprint'
 
 export type { PageType, ColorScheme }
 export type { DesignSpecId }
 export type { SkillCategory }
-export type { ProductBlueprint }
+export type { ProductBlueprint, DecisionType }
 
 /** 历史（向前兼容）—— Phase 1/2 沿用的单画板 */
 export interface CanvasCard {
@@ -278,8 +284,95 @@ export const useCanvasStore = defineStore('canvas', () => {
   function setActiveSkillId(id: string | null) { activeSkillId.value = id }
   function setProductBlueprint(bp: ProductBlueprint) { productBlueprint.value = normalizeBlueprint(bp) }
   function updateProductBlueprint(update: { action: string; blueprint: ProductBlueprint }) {
-    const normalized = normalizeBlueprint(update.blueprint)
-    productBlueprint.value = { ...normalized, version: (normalized.version || 0) + 1, lastUpdated: new Date().toISOString() }
+    const incoming = normalizeBlueprint(update.blueprint)
+    if (update.action === 'init' || isBlueprintEmpty(productBlueprint.value)) {
+      productBlueprint.value = { ...incoming, version: (incoming.version || 0) || 1, lastUpdated: new Date().toISOString() }
+    } else {
+      // update / rebuild：保留手动项，追加 LLM 新项
+      productBlueprint.value = mergeBlueprint(productBlueprint.value, incoming)
+    }
+  }
+  function addFeature(kind: 'confirmed' | 'planned', text: string) {
+    const t = text.trim()
+    if (!t) return
+    const bp = productBlueprint.value
+    const list = kind === 'confirmed' ? bp.features.confirmed : bp.features.planned
+    list.push({ id: genId('feat'), text: t, manual: true })
+    productBlueprint.value = {
+      ...bp,
+      version: (bp.version || 0) + 1,
+      lastUpdated: new Date().toISOString(),
+    }
+  }
+  function removeFeature(kind: 'confirmed' | 'planned', id: string) {
+    const bp = productBlueprint.value
+    if (kind === 'confirmed') {
+      bp.features.confirmed = bp.features.confirmed.filter((f) => f.id !== id)
+    } else {
+      bp.features.planned = bp.features.planned.filter((f) => f.id !== id)
+    }
+    productBlueprint.value = {
+      ...bp,
+      version: (bp.version || 0) + 1,
+      lastUpdated: new Date().toISOString(),
+    }
+  }
+  function updateFeature(kind: 'confirmed' | 'planned', id: string, text: string) {
+    const t = text.trim()
+    if (!t) return
+    const bp = productBlueprint.value
+    const list = kind === 'confirmed' ? bp.features.confirmed : bp.features.planned
+    const item = list.find((f) => f.id === id)
+    if (item) {
+      item.text = t
+      productBlueprint.value = {
+        ...bp,
+        version: (bp.version || 0) + 1,
+        lastUpdated: new Date().toISOString(),
+      }
+    }
+  }
+  function addDecision(text: string, type: DecisionType) {
+    const t = text.trim()
+    if (!t) return
+    const bp = productBlueprint.value
+    bp.designDecisions.push({ id: genId('dec'), text: t, type, manual: true })
+    productBlueprint.value = {
+      ...bp,
+      version: (bp.version || 0) + 1,
+      lastUpdated: new Date().toISOString(),
+    }
+  }
+  function removeDecision(id: string) {
+    const bp = productBlueprint.value
+    bp.designDecisions = bp.designDecisions.filter((d) => d.id !== id)
+    productBlueprint.value = {
+      ...bp,
+      version: (bp.version || 0) + 1,
+      lastUpdated: new Date().toISOString(),
+    }
+  }
+  function updateDecision(id: string, patch: { text?: string; type?: DecisionType }) {
+    const bp = productBlueprint.value
+    const item = bp.designDecisions.find((d) => d.id === id)
+    if (item) {
+      if (typeof patch.text === 'string' && patch.text.trim()) item.text = patch.text.trim()
+      if (patch.type) item.type = patch.type
+      productBlueprint.value = {
+        ...bp,
+        version: (bp.version || 0) + 1,
+        lastUpdated: new Date().toISOString(),
+      }
+    }
+  }
+  function updateProductDescription(text: string) {
+    const bp = productBlueprint.value
+    bp.product = { ...bp.product, description: text }
+    productBlueprint.value = {
+      ...bp,
+      version: (bp.version || 0) + 1,
+      lastUpdated: new Date().toISOString(),
+    }
   }
   function setActiveDirectionId(id: string | null) { activeDirectionId.value = id }
   function setImageDataSource(src: ImageDataSource) {
@@ -623,6 +716,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
     setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, setActiveSkillId, setProductBlueprint, updateProductBlueprint,
+    addFeature, removeFeature, updateFeature, addDecision, removeDecision, updateDecision, updateProductDescription,
     setActiveDirectionId, addCustomDesignSpec, removeCustomDesignSpec, loadCustomDesignSpecs,
     setImageDataSource,
     getActiveSpec,
