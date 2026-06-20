@@ -68,6 +68,23 @@ const cardEventIds = new Map<string, any>()
 const contextMenu = ref<{ show: boolean; x: number; y: number }>({
   show: false, x: 0, y: 0,
 })
+const contextMenuRef = ref<HTMLDivElement | null>(null)
+function onDocMouseDown(e: MouseEvent) {
+  if (!contextMenu.value.show) return
+  const el = contextMenuRef.value
+  if (el && e.target instanceof Node && el.contains(e.target)) return
+  closeContextMenu()
+}
+function onDocKeyDown(e: KeyboardEvent) {
+  if (!contextMenu.value.show) return
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    closeContextMenu()
+  }
+}
+function onCanvasWheel() {
+  if (contextMenu.value.show) closeContextMenu()
+}
 // 变体对话框
 const variantsModal = ref<{ show: boolean; pageId: string; busy: boolean; error: string | null }>({
   show: false, pageId: '', busy: false, error: null,
@@ -128,6 +145,10 @@ onMounted(() => {
   })
   resizeObserver.observe(containerRef.value)
 
+  document.addEventListener('mousedown', onDocMouseDown)
+  document.addEventListener('keydown', onDocKeyDown)
+  containerRef.value.addEventListener('wheel', onCanvasWheel, { passive: true })
+
   nextTick(() => {
     if (canvasStore.cards.length > 0) renderAll()
   })
@@ -140,6 +161,9 @@ onUnmounted(() => {
   cardGroups.clear()
   cardEventIds.clear()
   if (app && appTapEventId) { app.off_(appTapEventId); appTapEventId = null }
+  document.removeEventListener('mousedown', onDocMouseDown)
+  document.removeEventListener('keydown', onDocKeyDown)
+  containerRef.value?.removeEventListener('wheel', onCanvasWheel)
   app?.destroy(); app = null; treeLayer = null; skyLayer = null
 })
 
@@ -1063,6 +1087,7 @@ function updateCardLabelText(cardId: string, label: string) {
     <!-- Phase 3：画板右键菜单 -->
     <div
       v-if="contextMenu.show"
+      ref="contextMenuRef"
       class="context-menu"
       :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
       @click.stop
@@ -1071,7 +1096,7 @@ function updateCardLabelText(cardId: string, label: string) {
       <div class="context-menu-item" @click="handleSaveAsComponent">🧩 另存为组件（整页）</div>
       <div class="context-menu-sep"></div>
       <div class="context-menu-item" @click="handleViewHistory">📜 查看历史</div>
-      <div class="context-menu-item" @click="showComponentLibrary = true">📚 打开组件库</div>
+      <div class="context-menu-item" @click="() => { closeContextMenu(); showComponentLibrary = true }">📚 打开组件库</div>
       <div class="context-menu-sep"></div>
       <div class="context-menu-item danger" @click="() => { closeContextMenu(); if (canvasStore.currentPageId) handleRemovePage(canvasStore.currentPageId) }">🗑 删除画板</div>
     </div>
