@@ -1062,8 +1062,7 @@ async function handleBrandAnalyzerSubmit() {
 .spec-summary-emoji { font-size: 14px; }
 .spec-summary-name { font-size: 11px; color: var(--color-primary-light); padding: 1px 6px; border-radius: 6px; background: rgba(94, 106, 210, 0.15); }
 .spec-summary-direction { font-size: 11px; color: var(--text-secondary); padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,0.06); }
-.spec-summary-steps { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; scrollbar-width: thin; }
-.spec-summary-step { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 7px; flex: 0 0 120px; min-width: 120px; }
+.spec-summary-steps { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
 .spec-step-head { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-primary); font-weight: 500; }
 .spec-step-icon { font-size: 12px; }
 .spec-step-body { margin-top: 4px; }
