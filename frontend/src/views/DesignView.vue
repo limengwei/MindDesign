@@ -11,6 +11,7 @@ import ChatPanel from '../components/ChatPanel.vue'
 import CanvasWrapper from '../canvas/CanvasWrapper.vue'
 import ExportDialog from '../components/ExportDialog.vue'
 import SettingsPanel from '../components/SettingsPanel.vue'
+import VersionHistory from '../components/VersionHistory.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,6 +20,7 @@ const chatStore = useChatStore()
 const chatCollapsed = ref(false)
 const showExportDialog = ref(false)
 const showSettingsPanel = ref(false)
+const showVersionHistory = ref(false)
 const exportCardId = ref<string | null>(null)
 const previewHtml = ref<string | null>(null)
 const previewContainerRef = ref<HTMLDivElement | null>(null)
@@ -115,6 +117,10 @@ function handleBackToHome() {
   router.push({ name: 'home' })
 }
 
+function handleViewHistory() {
+  showVersionHistory.value = true
+}
+
 function handleExportCard(cardId: string) {
   exportCardId.value = cardId
   showExportDialog.value = true
@@ -145,6 +151,7 @@ function closePreview() {
       :page-height="pageDimensions.height"
       @export-card="handleExportCard"
       @preview-card="handlePreviewCard"
+      @view-history="handleViewHistory"
     />
 
     <Toolbar @back="handleBackToHome" />
@@ -181,6 +188,12 @@ function closePreview() {
     <SettingsPanel
       v-if="showSettingsPanel"
       @close="showSettingsPanel = false"
+    />
+
+    <VersionHistory
+      v-if="showVersionHistory"
+      :page-id="canvasStore.currentPageId ?? ''"
+      @close="showVersionHistory = false"
     />
   </div>
 </template>

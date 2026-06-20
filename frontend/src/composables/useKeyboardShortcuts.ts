@@ -26,8 +26,6 @@ export type ShortcutEventName =
   | 'md:delete-page'
   | 'md:export-current'
   | 'md:open-export-dialog'
-  | 'md:open-component-library'
-  | 'md:view-page-history'
   | 'md:toggle-theme'
   | 'md:open-settings'
   | 'md:toggle-fullscreen-preview'
@@ -144,10 +142,6 @@ export function useKeyboardShortcuts(options: UseKeyboardShortcutsOptions = {}) 
     { key: '/', event: 'md:toggle-theme' },
     // Cmd/Ctrl + ,  → 打开设置
     { key: ',', event: 'md:open-settings' },
-    // Cmd/Ctrl + L  → 打开组件库
-    { key: 'l', event: 'md:open-component-library' },
-    // Cmd/Ctrl + H  → 查看当前画板历史
-    { key: 'h', event: 'md:view-page-history' },
     // Cmd/Ctrl + Shift + F  → 按规范修正（QA fix）
     { key: 'f', event: 'md:fix-by-spec' },
   ]

@@ -50,8 +50,6 @@ const referenceImages = ref<string[]>([])
 const isDragOver = ref(false)
 // Phase 4 · Task 15：QA 报告追加到下一条消息
 const pendingQaReport = ref<string | null>(null)
-// Phase 4 · Task 17：组件库下拉
-const showComponentLibrary = ref(false)
 
 const activeSkill = computed<DesignSkill | null>(() => {
   const id = canvasStore.activeSkillId
@@ -105,14 +103,6 @@ function selectSkill(skill: DesignSkill) {
 }
 
 function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
-  // Phase 4 · Task 17：合并组件库所有组件 + 用户"已选"组件
-  // - 库内组件：name + html（让 LLM 知道可复用）
-  // - 已选组件：id + name + 简短描述（突出"用户当前选定的"）
-  const all = canvasStore.components.map(c => ({ id: c.id, name: c.name, html: c.html }))
-  const selected = pendingComponents.value.map(c => {
-    const stripped = c.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    return { id: c.id, name: c.name, snippet: stripped.slice(0, 80) }
-  })
   return {
     pageType: canvasStore.pageType,
     colorScheme: canvasStore.colorScheme,
@@ -125,8 +115,6 @@ function buildCallOptions(selectedHtml?: string, isFirstMessage?: boolean) {
     blueprint: canvasStore.productBlueprint,
     direction: activeDirection.value,
     brandAsset: brandAsset.value,
-    components: all,
-    selectedComponents: selected.length > 0 ? selected : undefined,
     referenceImages: referenceImages.value.length > 0 ? [...referenceImages.value] : undefined,
     qaReport: pendingQaReport.value ?? undefined,
   }
@@ -379,14 +367,6 @@ async function handleQaFixOne(issue: { section: 'dom' | 'token' | 'a11y'; messag
   inputText.value = ''
 }
 
-// Phase 4 · Task 17：插入组件到 prompt
-function insertComponent(name: string, html: string) {
-  const snippet = `\n[参考组件 ${name}]\n${html}\n`
-  inputText.value = (inputText.value || '') + snippet
-  showComponentLibrary.value = false
-  nextTick(() => textareaRef.value?.focus())
-}
-
 // Phase 4 · Task 15：当前选中卡片的最新 HTML（供 QaPanel 实时检测）
 const latestHtml = computed(() => {
   const id = canvasStore.selectedCardId
@@ -422,30 +402,14 @@ onMounted(() => {
   if (!props.collapsed) {
     window.addEventListener('paste', onPaste)
   }
-  window.addEventListener('md:insert-component', onInsertComponent as EventListener)
 })
 onUnmounted(() => {
   window.removeEventListener('paste', onPaste)
-  window.removeEventListener('md:insert-component', onInsertComponent as EventListener)
 })
 watch(() => props.collapsed, (v) => {
   if (v) window.removeEventListener('paste', onPaste)
   else window.addEventListener('paste', onPaste)
 })
-
-// Phase 4 · Task 17：把来自组件库的组件写入待注入的组件清单
-const pendingComponents = ref<Array<{ id: string; name: string; html: string }>>([])
-function onInsertComponent(e: CustomEvent<{ id: string; name: string; html: string }>) {
-  pendingComponents.value.push(e.detail)
-  // 同步追加到输入框
-  inputText.value = (inputText.value ? inputText.value + '\n' : '') + `[插入组件] ${e.detail.name}`
-  if (!showComponentChips.value) showComponentChips.value = true
-}
-const showComponentChips = ref(false)
-function removePendingComponent(idx: number) {
-  pendingComponents.value.splice(idx, 1)
-  if (pendingComponents.value.length === 0) showComponentChips.value = false
-}
 
 // Phase 5 · Task 20：全局 paste/drop 监听 → 派发 `clipboard-image` 事件
 useClipboardImages()
@@ -847,35 +811,7 @@ async function handleBrandAnalyzerSubmit() {
               <span>{{ activeSkill.name }}</span>
               <button class="skill-chip-close" @click="canvasStore.setActiveSkillId(null)">&times;</button>
             </div>
-            <!-- Phase 4 · Task 17：组件库下拉 -->
-            <div class="comp-library-wrap">
-              <button
-                class="input-action-btn"
-                :class="{ active: showComponentLibrary || canvasStore.components.length > 0 }"
-                :title="`组件库 (${canvasStore.components.length})`"
-                @click="showComponentLibrary = !showComponentLibrary"
-              >🧩</button>
-              <div v-if="showComponentLibrary" class="comp-library-popover" @click.stop>
-                <div class="comp-lib-header">
-                  <span>组件库 ({{ canvasStore.components.length }})</span>
-                  <button class="chip-clear" @click="showComponentLibrary = false">×</button>
-                </div>
-                <div v-if="canvasStore.components.length === 0" class="comp-lib-empty">
-                  暂无组件。在画板上右键 → "另存为组件" 添加。
-                </div>
-                <div v-else class="comp-lib-list">
-                  <div
-                    v-for="c in canvasStore.components"
-                    :key="c.id"
-                    class="comp-lib-item"
-                    @click="insertComponent(c.name, c.html)"
-                  >
-                    <span class="comp-lib-name">🧩 {{ c.name }}</span>
-                    <span class="comp-lib-meta">{{ new Date(c.createdAt).toLocaleDateString() }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <!-- Phase 4 · Task 17：组件库下拉 已移除 -->
             <button class="input-action-btn" :class="{ active: !!activeSkill }" title="选择设计场景" @click="showSkillSelector = !showSkillSelector">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
             </button>
@@ -1096,16 +1032,7 @@ async function handleBrandAnalyzerSubmit() {
 .chat-input-hint { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; color: var(--text-tertiary, #888); }
 .chat-input-hint-sep { opacity: 0.5; }
 
-/* Phase 4 · Task 17：组件库下拉 */
-.comp-library-wrap { position: relative; }
-.comp-library-popover { position: absolute; bottom: calc(100% + 8px); right: 0; width: 280px; max-height: 320px; overflow-y: auto; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 10; }
-.comp-lib-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--border-default); font-size: 12px; font-weight: 600; color: var(--text-primary); }
-.comp-lib-empty { padding: 16px; font-size: 12px; color: var(--text-muted); text-align: center; }
-.comp-lib-list { display: flex; flex-direction: column; }
-.comp-lib-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; cursor: pointer; transition: background 0.1s; }
-.comp-lib-item:hover { background: rgba(129,140,248,0.15); }
-.comp-lib-name { font-size: 12px; color: var(--text-primary); }
-.comp-lib-meta { font-size: 10px; color: var(--text-muted); }
+/* Phase 4 · Task 17：组件库下拉（已移除） */
 
 .blueprint-card { background: rgba(22, 33, 62, 0.9); border: 1px solid var(--border-subtle); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
 .blueprint-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-primary); }
@@ -1135,8 +1062,8 @@ async function handleBrandAnalyzerSubmit() {
 .spec-summary-emoji { font-size: 14px; }
 .spec-summary-name { font-size: 11px; color: var(--color-primary-light); padding: 1px 6px; border-radius: 6px; background: rgba(94, 106, 210, 0.15); }
 .spec-summary-direction { font-size: 11px; color: var(--text-secondary); padding: 1px 6px; border-radius: 6px; background: rgba(255,255,255,0.06); }
-.spec-summary-steps { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
-.spec-summary-step { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 7px; }
+.spec-summary-steps { display: flex; gap: 6px; margin-top: 8px; overflow-x: auto; scrollbar-width: thin; }
+.spec-summary-step { background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 6px 7px; flex: 0 0 120px; min-width: 120px; }
 .spec-step-head { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-primary); font-weight: 500; }
 .spec-step-icon { font-size: 12px; }
 .spec-step-body { margin-top: 4px; }

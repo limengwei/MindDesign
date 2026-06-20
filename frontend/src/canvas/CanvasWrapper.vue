@@ -7,8 +7,6 @@ import { ScrollBar } from '@leafer-in/scroll'
 import { toPng } from 'html-to-image'
 import { DotGrid } from './dotGrid'
 import SvgIcon from '../components/SvgIcon.vue'
-import VersionHistory from '../components/VersionHistory.vue'
-import ComponentLibrary from '../components/ComponentLibrary.vue'
 import { useCanvasStore, type CanvasCard, type Page } from '../stores/canvasStore'
 import { saveProject } from '../stores/autoSave'
 import { fetchProxiedImage } from '../services/projectBridge'
@@ -20,6 +18,7 @@ const emit = defineEmits<{
   previewCard: [cardId: string]
   exportPngCurrent: []
   newPage: []
+  viewHistory: []
 }>()
 
 const confirmState = ref<{ show: boolean; cardId: string; message: string }>({
@@ -64,40 +63,11 @@ let renderVersion = 0
 let appTapEventId: any = null
 const cardEventIds = new Map<string, any>()
 
-// Phase 3：右键菜单
-const contextMenu = ref<{ show: boolean; x: number; y: number }>({
-  show: false, x: 0, y: 0,
-})
-const contextMenuRef = ref<HTMLDivElement | null>(null)
-function onDocMouseDown(e: MouseEvent) {
-  if (!contextMenu.value.show) return
-  const el = contextMenuRef.value
-  if (el && e.target instanceof Node && el.contains(e.target)) return
-  closeContextMenu()
-}
-function onDocKeyDown(e: KeyboardEvent) {
-  if (!contextMenu.value.show) return
-  if (e.key === 'Escape') {
-    e.preventDefault()
-    closeContextMenu()
-  }
-}
-function onCanvasWheel() {
-  if (contextMenu.value.show) closeContextMenu()
-}
 // 变体对话框
 const variantsModal = ref<{ show: boolean; pageId: string; busy: boolean; error: string | null }>({
   show: false, pageId: '', busy: false, error: null,
 })
 const variantsList = ref<Array<{ html: string; screenshot: string; name?: string; dimension?: string; critique?: string }>>([])
-// Phase 4：版本历史弹窗
-const versionHistory = ref<{ show: boolean; pageId: string }>({ show: false, pageId: '' })
-// Phase 4：另存为组件对话框
-const saveComponent = ref<{ show: boolean; html: string; defaultName: string; source: 'page' }>({ show: false, html: '', defaultName: '', source: 'page' })
-const componentNameInput = ref('')
-const componentCategoryInput = ref('')
-// Phase 4：组件库面板
-const showComponentLibrary = ref(false)
 
 onMounted(() => {
   if (!containerRef.value) return
@@ -145,10 +115,6 @@ onMounted(() => {
   })
   resizeObserver.observe(containerRef.value)
 
-  document.addEventListener('mousedown', onDocMouseDown)
-  document.addEventListener('keydown', onDocKeyDown)
-  containerRef.value.addEventListener('wheel', onCanvasWheel, { passive: true })
-
   nextTick(() => {
     if (canvasStore.cards.length > 0) renderAll()
   })
@@ -161,9 +127,6 @@ onUnmounted(() => {
   cardGroups.clear()
   cardEventIds.clear()
   if (app && appTapEventId) { app.off_(appTapEventId); appTapEventId = null }
-  document.removeEventListener('mousedown', onDocMouseDown)
-  document.removeEventListener('keydown', onDocKeyDown)
-  containerRef.value?.removeEventListener('wheel', onCanvasWheel)
   app?.destroy(); app = null; treeLayer = null; skyLayer = null
 })
 
@@ -441,11 +404,6 @@ function buildCardFrame(card: CanvasCard, selected: boolean, isGenerating: boole
   if (oldCardEvtId) frame.off_(oldCardEvtId)
   const eventId = frame.on_(PointerEvent.TAP, (e: PointerEvent) => {
     canvasStore.selectCard(card.id)
-  })
-  // 右键菜单
-  frame.on_(PointerEvent.MENU, (e: any) => {
-    e?.preventDefault?.()
-    showContextMenuForPage(card.id, e?.x ?? 0, e?.y ?? 0)
   })
   cardEventIds.set(card.id, eventId)
 
@@ -735,16 +693,6 @@ function handleAddPage() {
   renderAll()
 }
 
-function handleRemovePage(id: string) {
-  if (canvasStore.pages.length <= 1) {
-    alert('至少保留一个画板')
-    return
-  }
-  if (!confirm('确定删除该画板？')) return
-  canvasStore.removePage(id)
-  renderAll()
-}
-
 const editingPageName = ref<{ id: string; value: string } | null>(null)
 function startRenamePage(id: string) {
   const p = canvasStore.pages.find(pg => pg.id === id)
@@ -768,117 +716,12 @@ function finishRenamePage() {
   renderAll()
 }
 
-// ── Phase 3：右键菜单 ──
-function showContextMenuForPage(pageId: string, x: number, y: number) {
-  canvasStore.setCurrentPage(pageId)
-  contextMenu.value = {
-    show: true,
-    x: Math.max(20, Math.min(x, (containerRef.value?.clientWidth ?? 600) - 220)),
-    y: Math.max(20, y - 60),
-  }
-}
-function closeContextMenu() { contextMenu.value.show = false }
-
-// Phase 4：查看历史
-function handleViewHistory() {
-  const pageId = canvasStore.currentPageId
-  if (!pageId) return
-  contextMenu.value.show = false
-  versionHistory.value = { show: true, pageId }
-}
-function closeVersionHistory() { versionHistory.value = { show: false, pageId: '' } }
-
-// Phase 4 · Task 17：从组件库"插入到 prompt"：把组件名+html 注入到全局事件
-//   监听者（ChatPanel）会读取并把组件清单写入 system prompt
-function onInsertComponentToPrompt(c: { id: string; name: string; html: string }) {
-  window.dispatchEvent(new CustomEvent('md:insert-component', { detail: c }))
-  showComponentLibrary.value = false
-}
-
-// Phase 4：另存为组件（画板整体）
-function handleSaveAsComponent() {
-  const page = currentPage.value
-  if (!page) return
-  contextMenu.value.show = false
-  saveComponent.value = {
-    show: true,
-    html: page.html,
-    defaultName: page.name || '新组件',
-    source: 'page',
-  }
-  componentNameInput.value = page.name || '新组件'
-  componentCategoryInput.value = ''
-}
-function closeSaveComponent() { saveComponent.value = { show: false, html: '', defaultName: '', source: 'page' } }
-function confirmSaveComponent() {
-  const name = componentNameInput.value.trim()
-  if (!name) return
-  const cat = componentCategoryInput.value.trim() || undefined
-  const c = canvasStore.addComponent({
-    name,
-    html: saveComponent.value.html,
-    designSpecId: canvasStore.designSpecId,
-    ...(cat ? { props: { __category: cat } } : {}),
-  })
-  if (cat && c) (c as any).category = cat
-  closeSaveComponent()
-  alert(`组件 "${name}" 已加入组件库`)
-}
-
-// Phase 4：拖拽组件到画布 → 实例化（注入到当前画板）
-function onContainerDragOver(e: DragEvent) {
-  if (!e.dataTransfer) return
-  const types = Array.from(e.dataTransfer.types || [])
-  if (types.includes('application/x-md-component')) {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'copy'
-  }
-}
-async function onContainerDrop(e: DragEvent) {
-  if (!e.dataTransfer) return
-  const compId = e.dataTransfer.getData('application/x-md-component')
-  if (!compId) return
-  e.preventDefault()
-  const comp = canvasStore.getComponent(compId)
-  if (!comp) return
-  const page = currentPage.value
-  if (!page) return
-  // 任务规约：instantiate(componentId) → 将组件 HTML 注入到当前画板
-  // 简单策略：把组件 html 追加到当前 page.html 末尾
-  const injected = injectComponentHtml(page.html, comp.html)
-  if (injected) {
-    canvasStore.updateCardContent(page.id, injected, page.screenshot)
-    await saveProject()
-    alert(`已注入组件：${comp.name}`)
-  }
-}
-
-function injectComponentHtml(pageHtml: string, compHtml: string): string {
-  if (!compHtml) return pageHtml
-  // 若 compHtml 已经是完整 HTML 文档（含 <!DOCTYPE / <html>），则整体替换 body
-  if (/<!DOCTYPE/i.test(compHtml) || /<html[\s>]/i.test(compHtml)) {
-    // 抽取 <body> 内的内容
-    const bodyMatch = compHtml.match(/<body[^>]*>([\s\S]*)<\/body>/i)
-    const inner = bodyMatch ? bodyMatch[1] : compHtml
-    if (/<body[^>]*>/i.test(pageHtml)) {
-      return pageHtml.replace(/<body([^>]*)>([\s\S]*)<\/body>/i, (_m, attrs, body) => `<body${attrs}>${body}\n${inner}\n</body>`)
-    }
-    return pageHtml + '\n' + inner
-  }
-  // 否则直接 append 到 </body> 前 / 末尾
-  if (/<\/body>/i.test(pageHtml)) {
-    return pageHtml.replace(/<\/body>/i, compHtml + '\n</body>')
-  }
-  return pageHtml + '\n' + compHtml
-}
-
 // ── Phase 3：变体生成 ──
 async function handleGenerateVariants() {
   const pageId = canvasStore.currentPageId
   if (!pageId) return
   const page = canvasStore.pages.find(p => p.id === pageId)
   if (!page) return
-  contextMenu.value.show = false
   variantsModal.value = { show: true, pageId, busy: true, error: null }
   variantsList.value = []
   try {
@@ -1035,8 +878,6 @@ function updateCardLabelText(cardId: string, label: string) {
     <div
       ref="containerRef"
       class="canvas-container"
-      @dragover="onContainerDragOver"
-      @drop="onContainerDrop"
     ></div>
 
     <div v-if="selectedCard" class="action-bar">
@@ -1053,6 +894,7 @@ function updateCardLabelText(cardId: string, label: string) {
       <button class="action-btn action-export" @click="emit('exportCard', selectedCard!.id)"><SvgIcon name="file_export" :size="16" class="action-icon" />导出</button>
       <button class="action-btn action-refresh" @click="refreshCard(selectedCard!.id)"><SvgIcon name="refresh" :size="16" class="action-icon" />刷新</button>
       <button class="action-btn action-variants" @click="handleGenerateVariants" title="生成 3 个变体">🎨 变体</button>
+      <button class="action-btn action-history" @click="emit('viewHistory')" title="查看历史"><SvgIcon name="history" :size="16" class="action-icon" />历史</button>
       <button class="action-btn action-delete" @click="showConfirm(selectedCard!.id)"><SvgIcon name="delete" :size="16" class="action-icon" />删除</button>
     </div>
 
@@ -1082,23 +924,6 @@ function updateCardLabelText(cardId: string, label: string) {
           <button class="btn btn-danger" @click="confirmDelete">删除</button>
         </div>
       </div>
-    </div>
-
-    <!-- Phase 3：画板右键菜单 -->
-    <div
-      v-if="contextMenu.show"
-      ref="contextMenuRef"
-      class="context-menu"
-      :style="{ left: contextMenu.x + 'px', top: contextMenu.y + 'px' }"
-      @click.stop
-    >
-      <div class="context-menu-item" @click="handleGenerateVariants">🎨 生成 3 个变体</div>
-      <div class="context-menu-item" @click="handleSaveAsComponent">🧩 另存为组件（整页）</div>
-      <div class="context-menu-sep"></div>
-      <div class="context-menu-item" @click="handleViewHistory">📜 查看历史</div>
-      <div class="context-menu-item" @click="() => { closeContextMenu(); showComponentLibrary = true }">📚 打开组件库</div>
-      <div class="context-menu-sep"></div>
-      <div class="context-menu-item danger" @click="() => { closeContextMenu(); if (canvasStore.currentPageId) handleRemovePage(canvasStore.currentPageId) }">🗑 删除画板</div>
     </div>
 
     <!-- Phase 3：变体对话框 -->
@@ -1133,51 +958,6 @@ function updateCardLabelText(cardId: string, label: string) {
         </div>
       </div>
     </div>
-
-    <!-- Phase 4：版本历史弹窗 -->
-    <VersionHistory
-      v-if="versionHistory.show"
-      :page-id="versionHistory.pageId"
-      @close="closeVersionHistory"
-    />
-
-    <!-- Phase 4：另存为组件对话框 -->
-    <div v-if="saveComponent.show" class="save-comp-overlay" @click.self="closeSaveComponent">
-      <div class="save-comp-modal">
-        <div class="save-comp-header">
-          <h3>🧩 另存为组件（整页）</h3>
-          <button class="save-comp-close" @click="closeSaveComponent">×</button>
-        </div>
-        <div class="save-comp-body">
-          <label class="save-comp-label">组件名称</label>
-          <input
-            v-model="componentNameInput"
-            class="save-comp-input"
-            placeholder="如：PrimaryButton、CardHeader"
-            @keyup.enter="confirmSaveComponent"
-          />
-          <label class="save-comp-label" style="margin-top:10px">分类（可选，如"按钮 / 卡片 / 导航"）</label>
-          <input
-            v-model="componentCategoryInput"
-            class="save-comp-input"
-            placeholder="按钮 / 卡片 / 导航 / ..."
-            @keyup.enter="confirmSaveComponent"
-          />
-          <p class="save-comp-hint">当前画板的完整 HTML 会被保存到组件库，可在 prompt 中复用。</p>
-          <div class="save-comp-actions">
-            <button class="btn btn-secondary" @click="closeSaveComponent">取消</button>
-            <button class="btn btn-primary" :disabled="!componentNameInput.trim()" @click="confirmSaveComponent">保存</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Phase 4：组件库面板 -->
-    <ComponentLibrary
-      v-if="showComponentLibrary"
-      @close="showComponentLibrary = false"
-      @insert-to-prompt="onInsertComponentToPrompt"
-    />
   </div>
 </template>
 
@@ -1218,6 +998,7 @@ function updateCardLabelText(cardId: string, label: string) {
 .action-export { background: rgba(16,185,129,0.85); }
 .action-refresh { background: rgba(79,70,229,0.85); }
 .action-variants { background: rgba(236,72,153,0.85); }
+.action-history { background: rgba(245,158,11,0.85); }
 .action-delete { background: rgba(239,68,68,0.85); }
 
 .card-id-bar { position: absolute; top: 144px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; align-items: center; gap: 6px; padding: 3px 12px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; backdrop-filter: blur(8px); }
@@ -1226,14 +1007,6 @@ function updateCardLabelText(cardId: string, label: string) {
 .card-id-copy-btn { position: relative; border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 2px; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
 .card-id-copy-btn:hover { color: var(--color-primary-light); background: rgba(129, 140, 248, 0.1); }
 .copy-tooltip { position: absolute; top: -22px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #34d399; white-space: nowrap; background: rgba(15, 23, 42, 0.9); padding: 2px 8px; border-radius: 4px; pointer-events: none; }
-
-/* Phase 3：context menu */
-.context-menu { position: absolute; z-index: 50; min-width: 200px; background: rgba(22,33,62,0.96); border: 1px solid rgba(129,140,248,0.3); border-radius: 8px; padding: 4px; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
-.context-menu-item { padding: 8px 12px; font-size: 13px; color: #e2e8f0; cursor: pointer; border-radius: 4px; }
-.context-menu-item:hover { background: rgba(129,140,248,0.15); }
-.context-menu-item.danger { color: #fca5a5; }
-.context-menu-item.danger:hover { background: rgba(239,68,68,0.15); }
-.context-menu-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
 
 /* Phase 3：variants modal */
 .variants-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; }
@@ -1261,20 +1034,7 @@ function updateCardLabelText(cardId: string, label: string) {
 .variant-adopt-btn { margin-top: 6px; padding: 6px 12px; border-radius: 6px; border: none; background: var(--color-primary); color: #fff; font-size: 12px; cursor: pointer; font-family: inherit; }
 .variant-adopt-btn:hover { background: var(--color-primary-hover); }
 
-/* Phase 4：另存为组件对话框 */
-.save-comp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.save-comp-modal { width: 440px; max-width: 92vw; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: 12px; box-shadow: 0 12px 48px rgba(0,0,0,0.5); overflow: hidden; }
-.save-comp-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border-default); }
-.save-comp-header h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 0; }
-.save-comp-close { width: 28px; height: 28px; border-radius: 50%; background: var(--border-default); color: var(--text-secondary); border: none; font-size: 16px; cursor: pointer; }
-.save-comp-body { padding: 20px; }
-.save-comp-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
-.save-comp-input { width: 100%; padding: 8px 12px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: inherit; outline: none; box-sizing: border-box; }
-.save-comp-input:focus { border-color: var(--color-primary); }
-.save-comp-hint { font-size: 11px; color: var(--text-muted); margin: 8px 0 16px; line-height: 1.5; }
-.save-comp-actions { display: flex; gap: 8px; justify-content: flex-end; }
 .btn { padding: 6px 16px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; border: 1px solid transparent; }
 .btn-secondary { background: transparent; border-color: var(--border-default); color: var(--text-secondary); }
-.btn-primary { background: var(--color-primary); color: #fff; }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-danger { background: var(--color-danger, #ef4444); color: #fff; }
 </style>

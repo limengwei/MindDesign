@@ -321,7 +321,6 @@ async function downloadSharePackage() {
       },
       cards: canvasStore.cards,
       sessions: canvasStore.pages,
-      components: canvasStore.components,
       llmConfig: config,
     })
     const base64 = await blobToBase64(blob)

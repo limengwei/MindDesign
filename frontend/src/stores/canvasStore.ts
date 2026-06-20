@@ -61,21 +61,6 @@ export interface Version {
   version: number
 }
 
-/** Phase 4：组件库条目 */
-export interface Component {
-  id: string
-  name: string
-  html: string
-  /** 简单 props 描述（可选） */
-  props?: Record<string, string>
-  /** 关联的设计规范 id（用于分组） */
-  designSpecId?: string
-  createdAt: string
-}
-
-/** Phase 4 · Task 17 规约：ComponentInstance 别名（与 Component 同义） */
-export type ComponentInstance = Component
-
 /** Phase 3：画板（多页项目） */
 export interface Page {
   id: string
@@ -105,12 +90,10 @@ let _cardCounter = 0
 let _pageCounter = 0
 let _variantCounter = 0
 let _versionCounter = 0
-let _componentCounter = 0
 
 const STORAGE_KEY_CUSTOM_SPECS = 'minddesign.customDesignSpecs.v1'
 const STORAGE_KEY_DATA_SOURCE = 'minddesign.dataSource.v1'
 const STORAGE_KEY_DARK_MODE = 'minddesign.darkMode.v1'
-const STORAGE_KEY_COMPONENTS = 'minddesign.components.v1'
 /** 每个画板最多保留的版本数 */
 export const MAX_VERSIONS_PER_PAGE = 20
 
@@ -163,8 +146,6 @@ export const useCanvasStore = defineStore('canvas', () => {
 
   // Phase 4：全局暗色模式（仅控制 UI 主题；不影响导出 HTML）
   const isDarkMode = ref<boolean>(true)
-  // Phase 4：组件库
-  const components = ref<Component[]>([])
 
   /**
    * 当前激活的 DesignSpec（可能是内置也可能是品牌分析器生成的自定义规范）。
@@ -347,13 +328,6 @@ export const useCanvasStore = defineStore('canvas', () => {
       if (dark === 'false') isDarkMode.value = false
       else if (dark === 'true') isDarkMode.value = true
     } catch { /* ignore */ }
-    try {
-      const compRaw = localStorage.getItem(STORAGE_KEY_COMPONENTS)
-      if (compRaw) {
-        const arr = JSON.parse(compRaw) as Component[]
-        if (Array.isArray(arr)) components.value = arr
-      }
-    } catch { /* ignore */ }
   }
 
   // ── Phase 4：暗色模式 ──
@@ -368,26 +342,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     const root = document.documentElement
     if (isDarkMode.value) root.classList.add('md-theme-dark')
     else root.classList.remove('md-theme-dark')
-  }
-
-  // ── Phase 4：组件库 ──
-  function addComponent(opts: { name: string; html: string; props?: Record<string, string>; designSpecId?: string }): Component {
-    _componentCounter++
-    const c: Component = {
-      id: `comp-${Date.now()}-${_componentCounter}`,
-      name: opts.name,
-      html: opts.html,
-      props: opts.props,
-      designSpecId: opts.designSpecId,
-      createdAt: new Date().toISOString(),
-    }
-    components.value.push(c)
-    try { localStorage.setItem(STORAGE_KEY_COMPONENTS, JSON.stringify(components.value)) } catch { /* ignore */ }
-    return c
-  }
-  function removeComponent(id: string) {
-    components.value = components.value.filter(c => c.id !== id)
-    try { localStorage.setItem(STORAGE_KEY_COMPONENTS, JSON.stringify(components.value)) } catch { /* ignore */ }
   }
 
   // ── Phase 3：Pages API ──
@@ -615,17 +569,6 @@ export const useCanvasStore = defineStore('canvas', () => {
     return variant
   }
 
-  /** 组件库：按 designSpecId 过滤（任务规约命名 listComponents） */
-  function listComponents(specId?: string | null): Component[] {
-    if (!specId) return components.value
-    return components.value.filter(c => c.designSpecId === specId)
-  }
-
-  /** 组件库：按 id 取组件 */
-  function getComponent(id: string): Component | null {
-    return components.value.find(c => c.id === id) ?? null
-  }
-
   function removeVariant(pageId: string, variantId: string) {
     const p = pages.value.find(pg => pg.id === pageId)
     if (!p) return
@@ -663,7 +606,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     currentPageId.value = null
     // 保留 customDesignSpecs（用户自建资产，不随项目重置）
     // 保留 imageDataSource（用户偏好，不随项目重置）
-    // 保留 isDarkMode、components（用户偏好与库不随项目重置）
+    // 保留 isDarkMode（用户偏好，不随项目重置）
   }
 
   // 初始化主题类
@@ -676,7 +619,7 @@ export const useCanvasStore = defineStore('canvas', () => {
     // Phase 3
     pages, currentPageId, imageDataSource,
     // Phase 4
-    isDarkMode, components,
+    isDarkMode,
     addCard, updateLastCardScreenshot, updateLastCardHtml, updateCardContent, removeCard, selectCard,
     setPageType, setColorScheme, setProjectName, setViewport, setGenerating, setGeneratingCardId,
     setCurrentFilePath, setCreatedAt, setDesignSpecId, setCustomDesignContent, setActiveSkillId, setProductBlueprint, updateProductBlueprint,
@@ -686,10 +629,9 @@ export const useCanvasStore = defineStore('canvas', () => {
     // Phase 3: Pages
     addPage, removePage, renamePage, setCurrentPage, getCurrentPage, addPageFromCard,
     addVariant, adoptVariant, removeVariant,
-    // Phase 4: Versions + Components + Theme
+    // Phase 4: Versions + Theme
     addVersion, rollbackToVersion, compareVersions,
     pushVersion, getVersionTimeline, copyVersionAsVariant,
-    addComponent, removeComponent, listComponents, getComponent,
     setDarkMode, toggleDarkMode,
     reset,
   }

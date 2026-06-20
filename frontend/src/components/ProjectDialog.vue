@@ -97,7 +97,6 @@ async function handleExportShare() {
       project: projectMeta,
       pages: canvasStore.pages,
       cards: canvasStore.cards,
-      components: canvasStore.components,
     })
     const fileName = (canvasStore.projectName || 'MindDesign 项目') + '.mindshare'
     const url = URL.createObjectURL(blob)
@@ -167,7 +166,6 @@ const shareImportPageCount = computed(() => {
       <div v-if="shareImport" class="share-preview">
         <div class="share-row">📦 已加载分享包：<strong>{{ (shareImport.project as any)?.name || '未命名' }}</strong></div>
         <div class="share-row">画板数：{{ shareImportPageCount }}</div>
-        <div class="share-row">组件数：{{ Array.isArray(shareImport.components) ? shareImport.components.length : 0 }}</div>
         <div class="share-row-actions">
           <button class="btn btn-secondary" @click="showSharePreview = true">🔍 预览</button>
           <button class="btn btn-secondary" @click="shareImport = null">取消导入</button>

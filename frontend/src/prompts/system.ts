@@ -90,12 +90,6 @@ const REFERENCE_IMAGE_PROTOCOL = `
 3. 描述放在 HTML 之前，作为单独的段落
 `
 
-const COMPONENT_PRIORITY_PROTOCOL = `
-## 组件优先
-
-当用户组件库非空时（见上方"组件清单"段），请**优先复用**已存在的组件；如需新组件，请先询问用户或明确说明"新增组件"。生成的 HTML 应当尽可能与已有组件风格保持一致。
-`
-
 export function buildSystemPrompt(
   pageType: PageType,
   colorScheme: ColorScheme,
@@ -106,7 +100,6 @@ export function buildSystemPrompt(
   blueprint?: ProductBlueprint | null,
   direction?: VisualDirection | null,
   brandAsset?: BrandAsset | null,
-  components?: { name: string; html: string }[] | null,
 ): string {
   const designSpecSection = buildDesignSpecPrompt(designSpecId, customDesignContent)
   const skillSection = skill?.systemPromptAddons ? `\n${skill.systemPromptAddons}\n` : ''
@@ -117,10 +110,6 @@ export function buildSystemPrompt(
   // 品牌资产（结构化 token JSON）：优先级低于 designSpec.fullPrompt（叙述式），高于内置默认
   const brandAssetSection = brandAsset
     ? `\n## 品牌资产（结构化 token）\n\n以下是该规范的结构化 token，**必须严格按这些数值生成 CSS**：\n\n\`\`\`json\n${brandAssetToPromptJSON(brandAsset)}\n\`\`\`\n`
-    : ''
-  // 组件清单（Phase 4 · Task 17）
-  const componentsSection = (components && components.length > 0)
-    ? `\n## 组件清单\n\n项目已有以下组件，请在生成新页面时优先复用：\n${components.map((c, i) => `${i + 1}. **${c.name}** —— \`\`\`html\n${c.html}\n\`\`\``).join('\n\n')}\n`
     : ''
 
   return `你是 MindDesign 的 AI 设计师助手。你通过自然语言对话为用户生成 UI 设计稿。
@@ -200,7 +189,6 @@ ${preflightSection}
 ${CRITIQUE_PROTOCOL}
 ${BLUEPRINT_PROTOCOL}
 ${blueprintSection}
-${componentsSection ? componentsSection + '\n' : ''}${componentsSection ? COMPONENT_PRIORITY_PROTOCOL + '\n' : ''}
 ${REFERENCE_IMAGE_PROTOCOL}
 ## 示例输出
 

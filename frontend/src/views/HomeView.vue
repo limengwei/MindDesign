@@ -569,7 +569,6 @@ onUnmounted(() => {
         <div v-if="shareImport" class="share-preview">
           <div class="share-row">📦 已加载分享包：<strong>{{ ((shareImport as any).project?.name) || '未命名' }}</strong></div>
           <div class="share-row">画板数：{{ Array.isArray(shareImport.sessions) ? shareImport.sessions.length : 0 }}</div>
-          <div class="share-row">组件数：{{ Array.isArray(shareImport.components) ? shareImport.components.length : 0 }}</div>
           <button class="btn btn-secondary" @click="shareImport = null">取消导入</button>
         </div>
 

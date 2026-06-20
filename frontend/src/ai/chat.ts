@@ -203,10 +203,6 @@ export interface SendMessageOptions {
   brandAsset?: BrandAsset | null
   /** Phase 3：是否使用变体生成模式（替换单 HTML 输出为多 variants 块） */
   variantsMode?: boolean
-  /** Phase 4 · Task 17：组件清单（注入到 system prompt） */
-  components?: { id?: string; name: string; html: string }[] | null
-  /** Phase 4 · Task 17：用户"已选"组件（id + name + 简短描述，注入到 system prompt） */
-  selectedComponents?: { id: string; name: string; snippet: string }[] | null
   /** Phase 4 · Task 20：参考图（dataURL 列表） */
   referenceImages?: string[]
   /** Phase 4 · Task 15：QA 报告追加（把 QA 结果追加到 system prompt） */
@@ -236,16 +232,8 @@ async function callRealLLM(userText: string, options: SendMessageOptions): Promi
     options.blueprint,
     options.direction,
     options.brandAsset,
-    options.components ?? null,
   )
 
-  // Phase 4 · Task 17：把用户"已选"组件清单追加到 system prompt
-  if (options.selectedComponents && options.selectedComponents.length > 0) {
-    systemPrompt += '\n\n## 当前用户已选组件清单（请优先使用）\n' +
-      options.selectedComponents
-        .map(c => `- [id=${c.id}] ${c.name}：${c.snippet}`)
-        .join('\n')
-  }
   // Phase 3：变体模式追加系统指令
   if (options.variantsMode) {
     systemPrompt = systemPrompt + '\n\n' + VARIANTS_PROTOCOL

@@ -190,7 +190,7 @@ onMounted(() => {
 .shortcut-row span { margin-left: 6px; }
 
 /* Phase 5 · Task 19：顶部状态条（快捷键提示） */
-.md-shortcut-bar { position: fixed; top: 12px; right: 12px; z-index: 9000; display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(20, 20, 36, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border-subtle); border-radius: 999px; font-size: 12px; color: var(--text-secondary); user-select: none; cursor: default; }
+.md-shortcut-bar { position: fixed; top: 50px; right: 12px; z-index: 9000; display: flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(20, 20, 36, 0.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--border-subtle); border-radius: 999px; font-size: 12px; color: var(--text-secondary); user-select: none; cursor: default; }
 .md-shortcut-pill { display: inline-flex; align-items: center; gap: 2px; padding: 2px 6px; background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: 6px; font-family: ui-monospace, SFMono-Regular, monospace; font-size: 11px; color: var(--text-primary); }
 .md-shortcut-pill kbd { font-family: inherit; font-size: inherit; }
 .md-shortcut-pill span { margin-left: 2px; }

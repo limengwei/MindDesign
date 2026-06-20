@@ -26,18 +26,13 @@ const pageCount = computed(() => {
   if (Array.isArray(cards)) return cards.length
   return 0
 })
-const componentCount = computed(() => Array.isArray(props.data.components) ? props.data.components.length : 0)
 
 const sessions = computed<any[]>(() => Array.isArray((props.data as any).sessions) ? (props.data as any).sessions : [])
-const components = computed<any[]>(() => Array.isArray(props.data.components) ? props.data.components : [])
 
 /** 取第一张缩略图 */
 const thumbnail = computed(() => {
   for (const s of sessions.value) {
     if (s?.screenshot) return s.screenshot
-  }
-  for (const c of components.value) {
-    if (c?.screenshot) return c.screenshot
   }
   return null
 })
@@ -59,22 +54,12 @@ function apply() {
           <div class="sp-name">{{ projectName }}</div>
           <div class="sp-meta">
             <span class="sp-meta-item">📐 画板：<strong>{{ pageCount }}</strong></span>
-            <span class="sp-meta-item">🧩 组件：<strong>{{ componentCount }}</strong></span>
           </div>
         </div>
         <div v-if="thumbnail" class="sp-thumb">
           <img :src="thumbnail" :alt="projectName" />
         </div>
         <div v-else class="sp-thumb-empty">暂无预览图</div>
-        <div v-if="components.length > 0" class="sp-component-list">
-          <div class="sp-section-title">组件列表</div>
-          <div class="sp-chips">
-            <div v-for="c in components.slice(0, 24)" :key="c.id" class="sp-chip">
-              {{ c.name || c.id }}
-            </div>
-            <div v-if="components.length > 24" class="sp-chip more">+{{ components.length - 24 }}</div>
-          </div>
-        </div>
         <div v-if="sessions.length > 0" class="sp-session-list">
           <div class="sp-section-title">画板列表</div>
           <div class="sp-sessions">
@@ -112,9 +97,6 @@ function apply() {
 .sp-thumb img { width: 100%; height: 100%; object-fit: contain; }
 .sp-thumb-empty { width: 100%; aspect-ratio: 16 / 9; background: var(--bg-surface); border: 1px dashed var(--border-default); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; }
 .sp-section-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
-.sp-chips { display: flex; flex-wrap: wrap; gap: 4px; }
-.sp-chip { padding: 3px 8px; border-radius: 4px; background: var(--bg-surface); border: 1px solid var(--border-default); font-size: 11px; color: var(--text-secondary); }
-.sp-chip.more { color: var(--text-muted); }
 .sp-sessions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .sp-session { display: flex; flex-direction: column; gap: 4px; }
 .sp-session-thumb { aspect-ratio: 16 / 10; background: #fff; border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; }

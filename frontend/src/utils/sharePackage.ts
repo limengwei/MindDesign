@@ -22,8 +22,6 @@ export interface ShareableProjectData {
   sessions: unknown
   /** Phase 3 新版：pages 数组（替代 cards） */
   pages?: unknown
-  /** 组件库 */
-  components?: unknown
   /** 去除 apiKey 后的 LLM 配置 */
   llmConfig?: {
     protocol: string
@@ -38,7 +36,6 @@ const SHARE_PROJECT = 'project.json'
 const SHARE_CARDS = 'cards.json'
 const SHARE_SESSIONS = 'sessions.json'
 const SHARE_PAGES = 'pages.json'
-const SHARE_COMPONENTS = 'components.json'
 const SHARE_LLM_CONFIG = 'llm-config.json'
 const SHARE_INDEX_HTML = 'index.html'
 const SHARE_README = 'README.txt'
@@ -266,9 +263,6 @@ export async function exportSharePackage(
   if (pagesRewritten !== undefined) {
     zip.file(SHARE_PAGES, JSON.stringify(stripSecrets(pagesRewritten), null, 2))
   }
-  if (projectData.components !== undefined) {
-    zip.file(SHARE_COMPONENTS, JSON.stringify(projectData.components, null, 2))
-  }
   // llmConfig 严格脱敏
   const llm = sanitizeLlmConfig(projectData.llmConfig)
   if (llm) {
@@ -327,8 +321,6 @@ export async function importSharePackage(blob: Blob): Promise<ShareableProjectDa
   if (sessionsRaw) data.sessions = JSON.parse(sessionsRaw)
   const pagesRaw = await zip.file(SHARE_PAGES)?.async('string')
   if (pagesRaw) data.pages = JSON.parse(pagesRaw)
-  const componentsRaw = await zip.file(SHARE_COMPONENTS)?.async('string')
-  if (componentsRaw) data.components = JSON.parse(componentsRaw)
   const llmRaw = await zip.file(SHARE_LLM_CONFIG)?.async('string')
   if (llmRaw) data.llmConfig = JSON.parse(llmRaw)
   return data
